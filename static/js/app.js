@@ -444,6 +444,16 @@ async function renderMemberProfile(memberId) {
         <p><strong>Address:</strong> <span class="input-readonly" id="ro-address">${m.address || '-'}</span></p>
         ${own ? `<div style="margin-top:8px;"><button class="btn" id="self-edit-btn">Edit Profile</button></div>` : ''}
       </div>
+      <div class="profile-summary">
+        <p><strong>Joined:</strong> ${formatDate(m.joined_date)}</p>
+        <p><strong>Deposit:</strong> ${formatCurrency(m.deposit_amount)}</p>
+        <p><strong>Role:</strong> ${m.is_admin ? 'Admin' : 'Member'}</p>
+        <div class="stats-grid" style="margin-top:8px">
+          <div class="stat-card"><strong>${m.contributions.length}</strong><span>Total Contributions</span></div>
+          <div class="stat-card"><strong>${m.loans.length}</strong><span>Loans</span></div>
+          <div class="stat-card"><strong>${m.dues.filter(d => !d.paid).length}</strong><span>Unpaid Dues</span></div>
+        </div>
+      </div>
     </div>
   `
   const requestsHtml = m.payment_requests && m.payment_requests.length ? `
@@ -471,43 +481,41 @@ async function renderMemberProfile(memberId) {
     <div class="panel">
       ${profileFields}
       ${adminEdit}
-      <div class="panel" style="margin-top:12px;">
-        <h3>Submit Payment / Receipt</h3>
-        <div class="input-row"><select id="pay-type"><option value="share">Share</option><option value="loan">Loan payment</option></select></div>
-        <div class="input-row"><input id="pay-amount" type="number" placeholder="Amount" /></div>
-        <div class="input-row"><input id="pay-note" placeholder="Note (optional)" /></div>
-        <div class="input-row"><input id="pay-screenshot" type="file" accept="image/*" /></div>
-        <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
-      </div>
-      <div class="grid-2" style="margin-top:18px;">
+      <div class="grid-2" style="margin-top:18px; gap:20px;">
         <div>
-          <h3>Summary</h3>
-          <p><strong>Joined:</strong> ${formatDate(m.joined_date)}</p>
-          <p><strong>Deposit:</strong> ${formatCurrency(m.deposit_amount)}</p>
-          <p><strong>Role:</strong> ${m.is_admin ? 'Admin' : 'Member'}</p>
+          <div class="panel compact-panel">
+            <h3>Submit Payment / Receipt</h3>
+            <div class="input-row">
+              <label style="flex-basis:100%">Share Amount *</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="number" min="0" step="0.01" placeholder="0" /></div>
+            </div>
+            <div class="input-row">
+              <label style="flex-basis:100%">Loan Amount (optional)</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="number" min="0" step="0.01" placeholder="0" /></div>
+            </div>
+            <div class="input-row small-row">
+              <label style="flex-basis:100%">Payment Date</label>
+              <input id="pay-txn-date" type="date" value="" />
+            </div>
+            <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
+            <div class="input-row"><input id="pay-screenshot" type="file" accept="image/*" /></div>
+            <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
+          </div>
         </div>
-        <div class="stats-grid">
-          <div class="stat-card"><strong>${m.contributions.length}</strong><span>Total Contributions</span></div>
-          <div class="stat-card"><strong>${m.loans.length}</strong><span>Loans</span></div>
-          <div class="stat-card"><strong>${m.dues.filter(d => !d.paid).length}</strong><span>Unpaid Dues</span></div>
-        </div>
-      </div>
-      <div class="grid-2" style="margin-top:18px;">
-        <div class="panel">
-          <h3>Actions</h3>
-          ${canManage ? `
-            <div class="input-row"><input id="share-amount" type="number" placeholder="₹500" value="500" /></div>
-              <div class="input-row"><label>Date</label><input id="share-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
-              <button class="btn primary" onclick="handlePayShare(${m.id})">Request Share Payment</button>
-            <div class="input-row" style="margin-top:14px;"><input id="loan-amount" type="number" placeholder="Loan amount" /><input id="loan-term" type="number" placeholder="Term months" value="12" /></div>
-              <div class="input-row"><label>Loan payment date</label><input id="loan-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
-            <button class="btn primary" onclick="handleApplyLoan(${m.id})">Apply Loan</button>
-          ` : '<p>This member profile is view-only.</p>'}
-        </div>
-        <div class="panel">
-          <h3>Contribution History</h3>
-          ${contributionHeader}
-          <table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Type</th></tr></thead><tbody>${[...deposits, ...shares].map(c => `<tr><td>${formatDate(c.date)}</td><td>${formatCurrency(c.amount)}</td><td>${c.type}</td></tr>`).join('')}</tbody></table>
+        <div>
+          <div class="panel">
+            <h3>Actions</h3>
+            ${canManage ? `
+              <div class="input-row"><label style="flex-basis:100%">Request Loan</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="number" placeholder="Loan amount" min="0" step="0.01" /></div></div>
+              <div class="input-row"><label style="flex-basis:100%">Upload document (mandatory)</label><input id="request-loan-file" type="file" accept="image/*" /></div>
+              <button class="btn primary" id="request-loan-btn">Request Loan</button>
+            ` : '<p>This member profile is view-only.</p>'}
+          </div>
+          <div class="panel" style="margin-top:12px;">
+            <h3>Contribution History</h3>
+            ${contributionHeader}
+            <table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Type</th></tr></thead><tbody>${[...deposits, ...shares].map(c => `<tr><td>${formatDate(c.date)}</td><td>${formatCurrency(c.amount)}</td><td>${c.type}</td></tr>`).join('')}</tbody></table>
+          </div>
         </div>
       </div>
       <div class="grid-2" style="margin-top:18px;">
@@ -646,6 +654,23 @@ async function renderMemberProfile(memberId) {
     }
     if (submitPaymentBtnTop) {
       submitPaymentBtnTop.onclick = () => handleSubmitPayment(m.id)
+    }
+    // loan request button handler (single numeric field, file mandatory)
+    const requestLoanBtn = document.getElementById('request-loan-btn')
+    if (requestLoanBtn) {
+      requestLoanBtn.onclick = async () => {
+        const amt = Number(document.getElementById('request-loan-amount').value) || 0
+        const fileInp = document.getElementById('request-loan-file')
+        if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
+        if (!fileInp || !fileInp.files || !fileInp.files[0]) { showToast('Please attach a document', 'error'); return }
+        const fd = new FormData()
+        fd.append('amount', amt)
+        fd.append('type', 'loan')
+        fd.append('note', 'Loan request via UI')
+        fd.append('screenshot', fileInp.files[0])
+        const res = await fetch(`/api/members/${m.id}/submit_payment_request`, {method:'POST', body: fd})
+        if (res.ok) { showToast('Loan request submitted', 'success'); renderMemberProfile(m.id) } else { const e = await res.json().catch(()=>({})); showToast(e.error||'Failed','error') }
+      }
     }
     // Admin edit toggle: render admin form when requested
     const adminToggle = document.getElementById('admin-edit-toggle')
@@ -794,26 +819,44 @@ async function handleCancelRequest(memberId, reqId) {
 window.handleCancelRequest = handleCancelRequest
 
 async function handleSubmitPayment(memberId) {
-  const amount = Number(document.getElementById('pay-amount').value)
-  const type = document.getElementById('pay-type').value
+  const shareAmount = Number(document.getElementById('share-amount-input').value) || 0
+  const loanAmount = Number(document.getElementById('loan-amount-input').value) || 0
   const note = document.getElementById('pay-note').value
   const file = document.getElementById('pay-screenshot').files[0]
-  if (!amount || amount <= 0) { showToast(t('Enter amount'), 'error'); return }
-  // validate txn date if present
-  const shareDateInput = document.getElementById('share-date')
-  if (shareDateInput && shareDateInput.value && new Date(shareDateInput.value) > new Date()) { showToast('Txn date cannot be in the future', 'error'); return }
-  const fd = new FormData()
-  fd.append('amount', amount)
-  fd.append('type', type)
-  fd.append('note', note)
-  if (file) fd.append('screenshot', file)
-  const res = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd})
-  if (res.ok) {
+  // Share amount is mandatory
+  if (!shareAmount || shareAmount <= 0) { showToast('Share amount is required', 'error'); return }
+  // submit share payment request
+  try {
+    const fd1 = new FormData()
+    fd1.append('amount', shareAmount)
+    fd1.append('type', 'share')
+    fd1.append('note', note)
+    if (file) fd1.append('screenshot', file)
+    const res1 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd1})
+    if (!res1.ok) {
+      const e = await res1.json().catch(()=>({error:'failed'}))
+      showToast(e.error || 'Failed to submit share request', 'error')
+      return
+    }
+    // if loan amount also provided, submit a separate loan request
+    if (loanAmount && loanAmount > 0) {
+      const fd2 = new FormData()
+      fd2.append('amount', loanAmount)
+      fd2.append('type', 'loan')
+      fd2.append('note', note)
+      // do not re-attach screenshot to avoid duplicating large upload; attach if explicitly desired
+      const res2 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd2})
+      if (!res2.ok) {
+        const e = await res2.json().catch(()=>({error:'failed'}))
+        showToast(e.error || 'Share submitted; loan request failed', 'warn')
+        renderMemberProfile(memberId)
+        return
+      }
+    }
     showToast(t('Submitted for approval'), 'success')
     renderMemberProfile(memberId)
-  } else {
-    const err = await res.json().catch(()=>({error:'failed'}))
-    showToast(err.error || 'Submit failed', 'error')
+  } catch (err) {
+    showToast((err && err.message) || 'Submit failed', 'error')
   }
 }
 

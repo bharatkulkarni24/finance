@@ -130,6 +130,21 @@ body {
   box-shadow: 0 30px 60px rgba(8, 17, 36, 0.35);
 }
 
+/* Compact variant for forms */
+.compact-panel { padding: 14px; border-radius: 14px }
+.compact-panel h3 { margin: 0 0 8px; font-size: 1rem }
+.small-row input, .small-row select { padding: 8px 10px; font-size: 0.95rem }
+.input-row label { font-size: 0.9rem }
+
+/* layout tweaks for profile summary and actions */
+.grid-2 { align-items:start }
+.profile-card { align-items:flex-start }
+.profile-copy { min-width: 320px }
+.stats-grid { gap:12px }
+
+/* Ensure compact inputs in panels */
+.panel input, .panel select { padding:10px 12px }
+
 .page-title {
   margin: 0 0 18px;
   font-size: 1.6rem;
@@ -159,6 +174,11 @@ body {
   background: rgba(15, 23, 42, 0.8);
   color: #f8fafc;
 }
+
+/* Currency input wrapper with prefix */
+.input-with-currency { display:flex; align-items:center; gap:8px; }
+.input-with-currency .currency { background: rgba(255,255,255,0.02); padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); color:#e2e8f0 }
+.input-with-currency input { padding:10px 12px; border-radius:12px; border:1px solid rgba(148,163,184,0.08); background: rgba(15,23,42,0.9); color:#f8fafc; flex:1 }
 
 .btn {
   display: inline-flex;
@@ -349,6 +369,9 @@ body {
 .table td {
   color: #e2e8f0;
 }
+
+/* small tweaks for loan request inputs */
+.panel input[type="file"] { color: #cbd5e1 }
 
 .badge {
   display: inline-flex;
