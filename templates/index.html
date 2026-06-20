@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sri Lakshmi Venkateshwara Finance</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="hero"></div>
+        <div class="logo">
+          <div class="logo-mark">SLV</div>
+          <div class="logo-text">
+               <h1>
+                   Sri Lakshmi Venkateshwara Finance
+                   <div class="kn-heading">ಶ್ರೀ ಲಕ್ಷ್ಮಿ ವೆಂಕಟೇಶ್ವರ ಫೈನಾನ್ಸ್</div>
+               </h1>
+               <p>Family finance tracker for deposits, shares, and loans</p>
+          </div>
+        </div>
+        <div class="header-note">One login. Admin + member workflows. Transparent family finance.</div>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;">
+          <button id="lang-toggle" class="btn secondary">KN</button>
+        </div>
+      </div>
+
+      <div id="login-screen" class="screen active">
+        <div class="panel">
+          <h2 class="page-title">Login to SLV Finance</h2>
+          <div class="input-row">
+            <label for="member-select">Select Member</label>
+            <select id="member-select">
+              {% if members %}
+                {% for m in members %}
+                  <option value="{{ m.name }}">{{ m.name }}{% if m.is_admin %} (Admin){% endif %}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+          <div class="input-row">
+            <label for="admin-pin">Admin PIN (only for admin)</label>
+            <input id="admin-pin" placeholder="Enter admin PIN if required" />
+          </div>
+          <button id="login-button" class="btn primary">Login</button>
+          <div id="login-error" class="hidden" style="margin-top:12px;color:#fb7185"></div>
+        </div>
+      </div>
+
+      <div id="main-screen" class="screen hidden">
+        <div class="navbar" id="menu-links"></div>
+        <div id="content"></div>
+      </div>
+      <div id="toast-container" aria-live="polite" style="position:fixed;right:18px;bottom:18px;z-index:9999"></div>
+    </div>
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>
