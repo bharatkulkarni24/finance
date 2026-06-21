@@ -353,6 +353,15 @@ def admin_transactions():
     return jsonify(get_recent_transactions(100))
 
 
+@app.route('/api/admin/passbook', methods=['GET'])
+def admin_passbook():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    from models import get_passbook_entries
+    return jsonify(get_passbook_entries())
+
+
 @app.route('/api/admin/stats', methods=['GET'])
 def admin_stats():
     pin = request.headers.get('X-ADMIN-PIN', '')

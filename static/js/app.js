@@ -24,14 +24,112 @@ function showToast(msg, type = 'info', timeout = 3500) {
   setTimeout(() => t.remove(), timeout)
 }
 
-// Simple i18n map (English + Kannada for key UI strings)
+// Simple i18n map (English + simple Kannada for common people)
 const I18N = {
   en: {
-    Dashboard: 'Dashboard',
+    'Welcome,': 'Welcome,',
+    '📜 My Activity': '📜 My Activity',
+    '📒 Passbook': '📒 Passbook',
+    'Admin Panel': 'Admin Panel',
+    'Login to SLV Finance': 'Login to SLV Finance',
+    'Select Member': 'Select Member',
+    'Admin PIN (only for admin)': 'Admin PIN (only for admin)',
+    'Enter admin PIN': 'Enter admin PIN',
+    'Login': 'Login',
+    '💰 Financial Overview': '💰 Financial Overview',
+    'Total Collected': 'Total Collected',
+    'Sum of all collection sources below (net of expenses).': 'Sum of all collection sources below (net of expenses).',
+    'Entry Deposit:': 'Entry Deposit:',
+    'Shares:': 'Shares:',
+    'Loan Interest:': 'Loan Interest:',
+    'Other Income:': 'Other Income:',
+    'Expenses:': 'Expenses:',
+    'Loans Disbursed': 'Loans Disbursed',
+    'Hardlock / FD': 'Hardlock / FD',
+    'Available to Lend': 'Available to Lend',
+    '📋 Group Information': '📋 Group Information',
+    'Started': 'Started',
+    'Members': 'Members',
+    'Monthly Share': 'Monthly Share',
+    'One-time Deposit': 'One-time Deposit',
+    'Tenure': 'Tenure',
+    'Loan Interest': 'Loan Interest',
+    'Add New Member': 'Add New Member',
+    'After adding, the member can fill in their details.': 'After adding, the member can fill in their details.',
+    'Member name': 'Member name',
+    'Phone (optional)': 'Phone (optional)',
+    'Add Member': 'Add Member',
+    'Pending Loans': 'Pending Loans',
+    'Approve loans from members after review.': 'Approve loans from members after review.',
+    'Pending Payments': 'Pending Payments',
+    '🏦 FD Management': '🏦 FD Management',
+    'FD Amount': 'FD Amount',
+    'Start Date': 'Start Date',
+    'End / Maturity': 'End / Maturity',
+    'Interest Rate': 'Interest Rate',
+    'Bank Name': 'Bank Name',
+    'Add FD': 'Add FD',
+    'Active': 'Active',
+    'Record': 'Record',
+    'Income / Expenses': 'Income / Expenses',
+    'Income (Gains)': 'Income (Gains)',
+    'Expenses': 'Expenses',
+    '+ Add Income': '+ Add Income',
+    '+ Add Expense': '+ Add Expense',
+    '− Cancel': '− Cancel',
+    'Amount': 'Amount',
+    'Date': 'Date',
+    'Reason': 'Reason',
+    'Save': 'Save',
+    'Income': 'Income',
+    'Expense': 'Expense',
+    'Date & Time': 'Date & Time',
+    'Type': 'Type',
+    'Member': 'Member',
+    'From': 'From',
+    'To': 'To',
+    'Apply': 'Apply',
+    'Clear column filter': 'Clear column filter',
+    'Filter by Type': 'Filter by Type',
+    'Filter by Member': 'Filter by Member',
+    'Filter by Date Range': 'Filter by Date Range',
+    'Filter by Amount': 'Filter by Amount',
+    'Credit': 'Credit',
+    'Debit': 'Debit',
+    'Min amount': 'Min amount',
+    'Max amount': 'Max amount',
+    'Exact amount': 'Exact amount',
+    'Min:': 'Min:',
+    'Max:': 'Max:',
+    'Exact: ₹': 'Exact: ₹',
+    '✕ Clear all filters': '✕ Clear all filters',
+    'Close FD': 'Close FD',
+    'Confirm Close': 'Confirm Close',
+    'Confirm Withdraw': 'Confirm Withdraw',
+    'All your requests — payments, loan applications, and their statuses.': 'All your requests — payments, loan applications, and their statuses.',
+    'All transactions in one place.': 'All transactions in one place.',
+    'Withdraw': 'Withdraw',
+    '▲ Ascending': '▲ Ascending',
+    '▼ Descending': '▼ Descending',
+    'All': 'All',
+    'No entries match filters.': 'No entries match filters.',
+    'Loading...': 'Loading...',
+    'No income or expense entries yet.': 'No income or expense entries yet.',
+    'Error loading transactions': 'Error loading transactions',
+    'Error loading passbook': 'Error loading passbook',
+    'Error loading FD entries': 'Error loading FD entries',
+    'No FD entries yet.': 'No FD entries yet.',
+    'No active FDs.': 'No active FDs.',
+    'No closed FDs.': 'No closed FDs.',
+    'Logging in...': 'Logging in...',
+    'e.g. SBI': 'e.g. SBI',
+    'e.g. Donation from X': 'e.g. Donation from X',
+    'e.g. Meeting snacks': 'e.g. Meeting snacks',
+    'Login failed. Check your name/PIN.': 'Login failed. Check your name/PIN.',
+    'Dashboard': 'Dashboard',
     'My Profile': 'My Profile',
     'All Members': 'All Members',
     'Sign Out': 'Sign Out',
-    'Login failed': 'Login failed. Check your name/PIN.',
     'Enter a name': 'Enter a name',
     'Share requested': 'Share payment requested for approval',
     'Submitted for approval': 'Submitted for approval',
@@ -41,26 +139,230 @@ const I18N = {
     'Enter amount': 'Enter amount',
     'Photo uploaded': 'Photo uploaded',
     'Upload failed': 'Upload failed',
-    Cancel: 'Cancel',
-    'Confirm cancel?': 'Confirm cancel?'
+    'Cancel': 'Cancel',
+    'Confirm cancel?': 'Confirm cancel?',
+    'Pending approval': 'Pending approval',
+    'Approved and active': 'Approved and active',
+    'Rejected': 'Rejected',
+    'Loan Application': 'Loan Application',
+    'Approved on ': 'Approved on ',
+    'Pending': 'Pending',
+    'Share Payment': 'Share Payment',
+    'Loan Payment': 'Loan Payment',
+    'No history yet': 'No history yet',
+    'Status': 'Status',
+    'Comments': 'Comments',
+    'Approve': 'Approve',
+    'Approve failed': 'Approve failed',
+    'Payment approved': 'Payment approved',
+    'Reject failed': 'Reject failed',
+    'Payment rejected': 'Payment rejected',
+    'Enter a reason': 'Enter a reason',
+    'Reason for rejection...': 'Reason for rejection...',
+    'Confirm Reject': 'Confirm Reject',
+    'No pending payments': 'No pending payments',
+    '📎 Screenshot': '📎 Screenshot',
+    'Error loading': 'Error loading',
+    'FD not found': 'FD not found',
+    'FD closed. Interest added to Other Income.': 'FD closed. Interest added to Other Income.',
+    'Enter valid FD amount': 'Enter valid FD amount',
+    'Enter valid start date': 'Enter valid start date',
+    'Enter valid maturity date': 'Enter valid maturity date',
+    'Enter valid rate': 'Enter valid rate',
+    'Maturity must be after start date': 'Maturity must be after start date',
+    'FD added': 'FD added',
+    'Enter valid return amount': 'Enter valid return amount',
+    'Income recorded': 'Income recorded',
+    'Expense recorded': 'Expense recorded',
+    'Enter a valid amount': 'Enter a valid amount',
+    "Error loading pending loans": "Error loading pending loans",
+    'No pending loans at the moment.': 'No pending loans at the moment.',
+    'Loan': 'Loan',
+    'for': 'for',
+    'mo': 'mo',
+    "'s loan approved": "'s loan approved",
+    'Loan rejected': 'Loan rejected',
+    'Start': 'Start',
+    'Maturity': 'Maturity',
+    'Rate': 'Rate',
+    'Bank': 'Bank',
+    'Interest': 'Interest',
+    'Term': 'Term',
+    'Interest / Return Amount': 'Interest / Return Amount',
+    'Term too short': 'Term too short',
+    'entries': 'entries',
+    'You have unsaved information in forms.': 'You have unsaved information in forms.',
+    'These will not be submitted.': 'These will not be submitted.',
+    'Are you sure you want to logout?': 'Are you sure you want to logout?',
+    'Confirm': 'Confirm',
   },
   kn: {
-    Dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+    'Welcome,': 'ಸ್ವಾಗತ,',
+    '📜 My Activity': '📜 ನನ್ನ ಚಟುವಟಿಕೆ',
+    '📒 Passbook': '📒 ಪಾಸ್‌ಬುಕ್',
+    'Admin Panel': 'ಆಡಳಿತ ಫಲಕ',
+    'Login to SLV Finance': 'ಎಸ್‌ಎಲ್‌ವಿ ಫೈನಾನ್ಸ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ',
+    'Select Member': 'ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
+    'Admin PIN (only for admin)': 'ಆಡಳಿತಗಾರರ PIN (ಆಡಳಿತಗಾರರಿಗೆ ಮಾತ್ರ)',
+    'Enter admin PIN': 'ಆಡಳಿತಗಾರರ PIN ನಮೂದಿಸಿ',
+    'Login': 'ಲಾಗಿನ್',
+    '💰 Financial Overview': '💰 ಹಣಕಾಸಿನ ಮಾಹಿತಿ',
+    'Total Collected': 'ಒಟ್ಟು ಸಂಗ್ರಹ',
+    'Sum of all collection sources below (net of expenses).': 'ಕೆಳಗಿನ ಎಲ್ಲಾ ಸಂಗ್ರಹ ಮೂಲಗಳ ಮೊತ್ತ (ಖರ್ಚು ಕಳೆದು).',
+    'Entry Deposit:': 'ಪ್ರವೇಶ ಠೇವಣಿ:',
+    'Shares:': 'ಷೇರುಗಳು:',
+    'Loan Interest:': 'ಸಾಲದ ಬಡ್ಡಿ:',
+    'Other Income:': 'ಇತರೆ ಆದಾಯ:',
+    'Expenses:': 'ಖರ್ಚುಗಳು:',
+    'Loans Disbursed': 'ನೀಡಿರುವ ಸಾಲ',
+    'Hardlock / FD': 'ಹಾರ್ಡ್‌ಲಾಕ್ / ಎಫ್‌ಡಿ',
+    'Available to Lend': 'ಸಾಲ ಕೊಡಲು ಲಭ್ಯ',
+    '📋 Group Information': '📋 ಗುಂಪಿನ ಮಾಹಿತಿ',
+    'Started': 'ಪ್ರಾರಂಭ',
+    'Members': 'ಸದಸ್ಯರು',
+    'Monthly Share': 'ತಿಂಗಳ ಷೇರು',
+    'One-time Deposit': 'ಒಂದು ಬಾರಿ ಠೇವಣಿ',
+    'Tenure': 'ಅವಧಿ',
+    'Loan Interest': 'ಸಾಲದ ಬಡ್ಡಿ',
+    'Add New Member': 'ಹೊಸ ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
+    'After adding, the member can fill in their details.': 'ಸೇರಿಸಿದ ನಂತರ, ಸದಸ್ಯರು ತಮ್ಮ ವಿವರಗಳನ್ನು ತುಂಬಬಹುದು.',
+    'Member name': 'ಸದಸ್ಯರ ಹೆಸರು',
+    'Phone (optional)': 'ಫೋನ್ (ಐಚ್ಛಿಕ)',
+    'Add Member': 'ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
+    'Pending Loans': 'ಬಾಕಿ ಸಾಲಗಳು',
+    'Approve loans from members after review.': 'ಸದಸ್ಯರ ಸಾಲಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಅನುಮೋದಿಸಿ.',
+    'Pending Payments': 'ಬಾಕಿ ಪಾವತಿಗಳು',
+    '🏦 FD Management': '🏦 ಎಫ್‌ಡಿ ನಿರ್ವಹಣೆ',
+    'FD Amount': 'ಎಫ್‌ಡಿ ಮೊತ್ತ',
+    'Start Date': 'ಪ್ರಾರಂಭ ದಿನಾಂಕ',
+    'End / Maturity': 'ಅಂತ್ಯ / ಮೆಚೂರಿಟಿ',
+    'Interest Rate': 'ಬಡ್ಡಿ ದರ',
+    'Bank Name': 'ಬ್ಯಾಂಕ್ ಹೆಸರು',
+    'Add FD': 'ಎಫ್‌ಡಿ ಸೇರಿಸಿ',
+    'Active': 'ಸಕ್ರಿಯ',
+    'Record': 'ದಾಖಲೆ',
+    'Income / Expenses': 'ಆದಾಯ / ಖರ್ಚು',
+    'Income (Gains)': 'ಆದಾಯ',
+    'Expenses': 'ಖರ್ಚುಗಳು',
+    '+ Add Income': '+ ಆದಾಯ ಸೇರಿಸಿ',
+    '+ Add Expense': '+ ಖರ್ಚು ಸೇರಿಸಿ',
+    '− Cancel': '− ರದ್ದು',
+    'Amount': 'ಮೊತ್ತ',
+    'Date': 'ದಿನಾಂಕ',
+    'Reason': 'ಕಾರಣ',
+    'Save': 'ಉಳಿಸಿ',
+    'Income': 'ಆದಾಯ',
+    'Expense': 'ಖರ್ಚು',
+    'Date & Time': 'ದಿನಾಂಕ ಮತ್ತು ಸಮಯ',
+    'Type': 'ಪ್ರಕಾರ',
+    'Member': 'ಸದಸ್ಯ',
+    'From': 'ಇಂದ',
+    'To': 'ವರೆಗೆ',
+    'Apply': 'ಅನ್ವಯಿಸು',
+    'Clear column filter': 'ಕಾಲಮ್ ಫಿಲ್ಟರ್ ತೆಗೆದುಹಾಕಿ',
+    'Filter by Type': 'ಪ್ರಕಾರದಿಂದ ಫಿಲ್ಟರ್ ಮಾಡಿ',
+    'Filter by Member': 'ಸದಸ್ಯರಿಂದ ಫಿಲ್ಟರ್ ಮಾಡಿ',
+    'Filter by Date Range': 'ದಿನಾಂಕ ವ್ಯಾಪ್ತಿಯಿಂದ ಫಿಲ್ಟರ್ ಮಾಡಿ',
+    'Filter by Amount': 'ಮೊತ್ತದಿಂದ ಫಿಲ್ಟರ್ ಮಾಡಿ',
+    'Credit': 'ಜಮಾ',
+    'Debit': 'ಖರ್ಚು',
+    'Min amount': 'ಕಡಿಮೆ ಮೊತ್ತ',
+    'Max amount': 'ಹೆಚ್ಚು ಮೊತ್ತ',
+    'Exact amount': 'ನಿಖರ ಮೊತ್ತ',
+    'Min:': 'ಕಡಿಮೆ:',
+    'Max:': 'ಹೆಚ್ಚು:',
+    'Exact: ₹': 'ನಿಖರ: ₹',
+    '✕ Clear all filters': '✕ ಎಲ್ಲಾ ಫಿಲ್ಟರ್ ತೆಗೆದುಹಾಕಿ',
+    'Close FD': 'ಎಫ್‌ಡಿ ಮುಚ್ಚಿ',
+    'Confirm Close': 'ಮುಚ್ಚುವುದನ್ನು ಖಚಿತಪಡಿಸಿ',
+    'All your requests — payments, loan applications, and their statuses.': 'ನಿಮ್ಮ ಎಲ್ಲಾ ವಿನಂತಿಗಳು — ಪಾವತಿಗಳು, ಸಾಲದ ಅರ್ಜಿಗಳು ಮತ್ತು ಅವುಗಳ ಸ್ಥಿತಿ.',
+    'All transactions in one place.': 'ಎಲ್ಲಾ ವಹಿವಾಟುಗಳು ಒಂದೇ ಸ್ಥಳದಲ್ಲಿ.',
+    '▲ Ascending': '▲ ಏರಿಕೆ',
+    '▼ Descending': '▼ ಇಳಿಕೆ',
+    'All': 'ಎಲ್ಲಾ',
+    'No entries match filters.': 'ಫಿಲ್ಟರ್‌ಗೆ ಹೊಂದಾಣಿಕೆಯ ನಮೂದುಗಳಿಲ್ಲ.',
+    'Loading...': 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
+    'No income or expense entries yet.': 'ಇನ್ನೂ ಆದಾಯ ಅಥವಾ ಖರ್ಚು ನಮೂದುಗಳಿಲ್ಲ.',
+    'Error loading transactions': 'ವಹಿವಾಟುಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+    'Error loading passbook': 'ಪಾಸ್‌ಬುಕ್ ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+    'Error loading FD entries': 'ಎಫ್‌ಡಿ ನಮೂದುಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+    'No FD entries yet.': 'ಇನ್ನೂ ಎಫ್‌ಡಿ ನಮೂದುಗಳಿಲ್ಲ.',
+    'No active FDs.': 'ಸಕ್ರಿಯ ಎಫ್‌ಡಿಗಳಿಲ್ಲ.',
+    'No closed FDs.': 'ಎಫ್‌ಡಿಗಳಿಲ್ಲ.',
+    'Logging in...': 'ಲಾಗಿನ್ ಆಗುತ್ತಿದೆ...',
+    'e.g. SBI': 'ಉದಾ: ಎಸ್‌ಬಿಐ',
+    'e.g. Donation from X': 'ಉದಾ: X ರಿಂದ ದೇಣಿಗೆ',
+    'e.g. Meeting snacks': 'ಉದಾ: ಸಭೆ ತಿಂಡಿ',
+    'Login failed. Check your name/PIN.': 'ಲಾಗಿನ್ ವಿಫಲ. ನಿಮ್ಮ ಹೆಸರು/PIN ಪರಿಶೀಲಿಸಿ.',
+    'Dashboard': 'ಮುಖಪುಟ',
     'My Profile': 'ನನ್ನ ಪ್ರೊಫೈಲ್',
     'All Members': 'ಎಲ್ಲಾ ಸದಸ್ಯರು',
-    'Sign Out': 'ಸೈನ್ ಔಟ್',
-    'Login failed': 'ಲಾಗಿನ್ ವಿಫಲವಾಯಿತು. ಹೆಸರು/PIN ಪರಿಶೀಲಿಸಿ.',
+    'Sign Out': 'ನಿರ್ಗಮಿಸಿ',
     'Enter a name': 'ಹೆಸರನ್ನು ನಮೂದಿಸಿ',
-    'Share requested': 'ಶೇರು ಪಾವತಿ ಅನುಮೋದನೆಗೆ ವಿನಂತಿಸಲಾಗಿದೆ',
+    'Share requested': 'ಷೇರು ಪಾವತಿ ಅನುಮೋದನೆಗೆ ವಿನಂತಿಸಲಾಗಿದೆ',
     'Submitted for approval': 'ಅನುಮೋದನೆಗಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ',
-    'Loan applied': 'ಸಾಲವನ್ನು ಅನ್ವಯಿಸಲಾಗಿದೆ ಮತ್ತು ಪಾವತಿ ವಿನಂತಿಸಲಾಗಿದೆ',
-    'Only admin': 'ಮಾತ್ರ ಆಡಳಿತಗಾರರು ಅನುಮೋದಿಸಬಹುದು.',
-    'Enter loan amount': 'ಸಾಲದ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ',
-    'Enter amount': 'ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ',
-    'Photo uploaded': 'ಫೋಟೋ ಅಪ್ಲೋಡ್ ಆಗಿದೆ',
-    'Upload failed': 'ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ',
-    Cancel: 'ರದ್ದುಮಾಡಿ',
-    'Confirm cancel?': 'ರದ್ದುಗೊಳಿಸುವುದನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ?'
+    'Loan applied': 'ಸಾಲ ಮತ್ತು ಪಾವತಿ ಅನುಮೋದನೆಗೆ ವಿನಂತಿಸಲಾಗಿದೆ',
+    'Only admin': 'ಆಡಳಿತಗಾರರು ಮಾತ್ರ ಅನುಮೋದಿಸಬಹುದು.',
+    'Enter loan amount': 'ಸಾಲದ ಮೊತ್ತ ನಮೂದಿಸಿ',
+    'Enter amount': 'ಮೊತ್ತ ನಮೂದಿಸಿ',
+    'Photo uploaded': 'ಫೋಟೋ ಅಪ್ಲೋಡ್ ಆಯಿತು',
+    'Upload failed': 'ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ',
+    'Cancel': 'ರದ್ದುಮಾಡಿ',
+    'Confirm cancel?': 'ರದ್ದುಗೊಳಿಸುವುದೇ?',
+    'Pending approval': 'ಅನುಮೋದನೆ ಬಾಕಿ',
+    'Approved and active': 'ಅನುಮೋದಿಸಲಾಗಿದೆ',
+    'Rejected': 'ತಿರಸ್ಕರಿಸಲಾಗಿದೆ',
+    'Loan Application': 'ಸಾಲದ ಅರ್ಜಿ',
+    'Approved on ': 'ಅನುಮೋದಿಸಿದ ದಿನ ',
+    'Pending': 'ಬಾಕಿ',
+    'Share Payment': 'ಷೇರು ಪಾವತಿ',
+    'Loan Payment': 'ಸಾಲ ಪಾವತಿ',
+    'No history yet': 'ಇನ್ನೂ ಇತಿಹಾಸವಿಲ್ಲ',
+    'Status': 'ಸ್ಥಿತಿ',
+    'Comments': 'ಟಿಪ್ಪಣಿ',
+    'Approve': 'ಅನುಮೋದಿಸಿ',
+    'Approve failed': 'ಅನುಮೋದನೆ ವಿಫಲ',
+    'Payment approved': 'ಪಾವತಿ ಅನುಮೋದಿಸಲಾಗಿದೆ',
+    'Reject failed': 'ತಿರಸ್ಕರಿಸುವಲ್ಲಿ ವಿಫಲ',
+    'Payment rejected': 'ಪಾವತಿ ತಿರಸ್ಕರಿಸಲಾಗಿದೆ',
+    'Enter a reason': 'ಕಾರಣ ನಮೂದಿಸಿ',
+    'Reason for rejection...': 'ತಿರಸ್ಕರಿಸಲು ಕಾರಣ...',
+    'Confirm Reject': 'ತಿರಸ್ಕರಿಸುವುದನ್ನು ಖಚಿತಪಡಿಸಿ',
+    'No pending payments': 'ಬಾಕಿ ಪಾವತಿಗಳಿಲ್ಲ',
+    '📎 Screenshot': '📎 ಸ್ಕ್ರೀನ್‌ಶಾಟ್',
+    'Error loading': 'ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+    'FD not found': 'ಎಫ್‌ಡಿ ಕಂಡುಬಂದಿಲ್ಲ',
+    'FD closed. Interest added to Other Income.': 'ಎಫ್‌ಡಿ ಮುಚ್ಚಲಾಗಿದೆ. ಬಡ್ಡಿಯನ್ನು ಇತರೆ ಆದಾಯಕ್ಕೆ ಸೇರಿಸಲಾಗಿದೆ.',
+    'Enter valid FD amount': 'ಸರಿಯಾದ ಎಫ್‌ಡಿ ಮೊತ್ತ ನಮೂದಿಸಿ',
+    'Enter valid start date': 'ಸರಿಯಾದ ಪ್ರಾರಂಭ ದಿನಾಂಕ ನಮೂದಿಸಿ',
+    'Enter valid maturity date': 'ಸರಿಯಾದ ಮೆಚೂರಿಟಿ ದಿನಾಂಕ ನಮೂದಿಸಿ',
+    'Enter valid rate': 'ಸರಿಯಾದ ಬಡ್ಡಿ ದರ ನಮೂದಿಸಿ',
+    'Maturity must be after start date': 'ಮೆಚೂರಿಟಿ ಪ್ರಾರಂಭ ದಿನಾಂಕದ ನಂತರ ಇರಬೇಕು',
+    'FD added': 'ಎಫ್‌ಡಿ ಸೇರಿಸಲಾಗಿದೆ',
+    'Enter valid return amount': 'ಸರಿಯಾದ ಬಡ್ಡಿ ಮೊತ್ತ ನಮೂದಿಸಿ',
+    'Income recorded': 'ಆದಾಯ ದಾಖಲಿಸಲಾಗಿದೆ',
+    'Expense recorded': 'ಖರ್ಚು ದಾಖಲಿಸಲಾಗಿದೆ',
+    'Enter a valid amount': 'ಸರಿಯಾದ ಮೊತ್ತ ನಮೂದಿಸಿ',
+    "Error loading pending loans": "ಬಾಕಿ ಸಾಲಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ",
+    'No pending loans at the moment.': 'ಈಗ ಬಾಕಿ ಸಾಲಗಳಿಲ್ಲ.',
+    'Loan': 'ಸಾಲ',
+    'for': 'ಗೆ',
+    'mo': 'ತಿಂಗಳು',
+    "'s loan approved": " ರ ಸಾಲ ಅನುಮೋದಿಸಲಾಗಿದೆ",
+    'Loan rejected': 'ಸಾಲ ತಿರಸ್ಕರಿಸಲಾಗಿದೆ',
+    'Start': 'ಪ್ರಾರಂಭ',
+    'Maturity': 'ಮೆಚೂರಿಟಿ',
+    'Rate': 'ದರ',
+    'Bank': 'ಬ್ಯಾಂಕ್',
+    'Interest': 'ಬಡ್ಡಿ',
+    'Term': 'ಅವಧಿ',
+    'Interest / Return Amount': 'ಬಡ್ಡಿ / ಮರುಪಾವತಿ ಮೊತ್ತ',
+    'Term too short': 'ಅವಧಿ ತುಂಬಾ ಕಡಿಮೆ',
+    'entries': 'ನಮೂದುಗಳು',
+    'You have unsaved information in forms.': 'ಫಾರ್ಮ್‌ಗಳಲ್ಲಿ ಉಳಿಸದ ಮಾಹಿತಿ ಇದೆ.',
+    'These will not be submitted.': 'ಇವುಗಳು ಸಲ್ಲಿಕೆಯಾಗುವುದಿಲ್ಲ.',
+    'Are you sure you want to logout?': 'ನೀವು ಖಚಿತವಾಗಿ ನಿರ್ಗಮಿಸಲು ಬಯಸುವಿರಾ?',
+    'Confirm': 'ಖಚಿತಪಡಿಸಿ',
   }
 }
 
@@ -78,11 +380,26 @@ function t(key) { return (I18N[state.lang] && I18N[state.lang][key]) || key }
 document.addEventListener('click', (e) => {
   if (e.target && e.target.id === 'lang-toggle') {
     state.lang = state.lang === 'en' ? 'kn' : 'en'
-    e.target.textContent = state.lang === 'en' ? 'KN' : 'EN'
-    renderMenu()
-    renderView()
+    e.target.textContent = state.lang === 'kn' ? 'EN' : 'KN'
+    translatePage()
+    if (state.currentUser) renderView()
   }
 })
+
+function translatePage() {
+  const els = document.querySelectorAll('[data-i18n]')
+  els.forEach(el => el.textContent = t(el.dataset.i18n))
+  // translate login screen
+  const h2 = document.querySelector('#login-screen .page-title')
+  if (h2) h2.textContent = t('Login to SLV Finance')
+  const labels = document.querySelectorAll('#login-screen label')
+  if (labels[0]) labels[0].textContent = t('Select Member')
+  if (labels[1]) labels[1].textContent = t('Admin PIN (only for admin)')
+  const pin = document.getElementById('admin-pin')
+  if (pin) pin.placeholder = t('Enter admin PIN')
+  const btn = document.getElementById('login-button')
+  if (btn) btn.textContent = t('Login')
+}
 
 async function renderAdminLogs() {
   const div = document.getElementById('admin-logs')
@@ -257,11 +574,11 @@ function renderMenu() {
   const items = [
     {id: 'home', label: t('Dashboard')},
     {id: 'my-profile', label: t('My Profile')},
-    {id: 'my-history', label: '📜 All History'},
+    {id: 'my-history', label: t('📜 My Activity')},
     {id: 'all-members', label: t('All Members')},
   ]
   if (state.currentUser.is_admin) {
-    items.splice(3, 0, {id: 'admin-panel', label: 'Admin Panel'})
+    items.splice(3, 0, {id: 'admin-panel', label: t('Admin Panel')}, {id: 'passbook', label: t('📒 Passbook')})
   }
   items.forEach(item => {
     const a = document.createElement('a')
@@ -278,7 +595,7 @@ function renderMenu() {
   const logoutLink = document.createElement('a')
   logoutLink.href = '#'
   logoutLink.className = 'nav-link'
-  logoutLink.textContent = 'Sign Out'
+  logoutLink.textContent = t('Sign Out')
   logoutLink.style.marginLeft = 'auto'
   logoutLink.onclick = (e) => {
     e.preventDefault()
@@ -313,7 +630,7 @@ async function handleLogin() {
     renderView()
     showScreen('main')
   } catch (err) {
-    loginError.textContent = err.error || 'Login failed. Check your name/PIN.'
+    loginError.textContent = t(err.error || 'Login failed. Check your name/PIN.')
     loginError.classList.remove('hidden')
   }
 }
@@ -340,12 +657,12 @@ function showLogoutConfirm() {
   overlay.className = 'modal-overlay'
   overlay.innerHTML = `
     <div class="modal-box">
-      <p style="margin:0 0 6px;font-weight:600">Sign Out</p>
-      ${unsavedMsg ? `<p style="margin:0 0 12px;font-size:0.85rem;color:#fbbf24">${unsavedMsg} These will not be submitted.</p>` : ''}
-      <p style="margin:0 0 16px;font-size:0.9rem;color:#94a3b8">Are you sure you want to logout?</p>
+      <p style="margin:0 0 6px;font-weight:600">${t('Sign Out')}</p>
+      ${unsavedMsg ? `<p style="margin:0 0 12px;font-size:0.85rem;color:#fbbf24">${t(unsavedMsg)} ${t('These will not be submitted.')}</p>` : ''}
+      <p style="margin:0 0 16px;font-size:0.9rem;color:#94a3b8">${t('Are you sure you want to logout?')}</p>
       <div class="reject-form-actions">
-        <button class="btn primary" id="logout-confirm-btn" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm</button>
-        <button class="btn secondary" id="logout-cancel-btn">Cancel</button>
+        <button class="btn primary" id="logout-confirm-btn" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm')}</button>
+        <button class="btn secondary" id="logout-cancel-btn">${t('Cancel')}</button>
       </div>
     </div>
   `
@@ -361,6 +678,7 @@ function renderView() {
   if (view === 'my-profile') return renderMemberProfile(state.currentUser.id)
   if (view === 'my-history') return renderAllHistory()
   if (view === 'all-members') return renderAllMembers()
+  if (view === 'passbook') return renderPassbook()
   return renderHome()
 }
 
@@ -368,64 +686,64 @@ async function renderHome() {
   const stats = await api('/admin/stats', {headers: {'X-ADMIN-PIN': ADMIN_PIN}}).catch(()=>null)
   const html = `
     <div class="panel welcome-panel">
-      <h2 class="page-title">Welcome, ${state.currentUser.name}</h2>
+      <h2 class="page-title">${t('Welcome,')} ${state.currentUser.name}</h2>
     </div>
 
     <div class="panel">
-      <h3 class="section-heading">💰 Financial Overview</h3>
+      <h3 class="section-heading">${t('💰 Financial Overview')}</h3>
       <div class="total-box" style="margin-bottom:16px">
         <div class="total-box-main">
-          <div class="total-box-label">Total Collected</div>
+          <div class="total-box-label">${t('Total Collected')}</div>
           <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
-          <div class="total-box-desc">Sum of all collection sources below (net of expenses).</div>
+          <div class="total-box-desc">${t('Sum of all collection sources below (net of expenses).')}</div>
         </div>
         <div class="total-box-breakdown">
-          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>Initial Deposits:</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>Shares:</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>Loan Interest:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>Other Income:</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>Expenses:</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>${t('Entry Deposit:')}</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Shares:')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest:')}</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
         </div>
       </div>
       <div class="stats-grid">
-        <div class="stat-card loan-given"><strong>${stats?formatCurrency(stats.total_lent):'-'}</strong><span>Loan Given</span></div>
-        <div class="stat-card hardlocked"><strong>${stats?formatCurrency(stats.hardlocked_fd):'-'}</strong><span>Hardlock / FD</span></div>
-        <div class="stat-card available"><strong>${stats?formatCurrency(stats.available_to_lend):'-'}</strong><span>Available to Loan</span></div>
+        <div class="stat-card loan-given"><strong>${stats?formatCurrency(stats.total_lent):'-'}</strong><span>${t('Loans Disbursed')}</span></div>
+        <div class="stat-card hardlocked"><strong>${stats?formatCurrency(stats.hardlocked_fd):'-'}</strong><span>${t('Hardlock / FD')}</span></div>
+        <div class="stat-card available"><strong>${stats?formatCurrency(stats.available_to_lend):'-'}</strong><span>${t('Available to Lend')}</span></div>
       </div>
     </div>
 
     <div class="group-info">
-      <h3 class="section-heading">📋 Group Information</h3>
+      <h3 class="section-heading">${t('📋 Group Information')}</h3>
       <div class="group-info-grid">
         <div class="gi-card gi-started">
           <div class="gi-icon">🚀</div>
           <div class="gi-value">${stats?stats.group_start_date:'-'}</div>
-          <div class="gi-label">Started</div>
+          <div class="gi-label">${t('Started')}</div>
         </div>
         <div class="gi-card gi-members">
           <div class="gi-icon">👥</div>
           <div class="gi-value">${stats?stats.member_count:'-'}</div>
-          <div class="gi-label">Members</div>
+          <div class="gi-label">${t('Members')}</div>
         </div>
         <div class="gi-card gi-share">
           <div class="gi-icon">📊</div>
           <div class="gi-value">${stats?formatCurrency(stats.share_amount):'-'}</div>
-          <div class="gi-label">Share / Month</div>
+          <div class="gi-label">${t('Monthly Share')}</div>
         </div>
         <div class="gi-card gi-onetime">
           <div class="gi-icon">💰</div>
           <div class="gi-value">${stats?formatCurrency(stats.one_time_amount):'-'}</div>
-          <div class="gi-label">One-time Deposit</div>
+          <div class="gi-label">${t('One-time Deposit')}</div>
         </div>
         <div class="gi-card gi-period">
           <div class="gi-icon">📅</div>
           <div class="gi-value">${stats?stats.total_period_months/12+' Years':'-'}</div>
-          <div class="gi-label">Total Period</div>
+          <div class="gi-label">${t('Tenure')}</div>
         </div>
         <div class="gi-card gi-interest">
           <div class="gi-icon">📈</div>
           <div class="gi-value">${stats?stats.loan_interest_rate+'% / month':'-'}</div>
-          <div class="gi-label">Loan Interest</div>
+          <div class="gi-label">${t('Loan Interest')}</div>
         </div>
       </div>
     </div>
@@ -443,86 +761,86 @@ async function renderAdminPanel() {
     .flatMap(member => member.id ? [member] : [])
   const html = `
     <div class="panel">
-      <h2 class="page-title">Admin Panel</h2>
+      <h2 class="page-title">${t('Admin Panel')}</h2>
       <div class="grid-2">
         <div class="panel">
-          <h3>Add New Member</h3>
-          <p>After adding, the member can fill in their details.</p>
-          <div class="input-row"><input id="new-member-name" placeholder="Member name" /></div>
-          <div class="input-row"><input id="new-member-phone" placeholder="Phone (optional)" /></div>
-          <button class="btn primary" id="add-member-btn">Add Member</button>
+          <h3 class="section-heading">${t('Add New Member')}</h3>
+          <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
+          <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
+          <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
+          <button class="btn primary" id="add-member-btn">${t('Add Member')}</button>
         </div>
         <div class="panel">
-          <h3>Pending Loans</h3>
-          <p>Approve loans from members after review.</p>
+          <h3 class="section-heading">${t('Pending Loans')}</h3>
+          <p style="color:#94a3b8;font-size:0.85rem">${t('Approve loans from members after review.')}</p>
           <div id="pending-loans"></div>
-          <h3 style="margin-top:18px">Pending Payments</h3>
+          <h3 class="section-heading" style="margin-top:18px">${t('Pending Payments')}</h3>
           <div id="pending-payments"></div>
         </div>
       </div>
       <div class="panel bank-income-box">
         <div style="margin-top:0">
-          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">🏦 FD Management</h4>
+          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('🏦 FD Management')}</h4>
           <div class="fd-card-form">
             <div class="fd-form-grid">
               <div class="fd-field">
-                <label>FD Amount</label>
+                <label>${t('FD Amount')}</label>
                 <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
               </div>
               <div class="fd-field">
-                <label>Start Date</label>
+                <label>${t('Start Date')}</label>
                 <div class="input-group"><input id="fd-start" class="dual-date" type="text" placeholder="DD/MM/YYYY" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
               </div>
               <div class="fd-field">
-                <label>End / Maturity</label>
+                <label>${t('End / Maturity')}</label>
                 <div class="input-group"><input id="fd-end" class="dual-date" type="text" placeholder="DD/MM/YYYY" /></div>
               </div>
               <div class="fd-field">
-                <label>Interest Rate</label>
+                <label>${t('Interest Rate')}</label>
                 <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
               </div>
               <div class="fd-field">
-                <label>Bank Name</label>
-                <div class="input-group"><input id="fd-bank" placeholder="e.g. SBI" /></div>
+                <label>${t('Bank Name')}</label>
+                <div class="input-group"><input id="fd-bank" placeholder="${t('e.g. SBI')}" /></div>
               </div>
               <div class="fd-field fd-field-btn">
                 <label>&nbsp;</label>
-                <button class="btn primary" id="fd-add-btn">Add FD</button>
+                <button class="btn primary" id="fd-add-btn">${t('Add FD')}</button>
               </div>
             </div>
           </div>
           <div class="fd-sections">
             <div class="fd-section">
-              <div class="fd-section-head"><span class="fd-section-dot active"></span> Active</div>
+              <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
               <div id="fd-keeping"></div>
             </div>
             <div class="fd-section">
-              <div class="fd-section-head"><span class="fd-section-dot closed"></span> Record</div>
+              <div class="fd-section-head"><span class="fd-section-dot closed"></span> ${t('Record')}</div>
               <div id="fd-record"></div>
             </div>
           </div>
         </div>
         <div style="margin-top:22px">
-          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">Income / Expenses</h4>
+          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('Income / Expenses')}</h4>
           <div class="grid-2" style="gap:16px;margin-bottom:14px">
             <div class="panel" style="margin:0">
-              <h4 style="color:#34d399;margin:0 0 8px">Income (Gains)</h4>
-              <button class="btn primary" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">+ Add Income</button>
+              <h4 style="color:#34d399;margin:0 0 8px">${t('Income (Gains)')}</h4>
+              <button class="btn primary" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
               <div id="income-form" style="display:none;margin-top:10px">
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="income-amount" type="text" /></div></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Date</label><input id="income-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Reason</label><input id="income-reason" placeholder="e.g. Donation from X" /></div>
-                <button class="btn primary" id="save-income-btn" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">Save</button>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="income-amount" type="text" /></div></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="income-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="income-reason" placeholder="${t('e.g. Donation from X')}" /></div>
+                <button class="btn primary" id="save-income-btn" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('Save')}</button>
               </div>
             </div>
             <div class="panel" style="margin:0">
-              <h4 style="color:#fca5a5;margin:0 0 8px">Expenses</h4>
-              <button class="btn primary" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">+ Add Expense</button>
+              <h4 style="color:#fca5a5;margin:0 0 8px">${t('Expenses')}</h4>
+              <button class="btn primary" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
               <div id="expense-form" style="display:none;margin-top:10px">
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="expense-amount" type="text" /></div></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Date</label><input id="expense-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Reason</label><input id="expense-reason" placeholder="e.g. Meeting snacks" /></div>
-                <button class="btn primary" id="save-expense-btn" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Save</button>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="expense-amount" type="text" /></div></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="expense-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="expense-reason" placeholder="${t('e.g. Meeting snacks')}" /></div>
+                <button class="btn primary" id="save-expense-btn" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Save')}</button>
               </div>
             </div>
           </div>
@@ -561,26 +879,26 @@ function toggleForm(type) {
   const form = document.getElementById(id)
   const isVisible = form.style.display !== 'none'
   form.style.display = isVisible ? 'none' : 'block'
-  document.getElementById(btn).textContent = isVisible ? `+ Add ${type === 'income' ? 'Income' : 'Expense'}` : '− Cancel'
+  document.getElementById(btn).textContent = isVisible ? t('− Cancel') : (type === 'income' ? t('+ Add Income') : t('+ Add Expense'))
 }
 
 
 async function renderIeList() {
   const div = document.getElementById('ie-list')
   if (!div) return
-  div.innerHTML = '<p style="color:#94a3b8">Loading...</p>'
+  div.innerHTML = '<p style="color:#94a3b8">' + t('Loading...') + '</p>'
   try {
     const rows = await api('/admin/transactions', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-    if (!rows || !rows.length) { div.innerHTML = '<p style="color:#64748b">No income or expense entries yet.</p>'; return }
-    div.innerHTML = '<table class="table"><thead><tr><th>Date</th><th>Type</th><th>Reason</th><th style="text-align:right">Amount</th></tr></thead><tbody>' +
+    if (!rows || !rows.length) { div.innerHTML = '<p style="color:#64748b">' + t('No income or expense entries yet.') + '</p>'; return }
+    div.innerHTML = '<table class="table"><thead><tr><th>' + t('Date') + '</th><th>' + t('Type') + '</th><th>' + t('Reason') + '</th><th style="text-align:right">' + t('Amount') + '</th></tr></thead><tbody>' +
       rows.slice(0, 30).map(r => `<tr>
         <td style="white-space:nowrap">${formatDate(r.timestamp)}</td>
-        <td><span style="color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? 'Income' : 'Expense'}</span></td>
+        <td><span style="color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? t('Income') : t('Expense')}</span></td>
         <td style="color:#94a3b8">${r.desc || '-'}</td>
         <td style="text-align:right;font-weight:600;color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? '+' : '-'}${formatCurrency(r.amount)}</td>
       </tr>`).join('') + '</tbody></table>'
   } catch (e) {
-    div.innerHTML = '<p style="color:#ef4444">Error loading transactions</p>'
+    div.innerHTML = '<p style="color:#ef4444">' + t('Error loading transactions') + '</p>'
   }
 }
 
@@ -607,11 +925,11 @@ async function handleSaveIe(type) {
 
 async function renderPendingPayments() {
   const div = document.getElementById('pending-payments')
-  div.innerHTML = '<p style="color:#94a3b8">Loading...</p>'
+  div.innerHTML = '<p style="color:#94a3b8">' + t('Loading...') + '</p>'
   try {
     const items = await api('/admin/payment_requests', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
     if (!items || items.length === 0) {
-      div.innerHTML = '<p>No pending payments</p>'
+      div.innerHTML = '<p style="color:#64748b">' + t('No pending payments') + '</p>'
       return
     }
     const list = document.createElement('div')
@@ -625,22 +943,22 @@ async function renderPendingPayments() {
           <strong>${it.member_name}</strong><br>
           <small>${it.type} ₹${it.amount} — ${it.note || ''}</small>
         </div>
-        <div>${it.screenshot?`<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">📎 Screenshot</a>`:''}</div>
+        <div>${it.screenshot?`<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">${t('📎 Screenshot')}</a>`:''}</div>
         <div id="pay-actions-${idx}">
-          <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">Approve</button>
-          <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">Reject</button>
+          <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">${t('Approve')}</button>
+          <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">${t('Reject')}</button>
         </div>
         <div id="pay-reject-form-${idx}" class="reject-form hidden">
-          <textarea id="pay-reason-${idx}" placeholder="Reason for rejection..." rows="2"></textarea>
+          <textarea id="pay-reason-${idx}" placeholder="${t('Reason for rejection...')}" rows="2"></textarea>
           <div class="reject-form-actions">
-            <button class="btn primary" id="pay-reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm Reject</button>
-            <button class="btn secondary" id="pay-reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">Cancel</button>
+            <button class="btn primary" id="pay-reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Reject')}</button>
+            <button class="btn secondary" id="pay-reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">${t('Cancel')}</button>
           </div>
         </div>`
       row.querySelector('.approve-btn').onclick = async () => {
         const res = await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-        if (!res.ok) { showToast('Approve failed', 'error'); return }
-        showToast('Payment approved', 'success')
+        if (!res.ok) { showToast(t('Approve failed'), 'error'); return }
+        showToast(t('Payment approved'), 'success')
         await renderPendingPayments()
       }
       row.querySelector('.reject-btn').onclick = () => {
@@ -653,17 +971,17 @@ async function renderPendingPayments() {
       }
       row.querySelector('#pay-reject-confirm-' + idx).onclick = async () => {
         const reason = document.getElementById('pay-reason-' + idx).value.trim()
-        if (!reason) { showToast('Enter a reason', 'error'); return }
+        if (!reason) { showToast(t('Enter a reason'), 'error'); return }
         const res = await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
-        if (!res.ok) { showToast('Reject failed', 'error'); return }
-        showToast('Payment rejected', 'info')
+        if (!res.ok) { showToast(t('Reject failed'), 'error'); return }
+        showToast(t('Payment rejected'), 'info')
         await renderPendingPayments()
       }
       list.appendChild(row)
     })
     div.appendChild(list)
   } catch (e) {
-    div.innerHTML = `<p>Error loading: ${e.error || e}</p>`
+    div.innerHTML = '<p style="color:#ef4444">' + t('Error loading') + ': ' + (e.error || e) + '</p>'
   }
 }
 
@@ -674,11 +992,11 @@ async function renderPendingLoans() {
   try {
     loans = await api('/admin/pending_loans', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
   } catch (e) {
-    pendingDiv.innerHTML = '<p>Error loading pending loans</p>'
+    pendingDiv.innerHTML = '<p style="color:#ef4444">' + t('Error loading pending loans') + '</p>'
     return
   }
   if (!loans || loans.length === 0) {
-    pendingDiv.innerHTML = '<p>No pending loans at the moment.</p>'
+    pendingDiv.innerHTML = '<p style="color:#64748b">' + t('No pending loans at the moment.') + '</p>'
     return
   }
   const list = document.createElement('div')
@@ -691,23 +1009,23 @@ async function renderPendingLoans() {
     row.innerHTML = `
       <div>
         <strong>${item.member_name}</strong><br>
-        <small>Loan ₹${item.principal} for ${item.term_months} mo</small>
+        <small>${t('Loan')} ₹${item.principal} ${t('for')} ${item.term_months} ${t('mo')}</small>
       </div>
       <div id="loan-actions-${idx}">
-        <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">Approve</button>
-        <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">Reject</button>
+        <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">${t('Approve')}</button>
+        <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">${t('Reject')}</button>
       </div>
       <div id="loan-reject-form-${idx}" class="reject-form hidden">
-        <textarea id="reject-reason-${idx}" placeholder="Reason for rejection..." rows="2"></textarea>
+        <textarea id="reject-reason-${idx}" placeholder="${t('Reason for rejection...')}" rows="2"></textarea>
         <div class="reject-form-actions">
-          <button class="btn primary" id="reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm Reject</button>
-          <button class="btn secondary" id="reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">Cancel</button>
+          <button class="btn primary" id="reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Reject')}</button>
+          <button class="btn secondary" id="reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">${t('Cancel')}</button>
         </div>
       </div>`
     row.querySelector('.approve-btn').onclick = async () => {
       const res = await fetch(`/api/admin/approve_loan/${item.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-      if (!res.ok) { showToast('Approve failed', 'error'); return }
-      showToast(`${item.member_name}'s loan approved`, 'success')
+      if (!res.ok) { showToast(t('Approve failed'), 'error'); return }
+      showToast(t("'s loan approved").replace("'s"," " + item.member_name + "'s"), 'success')
       await renderPendingLoans()
     }
     row.querySelector('.reject-btn').onclick = () => {
@@ -720,10 +1038,10 @@ async function renderPendingLoans() {
     }
     row.querySelector('#reject-confirm-' + idx).onclick = async () => {
       const reason = document.getElementById('reject-reason-' + idx).value.trim()
-      if (!reason) { showToast('Enter a reason', 'error'); return }
+      if (!reason) { showToast(t('Enter a reason'), 'error'); return }
       const res = await fetch(`/api/admin/reject_loan/${item.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
-      if (!res.ok) { showToast('Reject failed', 'error'); return }
-      showToast(`${item.member_name}'s loan rejected`, 'info')
+      if (!res.ok) { showToast(t('Reject failed'), 'error'); return }
+      showToast(t('Loan rejected'), 'info')
       await renderPendingLoans()
     }
     list.appendChild(row)
@@ -750,10 +1068,255 @@ async function renderAllMembers() {
   }).join('')
   content.innerHTML = `
     <div class="panel">
-      <h2 class="page-title">All Members</h2>
+      <h2 class="page-title">${t('All Members')}</h2>
       <div class="member-grid">${cards}</div>
     </div>
   `
+}
+
+async function renderPassbook() {
+  content.innerHTML = '<div class="panel"><h2 class="page-title">' + t('📒 Passbook') + '</h2><p style="color:#94a3b8;margin:0 0 14px">' + t('All transactions in one place.') + '</p><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto"><p style="color:#94a3b8">' + t('Loading...') + '</p></div></div>'
+  await loadPbData()
+}
+
+let pbData = []
+let pbSortCol = 'ts'
+let pbSortDir = -1
+let pbFilters = {}
+
+async function loadPbData() {
+  try {
+    pbData = await api('/admin/passbook', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    applyPbFilters()
+  } catch (e) {
+    document.getElementById('pb-list').innerHTML = '<p style="color:#ef4444">Error loading passbook</p>'
+  }
+}
+
+function pbClearFilter(key) {
+  delete pbFilters[key]
+  applyPbFilters()
+}
+
+function pbClearAllFilters() {
+  pbFilters = {}
+  applyPbFilters()
+}
+
+function pbSortIcon(col) {
+  const hasFilter = Object.keys(pbFilters).some(k => k.startsWith(col) || (col === 'ts' && (k === 'from' || k === 'to')) || (col === 'amount' && (k.startsWith('amt'))))
+  return (pbSortCol === col ? (pbSortDir === -1 ? ' ▾' : ' ▴') : ' ↕') + (hasFilter ? '●' : '')
+}
+
+let pbFilterCol = null
+
+function pbToggleFilter(col) {
+  const existing = document.getElementById('pb-filter-panel')
+  if (existing) { existing.remove(); document.removeEventListener('click', pbCloseOutside, true); return }
+  pbFilterCol = col
+  const th = document.querySelector(`#pb-list th[data-col="${col}"]`)
+  if (!th) return
+  const panel = document.createElement('div')
+  panel.id = 'pb-filter-panel'
+  panel.dataset.col = col
+  panel.addEventListener('click', e => e.stopPropagation())
+  th.style.position = 'relative'
+
+  const sortRow = `
+    <div style="display:flex;gap:6px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(148,163,184,0.08)">
+      <button class="pb-sort-btn" onclick="pbDoSort('${col}',1)">▲ Ascending</button>
+      <button class="pb-sort-btn" onclick="pbDoSort('${col}',-1)">▼ Descending</button>
+    </div>`
+
+  const clearCol = `<button class="btn secondary" style="padding:5px 14px;font-size:0.78rem" onclick="pbClearColFilter('${col}')">Clear column filter</button>`
+
+  let filterHtml = ''
+  if (col === 'category') {
+    const cats = [...new Set(pbData.map(r => r.category || '(No type)'))].sort()
+    const selected = pbFilters.category || []
+    filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">Filter by Type</div>` +
+      `<div style="max-height:200px;overflow-y:auto;margin-bottom:8px;scrollbar-width:thin">` +
+      cats.map(c => `<label class="pb-flabel"><input type="checkbox" class="pb-cat-cb" value="${c}" ${selected.includes(c) ? 'checked' : ''} /> ${c}</label>`).join('') +
+      `</div>` +
+      `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterCat()">Apply</button>${clearCol}</div>`
+  } else if (col === 'member_name') {
+    const names = [...new Set(pbData.map(r => r.member_name || '(No member)'))].sort()
+    const selected = pbFilters.member_name || []
+    filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">Filter by Member</div>` +
+      `<div style="max-height:200px;overflow-y:auto;margin-bottom:8px;scrollbar-width:thin">` +
+      names.map(n => `<label class="pb-flabel"><input type="checkbox" class="pb-name-cb" value="${n}" ${selected.includes(n) ? 'checked' : ''} /> ${n}</label>`).join('') +
+      `</div>` +
+      `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterName()">Apply</button>${clearCol}</div>`
+  } else if (col === 'ts') {
+    filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">Filter by Date Range</div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-from-input" type="date" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.from || ''}" placeholder="From" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:8px"><input id="pb-to-input" type="date" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.to || ''}" placeholder="To" /></div>` +
+      `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterDate()">Apply</button>${clearCol}</div>`
+  } else if (col === 'amount') {
+    filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:8px">Filter by Amount</div>` +
+      `<div style="display:flex;gap:8px;margin-bottom:8px">` +
+      `<label class="pb-flabel" style="flex:1;justify-content:center;padding:6px 0"><input type="checkbox" class="pb-amt-cb" value="credit" ${pbFilters.amtCredit ? 'checked' : ''} /> Credit</label>` +
+      `<label class="pb-flabel" style="flex:1;justify-content:center;padding:6px 0"><input type="checkbox" class="pb-amt-cb" value="debit" ${pbFilters.amtDebit ? 'checked' : ''} /> Debit</label>` +
+      `</div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-amt-min" type="text" placeholder="Min amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtMin || ''}" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-amt-max" type="text" placeholder="Max amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtMax || ''}" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:8px"><input id="pb-amt-exact" type="text" placeholder="Exact amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtExact || ''}" /></div>` +
+      `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterAmount()">Apply</button>${clearCol}</div>`
+  }
+
+  panel.innerHTML = sortRow + filterHtml
+  panel.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5);margin-top:4px'
+  th.appendChild(panel)
+  document.addEventListener('click', pbCloseOutside, true)
+}
+
+function pbDoSort(col, dir) {
+  pbSortCol = col; pbSortDir = dir
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function pbCloseFilter() {
+  const p = document.getElementById('pb-filter-panel')
+  if (p) p.remove()
+  document.removeEventListener('click', pbCloseOutside, true)
+}
+
+function pbCloseOutside(e) {
+  if (!e.target.closest('#pb-filter-panel') && !e.target.closest('.pb-sortable')) pbCloseFilter()
+}
+
+function pbClearColFilter(col) {
+  if (col === 'category') delete pbFilters.category
+  else if (col === 'member_name') delete pbFilters.member_name
+  else if (col === 'ts') { delete pbFilters.from; delete pbFilters.to }
+  else if (col === 'amount') { delete pbFilters.amtCredit; delete pbFilters.amtDebit; delete pbFilters.amtMin; delete pbFilters.amtMax; delete pbFilters.amtExact }
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function pbClearAllFilters() {
+  pbFilters = {}
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function pbClearFilter(key) {
+  delete pbFilters[key]
+  applyPbFilters()
+}
+
+function pbRemoveFilterValue(key, value) {
+  if (Array.isArray(pbFilters[key])) {
+    pbFilters[key] = pbFilters[key].filter(v => v !== value)
+    if (!pbFilters[key].length) delete pbFilters[key]
+  } else {
+    delete pbFilters[key]
+  }
+  applyPbFilters()
+}
+
+function pbFilterCat() {
+  const checked = [...document.querySelectorAll('.pb-cat-cb:checked')].map(cb => cb.value)
+  if (checked.length) pbFilters.category = checked
+  else delete pbFilters.category
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function pbFilterName() {
+  const checked = [...document.querySelectorAll('.pb-name-cb:checked')].map(cb => cb.value)
+  if (checked.length) pbFilters.member_name = checked
+  else delete pbFilters.member_name
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function pbFilterDate() {
+  const f = document.getElementById('pb-from-input').value
+  const t = document.getElementById('pb-to-input').value
+  if (f) pbFilters.from = f; else delete pbFilters.from
+  if (t) pbFilters.to = t; else delete pbFilters.to
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function pbFilterAmount() {
+  const checked = [...document.querySelectorAll('.pb-amt-cb:checked')].map(cb => cb.value)
+  if (checked.includes('credit')) pbFilters.amtCredit = true; else delete pbFilters.amtCredit
+  if (checked.includes('debit')) pbFilters.amtDebit = true; else delete pbFilters.amtDebit
+  const min = document.getElementById('pb-amt-min').value.replace(/,/g, '')
+  const max = document.getElementById('pb-amt-max').value.replace(/,/g, '')
+  const exact = document.getElementById('pb-amt-exact').value.replace(/,/g, '')
+  if (min) pbFilters.amtMin = parseFloat(min); else delete pbFilters.amtMin
+  if (max) pbFilters.amtMax = parseFloat(max); else delete pbFilters.amtMax
+  if (exact) pbFilters.amtExact = parseFloat(exact); else delete pbFilters.amtExact
+  pbCloseFilter()
+  applyPbFilters()
+}
+
+function applyPbFilters() {
+  let filtered = pbData
+  Object.entries(pbFilters).forEach(([k, v]) => {
+    if (k === 'category' && Array.isArray(v)) filtered = filtered.filter(r => v.includes(r.category || '(No type)'))
+    if (k === 'member_name' && Array.isArray(v)) filtered = filtered.filter(r => v.includes(r.member_name || '(No member)'))
+    if (k === 'from') filtered = filtered.filter(r => r.ts >= v + 'T00:00:00')
+    if (k === 'to') filtered = filtered.filter(r => r.ts <= v + 'T23:59:59')
+    if (k === 'amtCredit' || k === 'amtDebit') filtered = filtered.filter(r => (pbFilters.amtCredit && r.debit_credit === 'credit') || (pbFilters.amtDebit && r.debit_credit === 'debit'))
+    if (k === 'amtMin') filtered = filtered.filter(r => parseFloat(r.amount) >= v)
+    if (k === 'amtMax') filtered = filtered.filter(r => parseFloat(r.amount) <= v)
+    if (k === 'amtExact') filtered = filtered.filter(r => parseFloat(r.amount) === v)
+  })
+  filtered.sort((a, b) => {
+    let va = a[pbSortCol] || '', vb = b[pbSortCol] || ''
+    if (pbSortCol === 'amount') { va = parseFloat(va); vb = parseFloat(vb) }
+    else if (pbSortCol === 'ts') { va = va.replace(/\s/g, '').replace(/T/g, ' '); vb = vb.replace(/\s/g, '').replace(/T/g, ' ') }
+    else { va = va.toString().toLowerCase(); vb = vb.toString().toLowerCase() }
+    if (va < vb) return pbSortDir
+    if (va > vb) return -pbSortDir
+    return 0
+  })
+
+  const filtersDiv = document.getElementById('pb-active-filters')
+  if (filtersDiv) {
+    const chips = []
+    Object.entries(pbFilters).forEach(([k, v]) => {
+      let label = ''
+      if (k === 'category' || k === 'member_name') {
+        if (Array.isArray(v)) v.forEach(val => chips.push({key:k, val, label:(k==='category'?'Type':'Member')+': '+val}))
+      } else if (k === 'from') chips.push({key:k, val:null, label:'From: '+v})
+      else if (k === 'to') chips.push({key:k, val:null, label:'To: '+v})
+      else if (k === 'amtCredit') chips.push({key:k, val:null, label:'Credit'})
+      else if (k === 'amtDebit') chips.push({key:k, val:null, label:'Debit'})
+      else if (k === 'amtMin') chips.push({key:k, val:null, label:'Min: '+v})
+      else if (k === 'amtMax') chips.push({key:k, val:null, label:'Max: '+v})
+      else if (k === 'amtExact') chips.push({key:k, val:null, label:'Exact: ₹'+v})
+    })
+    filtersDiv.innerHTML = chips.map(c =>
+      '<span class="pb-chip" onclick="pbRemoveFilterValue(\'' + c.key + '\',\'' + (c.val || '').replace(/'/g, "\\'") + '\')">' + c.label + ' ✕</span>'
+    ).join('') + (chips.length ? '<span class="pb-chip pb-chip-clear" onclick="pbClearAllFilters()">✕ Clear all filters</span>' : '')
+    filtersDiv.style.minHeight = chips.length ? '28px' : '0'
+  }
+
+  const listDiv = document.getElementById('pb-list')
+  if (!filtered.length) { listDiv.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px 0">' + t('No entries match filters.') + '</p>'; return }
+  listDiv.innerHTML = '<p style="font-size:0.78rem;color:#64748b;margin:0 0 6px">' + filtered.length + ' ' + t('entries') + '</p>' +
+    '<table class="table"><thead><tr>' +
+    '<th class="pb-sortable" data-col="ts" onclick="pbToggleFilter(\'ts\')">' + t('Date & Time') + ' <span class="pb-sort-arr">' + pbSortIcon('ts') + '</span></th>' +
+    '<th class="pb-sortable" data-col="category" onclick="pbToggleFilter(\'category\')">' + t('Type') + ' <span class="pb-sort-arr">' + pbSortIcon('category') + '</span></th>' +
+    '<th class="pb-sortable" data-col="member_name" onclick="pbToggleFilter(\'member_name\')">' + t('Member') + ' <span class="pb-sort-arr">' + pbSortIcon('member_name') + '</span></th>' +
+    '<th class="pb-sortable" style="text-align:right" data-col="amount" onclick="pbToggleFilter(\'amount\')">' + t('Amount') + ' <span class="pb-sort-arr">' + pbSortIcon('amount') + '</span></th>' +
+    '</tr></thead><tbody>' +
+    filtered.slice(0, 500).map(r => {
+      const cls = r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'
+      const sign = r.debit_credit === 'credit' ? '+' : '−'
+      return `<tr>
+        <td style="white-space:nowrap;font-size:0.8rem">${formatDateTime(r.ts)}</td>
+        <td><span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${r.category}</span></td>
+        <td style="color:#94a3b8">${r.member_name || '-'}</td>
+        <td style="text-align:right;font-weight:700;color:${cls}">${sign} ${formatCurrency(r.amount)}</td>
+      </tr>`
+    }).join('') + '</tbody></table>'
 }
 
 async function renderAllHistory() {
@@ -763,22 +1326,22 @@ async function renderAllHistory() {
   ;(m.loans || []).forEach(l => {
     const appliedDate = l.last_accrual_date || l.disbursed_date || ''
     const padSort = (s) => s && !s.includes('T') ? s + 'T00:00:00' : s
-    let info = l.status === 'applied' ? 'Pending approval' : (l.status === 'active' ? 'Approved and active' : (l.status === 'rejected' ? (l.reject_reason || 'Rejected') : l.status))
-    requestRows.push({ sortKey: padSort(appliedDate), date: appliedDate, type: 'Loan Application', amount: l.principal, status: l.status, info })
+    let info = l.status === 'applied' ? t('Pending approval') : (l.status === 'active' ? t('Approved and active') : (l.status === 'rejected' ? (l.reject_reason || t('Rejected')) : l.status))
+    requestRows.push({ sortKey: padSort(appliedDate), date: appliedDate, type: t('Loan Application'), amount: l.principal, status: l.status, info })
   })
   // Payment requests from m.payment_requests
   ;(m.payment_requests || []).forEach(r => {
-    let info = r.status === 'rejected' ? (r.reject_reason || 'Rejected') : (r.status === 'approved' ? 'Approved on ' + formatDate(r.approved_date) : 'Pending')
-    requestRows.push({ sortKey: r.date_submitted, date: r.date_submitted, type: r.type === 'share' ? 'Share Payment' : 'Loan Payment', amount: r.amount, status: r.status, info })
+    let info = r.status === 'rejected' ? (r.reject_reason || t('Rejected')) : (r.status === 'approved' ? t('Approved on ') + formatDate(r.approved_date) : t('Pending'))
+    requestRows.push({ sortKey: r.date_submitted, date: r.date_submitted, type: r.type === 'share' ? t('Share Payment') : t('Loan Payment'), amount: r.amount, status: r.status, info })
   })
   requestRows.sort((a, b) => b.sortKey.localeCompare(a.sortKey))
-  const rowsHtml = requestRows.length ? requestRows.map(r => `<tr><td>${r.date ? formatDateTime(r.date.includes('T') ? r.date : r.date + 'T00:00:00') : '-'}</td><td>${r.type}</td><td>${formatCurrency(r.amount)}</td><td>${r.status}</td><td>${r.info}</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No history yet</td></tr>`
+  const rowsHtml = requestRows.length ? requestRows.map(r => `<tr><td>${r.date ? formatDateTime(r.date.includes('T') ? r.date : r.date + 'T00:00:00') : '-'}</td><td>${r.type}</td><td>${formatCurrency(r.amount)}</td><td>${r.status}</td><td>${r.info}</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">${t('No history yet')}</td></tr>`
   content.innerHTML = `
     <div class="panel">
-      <h2 class="page-title">📜 All History</h2>
-      <p>All your requests — payments, loan applications, and their statuses.</p>
+      <h2 class="page-title">${t('📜 My Activity')}</h2>
+      <p style="color:#94a3b8">${t('All your requests — payments, loan applications, and their statuses.')}</p>
       <div class="table-scroll">
-        <table class="table"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Comments</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+        <table class="table"><thead><tr><th>${t('Date')}</th><th>${t('Type')}</th><th>${t('Amount')}</th><th>${t('Status')}</th><th>${t('Comments')}</th></tr></thead><tbody>${rowsHtml}</tbody></table>
       </div>
     </div>
   `
@@ -1197,7 +1760,7 @@ async function renderFdEntries() {
     const active = entries ? entries.filter(e => e.status === 'active') : []
     const closed = entries ? entries.filter(e => e.status !== 'active') : []
     if (!entries || !entries.length) {
-      keepingDiv.innerHTML = '<div class="fd-empty">No FD entries yet.</div>'
+      keepingDiv.innerHTML = '<div class="fd-empty">' + t('No FD entries yet.') + '</div>'
       return
     }
     keepingDiv.innerHTML = active.length
@@ -1207,24 +1770,24 @@ async function renderFdEntries() {
       ? '<div class="fd-table-wrap">' + closedTable(closed) + '</div>'
       : '<div class="fd-empty muted">No closed FDs.</div>'
   } catch (e) {
-    keepingDiv.innerHTML = '<div class="fd-empty error">Error loading FD entries</div>'
+    keepingDiv.innerHTML = '<div class="fd-empty error">' + t('Error loading FD entries') + '</div>'
   }
 }
 
 function activeTable(fds) {
-  return '<table class="fd-table"><thead><tr><th>FD Amount</th><th>Start</th><th>Maturity</th><th>Rate</th><th>Bank</th><th></th></tr></thead><tbody>' +
+  return '<table class="fd-table"><thead><tr><th>' + t('FD Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Bank') + '</th><th></th></tr></thead><tbody>' +
     fds.map(fd => `<tr>
       <td class="td-amount">${formatCurrency(fd.amount)}</td>
       <td>${formatDate(fd.start_date)}</td>
       <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
       <td>${fd.interest_rate}%</td>
       <td class="td-bank">${fd.notes || '-'}</td>
-      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.id})">Withdraw</button></td>
+      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.id})">${t('Close FD')}</button></td>
     </tr>`).join('') + '</tbody></table>'
 }
 
 function closedTable(fds) {
-  return '<table class="fd-table"><thead><tr><th>FD Amount</th><th>Start</th><th>Maturity</th><th>Rate</th><th>Interest</th><th>Bank</th></tr></thead><tbody>' +
+  return '<table class="fd-table"><thead><tr><th>' + t('FD Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Interest') + '</th><th>' + t('Bank') + '</th></tr></thead><tbody>' +
     fds.map(fd => `<tr>
       <td class="td-amount">${formatCurrency(fd.amount)}</td>
       <td>${formatDate(fd.start_date)}</td>
@@ -1241,21 +1804,21 @@ async function handleAddFd() {
   const end_date = toISODate(document.getElementById('fd-end').value)
   const interest_rate = parseFloat(document.getElementById('fd-rate').value)
   const notes = document.getElementById('fd-bank').value.trim()
-  if (!amount || amount <= 0) { showToast('Enter valid FD amount', 'error'); return }
-  if (!start_date) { showToast('Enter valid start date', 'error'); return }
-  if (!end_date) { showToast('Enter valid maturity date', 'error'); return }
-  if (!interest_rate || interest_rate <= 0) { showToast('Enter valid rate', 'error'); return }
+  if (!amount || amount <= 0) { showToast(t('Enter valid FD amount'), 'error'); return }
+  if (!start_date) { showToast(t('Enter valid start date'), 'error'); return }
+  if (!end_date) { showToast(t('Enter valid maturity date'), 'error'); return }
+  if (!interest_rate || interest_rate <= 0) { showToast(t('Enter valid rate'), 'error'); return }
   const sd = new Date(start_date + 'T00:00:00')
   const ed = new Date(end_date + 'T00:00:00')
-  if (ed <= sd) { showToast('Maturity must be after start date', 'error'); return }
+  if (ed <= sd) { showToast(t('Maturity must be after start date'), 'error'); return }
   const term_months = (ed.getFullYear() - sd.getFullYear()) * 12 + (ed.getMonth() - sd.getMonth())
-  if (term_months < 1) { showToast('Term too short', 'error'); return }
+  if (term_months < 1) { showToast(t('Term too short'), 'error'); return }
   await api('/admin/fd/add', {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
     body: JSON.stringify({amount, start_date, term_months, interest_rate, notes}),
   })
-  showToast('FD added', 'success')
+  showToast(t('FD added'), 'success')
   await renderFdEntries()
   document.getElementById('fd-amount').value = ''
   document.getElementById('fd-bank').value = ''
@@ -1265,7 +1828,7 @@ window.closeFd = async function(fdId) {
   const existing = document.getElementById('fd-close-overlay')
   if (existing) existing.remove()
   const fdRow = state.fdEntries ? state.fdEntries.find(e => e.id === fdId) : null
-  if (!fdRow) { showToast('FD not found', 'error'); return }
+  if (!fdRow) { showToast(t('FD not found'), 'error'); return }
   const amount = fdRow.amount
   const termMonths = fdRow.term_months
   const rate = fdRow.interest_rate
@@ -1277,19 +1840,19 @@ window.closeFd = async function(fdId) {
   overlay.className = 'modal-overlay'
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:420px">
-      <p style="margin:0 0 12px;font-weight:600">Withdraw FD</p>
+      <p style="margin:0 0 12px;font-weight:600">${t('Close FD')}</p>
       <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:14px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">Bank</span><span>${bank}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">FD Amount</span><span style="font-weight:600">${formatCurrency(amount)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">Term</span><span>${termMonths}mo @ ${rate}%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Bank')}</span><span>${bank}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('FD Amount')}</span><span style="font-weight:600">${formatCurrency(amount)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Term')}</span><span>${termMonths}${t('mo')} @ ${rate}%</span></div>
       </div>
       <div style="margin-bottom:14px">
-        <label style="font-size:0.8rem;color:#94a3b8;display:block;margin-bottom:4px">Interest / Return Amount</label>
+        <label style="font-size:0.8rem;color:#94a3b8;display:block;margin-bottom:4px">${t('Interest / Return Amount')}</label>
         <div class="input-with-currency"><span class="currency">₹</span><input id="fd-return-amount" type="text" value="${Math.round(expectedReturn)}" /></div>
       </div>
       <div class="reject-form-actions">
-        <button class="btn primary" id="fd-close-confirm" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm Withdraw</button>
-        <button class="btn secondary" id="fd-close-cancel">Cancel</button>
+        <button class="btn primary" id="fd-close-confirm" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Close')}</button>
+        <button class="btn secondary" id="fd-close-cancel">${t('Cancel')}</button>
       </div>
     </div>
   `
@@ -1299,14 +1862,14 @@ window.closeFd = async function(fdId) {
 
   document.getElementById('fd-close-confirm').onclick = async () => {
     const interestEarned = Number(document.getElementById('fd-return-amount').value.replace(/,/g,''))
-    if (isNaN(interestEarned) || interestEarned < 0) { showToast('Enter valid return amount', 'error'); return }
+    if (isNaN(interestEarned) || interestEarned < 0) { showToast(t('Enter valid return amount'), 'error'); return }
     overlay.remove()
     await api(`/admin/fd/close/${fdId}`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
       body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
     })
-    showToast('FD withdrawn. Interest added to Other Income.', 'success')
+    showToast(t('FD closed. Interest added to Other Income.'), 'success')
     await renderFdEntries()
     renderAdminPanel()
   }
@@ -1494,6 +2057,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Enter key handling for convenience
     if (adminPin) adminPin.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin() })
     if (memberSelect) memberSelect.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin() })
+    translatePage()
     init()
   } catch (e) {
     try { fetch('/api/client_error', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: 'binding_error', stack: (e && e.stack)||String(e), ua: navigator.userAgent})}) } catch(_){}
@@ -1505,7 +2069,7 @@ document.addEventListener('click', (e) => {
   const target = e.target || e.srcElement
   if (!target) return
   if (target.id === 'login-button' || target.closest && target.closest('#login-button')) {
-    showToast('Logging in...', 'info', 1200)
+    showToast(t('Logging in...'), 'info', 1200)
     try { handleLogin() } catch(err) { try { fetch('/api/client_error', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:'login_click_error', stack: (err && err.stack)||String(err)})}) } catch(_){} }
   }
 })
