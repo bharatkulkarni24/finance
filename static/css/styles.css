@@ -376,6 +376,77 @@ body {
 /* small tweaks for loan request inputs */
 .panel input[type="file"] { color: #cbd5e1 }
 
+/* Modern file upload area */
+.upload-area {
+  margin: 10px 0;
+  border: 2px dashed rgba(148,163,184,0.2);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: rgba(255,255,255,0.02);
+}
+
+.upload-area:hover {
+  border-color: rgba(124,58,237,0.4);
+  background: rgba(124,58,237,0.04);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.upload-icon { font-size: 1.8rem }
+.upload-text { font-size: 0.9rem; color: #94a3b8; font-weight: 600 }
+.upload-hint { font-size: 0.75rem; color: #64748b }
+
+.upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+}
+
+.upload-preview img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(148,163,184,0.12);
+}
+
+.upload-preview span {
+  flex: 1;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  word-break: break-all;
+}
+
+.upload-remove {
+  background: rgba(244,63,94,0.12);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
+  color: #fb7185;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.upload-remove:hover {
+  background: rgba(244,63,94,0.25);
+}
+
 .badge {
   display: inline-flex;
   padding: 6px 12px;

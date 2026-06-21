@@ -130,6 +130,30 @@ function formatCurrency(amount) {
   return '₹' + Number(amount || 0).toLocaleString('en-IN', {maximumFractionDigits: 2})
 }
 
+function toIndianNumber(str) {
+  let num = str.replace(/[^0-9.]/g, '')
+  let parts = num.split('.')
+  let intPart = parts[0]
+  if (!intPart) return ''
+  let lastThree = intPart.slice(-3)
+  let rest = intPart.slice(0, -3)
+  if (rest) rest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',')
+  let formatted = rest ? rest + ',' + lastThree : lastThree
+  if (parts.length > 1) formatted += '.' + parts.slice(1).join('')
+  return formatted
+}
+
+function indianizeInput(input) {
+  input.addEventListener('input', function () {
+    let start = this.selectionStart
+    let raw = this.value.replace(/,/g, '')
+    let formatted = toIndianNumber(raw)
+    let added = formatted.length - this.value.length
+    this.value = formatted
+    this.setSelectionRange(start + added, start + added)
+  })
+}
+
 function formatDate(d) {
   if (!d) return '-'
   return new Date(d).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})
@@ -501,52 +525,67 @@ async function renderMemberProfile(memberId) {
       <div id="admin-edit-form" style="display:none;margin-top:12px"></div>
     </div>
   ` : ''
+  const today = new Date().toISOString().slice(0, 10)
   content.innerHTML = `
     <div class="panel">
       ${profileFields}
       ${adminEdit}
-      <div class="grid-2" style="margin-top:18px; gap:20px;">
-        <div>
-          <div class="panel compact-panel">
-            <h3>Submit Payment / Receipt</h3>
-            <div class="input-row">
-              <label style="flex-basis:100%">Share Amount *</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="number" min="0" step="0.01" placeholder="0" /></div>
-            </div>
-            <div class="input-row">
-              <label style="flex-basis:100%">Loan Amount (optional)</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="number" min="0" step="0.01" placeholder="0" /></div>
-            </div>
-            <div class="input-row small-row">
-              <label style="flex-basis:100%">Payment Date</label>
-              <input id="pay-txn-date" type="date" value="" />
-            </div>
-            <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
-            <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
-          </div>
-        </div>
-        <div>
-          <div class="panel">
-            <h3>Actions</h3>
-            ${canManage ? `
-              <div class="input-row"><label style="flex-basis:100%">Request Loan</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="number" placeholder="Loan amount" min="0" step="0.01" /></div></div>
-              <button class="btn primary" id="request-loan-btn">Request Loan</button>
-            ` : '<p>This member profile is view-only.</p>'}
-          </div>
-          <div class="panel" style="margin-top:12px;">
-            <h3>Contribution History</h3>
-            ${contributionHeader}
-            <table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Type</th></tr></thead><tbody>${[...deposits, ...shares].map(c => `<tr><td>${formatDate(c.date)}</td><td>${formatCurrency(c.amount)}</td><td>${c.type}</td></tr>`).join('')}</tbody></table>
-          </div>
-        </div>
-      </div>
-      <div class="panel" style="margin-top:18px;">
-        <h3>Loans</h3>
-        <table class="table"><thead><tr><th>ID</th><th>Principal</th><th>Outstanding</th><th>Term</th><th>Status</th><th>Action</th></tr></thead><tbody>${loansHtml}</tbody></table>
-      </div>
-      <!-- bottom submit payment removed; primary submit panel above -->
-      ${requestsHtml}
     </div>
+
+    <div class="grid-2" style="margin-top:18px; gap:20px;">
+      <div class="panel compact-panel">
+        <h3>📥 Submit Payment / Receipt</h3>
+        <div class="input-row">
+          <label style="flex-basis:100%">Share Amount *</label>
+          <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
+        </div>
+        <div class="input-row">
+          <label style="flex-basis:100%">Loan Amount (optional)</label>
+          <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
+        </div>
+        <div class="input-row small-row">
+          <label style="flex-basis:100%">Payment Date</label>
+          <input id="pay-txn-date" type="date" value="${today}" max="${today}" />
+        </div>
+        <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
+        <div class="upload-area" id="upload-area">
+          <input id="screenshot-input" type="file" accept="image/*" hidden />
+          <div class="upload-placeholder">
+            <span class="upload-icon">📎</span>
+            <span class="upload-text">Tap to upload receipt / proof</span>
+            <span class="upload-hint">Image only</span>
+          </div>
+          <div class="upload-preview hidden">
+            <img id="upload-preview-img" />
+            <span id="upload-filename"></span>
+            <button class="upload-remove" id="upload-remove-btn" type="button">✕</button>
+          </div>
+        </div>
+        <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h3>⚡ Actions</h3>
+          ${canManage ? `
+            <div class="input-row"><label style="flex-basis:100%">Request Loan</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
+            <button class="btn primary" id="request-loan-btn">Request Loan</button>
+          ` : '<p>This member profile is view-only.</p>'}
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <h3>📊 Contribution History</h3>
+          ${contributionHeader}
+          <table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Type</th></tr></thead><tbody>${[...deposits, ...shares].map(c => `<tr><td>${formatDate(c.date)}</td><td>${formatCurrency(c.amount)}</td><td>${c.type}</td></tr>`).join('')}</tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <h3>🏦 Loans</h3>
+      <table class="table"><thead><tr><th>ID</th><th>Principal</th><th>Outstanding</th><th>Term</th><th>Status</th><th>Action</th></tr></thead><tbody>${loansHtml}</tbody></table>
+    </div>
+
+    ${requestsHtml}
   `
     // Attach handlers for inline profile photo and edit/save flow
     const avatar = document.getElementById('profile-avatar')
@@ -665,6 +704,44 @@ async function renderMemberProfile(memberId) {
       }
     }
 
+    // Apply Indian number formatting to amount inputs
+    ;['share-amount-input', 'loan-amount-input', 'request-loan-amount'].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) indianizeInput(el)
+    })
+
+    // Upload area handler
+    const uploadArea = document.getElementById('upload-area')
+    const screenshotInput = document.getElementById('screenshot-input')
+    const uploadPreview = uploadArea?.querySelector('.upload-preview')
+    const uploadPlaceholder = uploadArea?.querySelector('.upload-placeholder')
+    const previewImg = document.getElementById('upload-preview-img')
+    const filenameSpan = document.getElementById('upload-filename')
+    const uploadRemoveBtn = document.getElementById('upload-remove-btn')
+    if (uploadArea && screenshotInput) {
+      uploadArea.addEventListener('click', () => screenshotInput.click())
+      screenshotInput.addEventListener('change', () => {
+        const file = screenshotInput.files && screenshotInput.files[0]
+        if (!file) return
+        if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden')
+        if (uploadPreview) uploadPreview.classList.remove('hidden')
+        if (filenameSpan) filenameSpan.textContent = file.name
+        const reader = new FileReader()
+        reader.onload = (e) => { if (previewImg) previewImg.src = e.target.result }
+        reader.readAsDataURL(file)
+      })
+      if (uploadRemoveBtn) {
+        uploadRemoveBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          screenshotInput.value = ''
+          if (uploadPreview) uploadPreview.classList.add('hidden')
+          if (uploadPlaceholder) uploadPlaceholder.classList.remove('hidden')
+          if (previewImg) previewImg.src = ''
+          if (filenameSpan) filenameSpan.textContent = ''
+        })
+      }
+    }
+
     if (submitPaymentBtn) {
       submitPaymentBtn.onclick = () => handleSubmitPayment(m.id)
     }
@@ -675,7 +752,8 @@ async function renderMemberProfile(memberId) {
     const requestLoanBtn = document.getElementById('request-loan-btn')
     if (requestLoanBtn) {
       requestLoanBtn.onclick = async () => {
-        const amt = Number(document.getElementById('request-loan-amount').value) || 0
+        const raw = document.getElementById('request-loan-amount').value.replace(/,/g, '')
+        const amt = Number(raw) || 0
         if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
         const res = await api(`/members/${m.id}/apply_loan`, {
           method: 'POST',
@@ -833,17 +911,26 @@ async function handleCancelRequest(memberId, reqId) {
 window.handleCancelRequest = handleCancelRequest
 
 async function handleSubmitPayment(memberId) {
-  const shareAmount = Number(document.getElementById('share-amount-input').value) || 0
-  const loanAmount = Number(document.getElementById('loan-amount-input').value) || 0
+  const shareRaw = document.getElementById('share-amount-input').value.replace(/,/g, '')
+  const loanRaw = document.getElementById('loan-amount-input').value.replace(/,/g, '')
+  const shareAmount = Number(shareRaw) || 0
+  const loanAmount = Number(loanRaw) || 0
+  const txnDate = document.getElementById('pay-txn-date').value
   const note = document.getElementById('pay-note').value
+  if (!txnDate) { showToast('Select a payment date', 'error'); return }
+  if (new Date(txnDate) > new Date()) { showToast('Date cannot be in the future', 'error'); return }
   // Share amount is mandatory
   if (!shareAmount || shareAmount <= 0) { showToast('Share amount is required', 'error'); return }
   // submit share payment request
+  const screenshotInput = document.getElementById('screenshot-input')
+  const screenshotFile = screenshotInput?.files?.[0]
   try {
     const fd1 = new FormData()
     fd1.append('amount', shareAmount)
     fd1.append('type', 'share')
     fd1.append('note', note)
+    fd1.append('txn_date', txnDate)
+    if (screenshotFile) fd1.append('screenshot', screenshotFile)
     const res1 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd1})
     if (!res1.ok) {
       const e = await res1.json().catch(()=>({error:'failed'}))
@@ -856,7 +943,7 @@ async function handleSubmitPayment(memberId) {
       fd2.append('amount', loanAmount)
       fd2.append('type', 'loan')
       fd2.append('note', note)
-      // do not re-attach screenshot to avoid duplicating large upload; attach if explicitly desired
+      fd2.append('txn_date', txnDate)
       const res2 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd2})
       if (!res2.ok) {
         const e = await res2.json().catch(()=>({error:'failed'}))
