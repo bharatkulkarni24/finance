@@ -267,13 +267,14 @@ body {
 .profile-card {
   display: flex;
   gap: 20px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 18px;
+  padding: 20px;
 }
 
 .profile-avatar {
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -291,7 +292,7 @@ body {
 .photo-controls button { padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color: #f8fafc; cursor:pointer }
 
 /* Visible avatar action menu (add/remove) */
-.avatar-menu { position: absolute; top: 130px; left: 0; background: rgba(2,6,23,0.95); border: 1px solid rgba(148,163,184,0.08); padding: 8px; border-radius: 10px; display:flex; flex-direction:column; gap:8px; z-index:50; min-width:180px; box-shadow: 0 10px 30px rgba(2,6,23,0.6); }
+.avatar-menu { position: absolute; top: 140px; left: 0; background: rgba(2,6,23,0.95); border: 1px solid rgba(148,163,184,0.08); padding: 8px; border-radius: 10px; display:flex; flex-direction:column; gap:8px; z-index:50; min-width:180px; box-shadow: 0 10px 30px rgba(2,6,23,0.6); }
 .avatar-menu.hidden { display:none }
 .avatar-menu .btn { width:100%; text-align:left; padding:8px 10px; border-radius:8px; background: transparent; color:#e2e8f0; border:1px solid rgba(255,255,255,0.03) }
 .avatar-menu .btn:hover { background: rgba(124,58,237,0.08) }
@@ -614,6 +615,7 @@ body {
 .shares-dot { background: #34d399 }
 .interest-dot { background: #fbbf24 }
 .other-dot { background: #fb7185 }
+.expense-dot { background: #fca5a5 }
 
 @media (max-width: 640px) {
   .group-info-grid { grid-template-columns: repeat(2, 1fr) }
@@ -768,4 +770,300 @@ body {
 .toast.success { background: #bbf7d0; color:#06361a }
 .toast.error { background: #fecaca; color:#4b0000 }
 .toast.info { background: #bfdbfe; color:#02244a }
+
+/* Logout confirmation modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+.modal-box {
+  background: #0f172a;
+  border: 1px solid rgba(148,163,184,0.15);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 360px;
+  width: 90%;
+}
+
+/* Profile card details: two-column layout inside profile-copy */
+.pc-details {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+.pc-left {
+  flex: 1;
+  min-width: 0;
+}
+.pc-left p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+.pc-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ps-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(148,163,184,0.12);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+.ps-num {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+/* Member cards grid */
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+.member-card {
+  background: rgba(15,23,42,0.7);
+  border: 1px solid rgba(148,163,184,0.1);
+  border-radius: 14px;
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.member-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(148,163,184,0.3);
+}
+.mc-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.mc-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+.mc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mc-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+.mc-age {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #a78bfa;
+}
+.mc-phone {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #34d399;
+}
+
+/* ===== FD Management — 2030 ===== */
+.fd-card-form {
+  background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04));
+  border: 1px solid rgba(99,102,241,0.1);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(4px);
+}
+.fd-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px 18px;
+  align-items: end;
+}
+.fd-field label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 5px;
+}
+.fd-field-btn { justify-self: end }
+.fd-field-btn button {
+  height: 44px;
+  padding: 0 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.25);
+}
+.fd-field-btn button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99,102,241,0.35);
+}
+.fd-field-btn button:active { transform: scale(0.97) }
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.04);
+  color: #f1f5f9;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.input-group input:focus {
+  border-color: rgba(99,102,241,0.5);
+  background: rgba(99,102,241,0.06);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.input-group input::placeholder { color: #475569 }
+.input-prefix {
+  position: absolute;
+  left: 12px;
+  color: #64748b;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1;
+}
+.input-prefix + input { padding-left: 28px }
+.input-suffix {
+  position: absolute;
+  right: 12px;
+  color: #64748b;
+  font-weight: 500;
+  pointer-events: none;
+}
+.input-suffix + input { padding-right: 28px }
+
+.fd-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.fd-section {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.fd-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+}
+.fd-section-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.fd-section-dot.active { background: #34d399 }
+.fd-section-dot.closed { background: #64748b }
+
+.fd-empty {
+  text-align: center;
+  padding: 24px 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+.fd-empty.error { color: #ef4444 }
+.fd-empty.muted { color: #475569 }
+
+.fd-table-wrap {
+  overflow-x: auto;
+}
+.fd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.fd-table thead th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.fd-table tbody tr {
+  transition: background 0.15s;
+}
+.fd-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+.fd-table tbody td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: #e2e8f0;
+}
+.fd-table .td-amount { font-weight: 700; color: #f8fafc }
+.fd-table .td-interest { color: #a78bfa; font-weight: 600 }
+.fd-table .td-bank { color: #94a3b8; font-size: 0.77rem }
+
+.fd-btn-withdraw {
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(239,68,68,0.2);
+  background: rgba(239,68,68,0.08);
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.fd-btn-withdraw:hover {
+  background: rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.35);
+}
+
+.bank-income-box {
+  margin-top: 18px;
+  border: 1px solid rgba(139,92,246,0.15);
+  background: linear-gradient(135deg, rgba(139,92,246,0.04), rgba(99,102,241,0.02));
+  box-shadow: 0 0 30px rgba(139,92,246,0.05);
+}
 

@@ -20,6 +20,11 @@ from models import (
     apply_payment_to_loan,
     pay_due,
     get_member_statement,
+    add_fd,
+    close_fd,
+    get_fd_entries,
+    add_transaction,
+    get_recent_transactions,
 )
 from datetime import datetime
 import os
@@ -285,6 +290,67 @@ def admin_add_funds_route():
     from models import admin_add_funds
     t = admin_add_funds(amount, note)
     return jsonify({'status': 'ok', 'transaction': t})
+
+
+@app.route('/api/admin/fd/add', methods=['POST'])
+def admin_fd_add():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    fd = add_fd(
+        amount=float(data.get('amount', 0)),
+        start_date=data.get('start_date', ''),
+        term_months=int(data.get('term_months', 0)),
+        interest_rate=float(data.get('interest_rate', 0)),
+        notes=data.get('notes', ''),
+    )
+    return jsonify(fd)
+
+
+@app.route('/api/admin/fd/close/<int:fd_id>', methods=['POST'])
+def admin_fd_close(fd_id):
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    fd = close_fd(fd_id, data.get('end_date', ''), float(data.get('interest_earned', 0)))
+    if not fd:
+        return jsonify({'error': 'not found or already closed'}), 404
+    return jsonify(fd)
+
+
+@app.route('/api/admin/fd/list', methods=['GET'])
+def admin_fd_list():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    status = request.args.get('status')
+    entries = get_fd_entries(status)
+    return jsonify(entries)
+
+
+@app.route('/api/admin/income-expense/add', methods=['POST'])
+def admin_income_expense_add():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    row = add_transaction(
+        debit_credit=data.get('type', 'credit'),
+        amount=float(data.get('amount', 0)),
+        desc=data.get('desc', ''),
+        entry_date=data.get('entry_date', ''),
+    )
+    return jsonify(row)
+
+
+@app.route('/api/admin/transactions', methods=['GET'])
+def admin_transactions():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    return jsonify(get_recent_transactions(100))
 
 
 @app.route('/api/admin/stats', methods=['GET'])

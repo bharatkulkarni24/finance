@@ -166,6 +166,74 @@ function formatDateTime(d) {
     + ' ' + dt.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'})
 }
 
+function smartDateInput(input) {
+  input.addEventListener('input', function () {
+    let raw = this.value.replace(/[^0-9]/g, '').slice(0, 8)
+    let formatted = ''
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) formatted += '/'
+      formatted += raw[i]
+    }
+    this.value = formatted
+  })
+  input.addEventListener('blur', function () {
+    const d = parseSmartDate(this.value)
+    if (d) this.value = d.toLocaleDateString('en-IN', {day: '2-digit', month: '2-digit', year: 'numeric'})
+  })
+}
+
+function parseSmartDate(str) {
+  if (!str) return null
+  const clean = str.replace(/[^0-9]/g, '')
+  if (clean.length === 8) {
+    const d = parseInt(clean.slice(0,2), 10)
+    const m = parseInt(clean.slice(2,4), 10) - 1
+    const y = parseInt(clean.slice(4,8), 10)
+    return new Date(y, m, d)
+  }
+  const d2 = new Date(str)
+  if (!isNaN(d2.getTime())) return d2
+  return null
+}
+
+function toISODate(val) {
+  const d = parseSmartDate(val)
+  if (!d) return val
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function dualDateInput(input) {
+  smartDateInput(input)
+  const wrapper = input.parentElement
+  const icon = document.createElement('span')
+  icon.className = 'cal-icon'
+  icon.innerHTML = '📅'
+  icon.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;opacity:0.6'
+  const hiddenInput = document.createElement('input')
+  hiddenInput.type = 'date'
+  hiddenInput.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:0;height:0'
+  wrapper.style.position = 'relative'
+  wrapper.appendChild(icon)
+  wrapper.appendChild(hiddenInput)
+  icon.onclick = () => {
+    const parsed = parseSmartDate(input.value)
+    if (parsed) hiddenInput.value = parsed.toISOString().slice(0, 10)
+    hiddenInput.showPicker ? hiddenInput.showPicker() : hiddenInput.click()
+  }
+  hiddenInput.onchange = () => {
+    if (hiddenInput.value) {
+      const d = new Date(hiddenInput.value + 'T00:00:00')
+      const dd = String(d.getDate()).padStart(2, '0')
+      const mm = String(d.getMonth() + 1).padStart(2, '0')
+      const yyyy = d.getFullYear()
+      input.value = `${dd}/${mm}/${yyyy}`
+    }
+  }
+}
+
 function calculateAge(dob) {
   if (!dob) return '-'
   const birth = new Date(dob)
@@ -195,7 +263,6 @@ function renderMenu() {
   if (state.currentUser.is_admin) {
     items.splice(3, 0, {id: 'admin-panel', label: 'Admin Panel'})
   }
-  items.push({id: 'sign-out', label: t('Sign Out')})
   items.forEach(item => {
     const a = document.createElement('a')
     a.href = '#'
@@ -203,15 +270,21 @@ function renderMenu() {
     a.textContent = item.label
     a.onclick = (e) => {
       e.preventDefault()
-      if (item.id === 'sign-out') {
-        logout()
-      } else {
-        state.activeView = item.id
-        renderView()
-      }
+      state.activeView = item.id
+      renderView()
     }
     menuLinks.appendChild(a)
   })
+  const logoutLink = document.createElement('a')
+  logoutLink.href = '#'
+  logoutLink.className = 'nav-link'
+  logoutLink.textContent = 'Sign Out'
+  logoutLink.style.marginLeft = 'auto'
+  logoutLink.onclick = (e) => {
+    e.preventDefault()
+    showLogoutConfirm()
+  }
+  menuLinks.appendChild(logoutLink)
 }
 
 async function loadMembers() {
@@ -252,6 +325,35 @@ function logout() {
   showScreen('login')
 }
 
+function showLogoutConfirm() {
+  const existing = document.getElementById('logout-overlay')
+  if (existing) existing.remove()
+  const inputs = document.querySelectorAll('#content input, #content textarea, #content select')
+  let unsavedMsg = ''
+  inputs.forEach(el => {
+    if (el.type === 'file') return
+    if (el.tagName === 'SELECT') { if (el.selectedIndex > 0) unsavedMsg = 'You have unsaved information in forms.'; return }
+    if (el.value && el.value.trim()) unsavedMsg = 'You have unsaved information in forms.'
+  })
+  const overlay = document.createElement('div')
+  overlay.id = 'logout-overlay'
+  overlay.className = 'modal-overlay'
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <p style="margin:0 0 6px;font-weight:600">Sign Out</p>
+      ${unsavedMsg ? `<p style="margin:0 0 12px;font-size:0.85rem;color:#fbbf24">${unsavedMsg} These will not be submitted.</p>` : ''}
+      <p style="margin:0 0 16px;font-size:0.9rem;color:#94a3b8">Are you sure you want to logout?</p>
+      <div class="reject-form-actions">
+        <button class="btn primary" id="logout-confirm-btn" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm</button>
+        <button class="btn secondary" id="logout-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+  document.getElementById('logout-confirm-btn').onclick = () => { overlay.remove(); logout() }
+  document.getElementById('logout-cancel-btn').onclick = () => overlay.remove()
+}
+
 function renderView() {
   renderMenu()
   const view = state.activeView
@@ -267,6 +369,29 @@ async function renderHome() {
   const html = `
     <div class="panel welcome-panel">
       <h2 class="page-title">Welcome, ${state.currentUser.name}</h2>
+    </div>
+
+    <div class="panel">
+      <h3 class="section-heading">💰 Financial Overview</h3>
+      <div class="total-box" style="margin-bottom:16px">
+        <div class="total-box-main">
+          <div class="total-box-label">Total Collected</div>
+          <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
+          <div class="total-box-desc">Sum of all collection sources below (net of expenses).</div>
+        </div>
+        <div class="total-box-breakdown">
+          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>Initial Deposits:</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>Shares:</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>Loan Interest:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>Other Income:</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>Expenses:</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card loan-given"><strong>${stats?formatCurrency(stats.total_lent):'-'}</strong><span>Loan Given</span></div>
+        <div class="stat-card hardlocked"><strong>${stats?formatCurrency(stats.hardlocked_fd):'-'}</strong><span>Hardlock / FD</span></div>
+        <div class="stat-card available"><strong>${stats?formatCurrency(stats.available_to_lend):'-'}</strong><span>Available to Loan</span></div>
+      </div>
     </div>
 
     <div class="group-info">
@@ -304,29 +429,6 @@ async function renderHome() {
         </div>
       </div>
     </div>
-
-    <div class="panel">
-      <h3 class="section-heading">💰 Financial Overview</h3>
-      <div class="stats-grid" style="margin-top:12px">
-        <div class="stat-card loan-given"><strong>${stats?formatCurrency(stats.total_lent):'-'}</strong><span>Loan Given</span></div>
-        <div class="stat-card hardlocked"><strong>${stats?formatCurrency(stats.cash_on_hand):'-'}</strong><span>Hardlocked / FD</span></div>
-        <div class="stat-card available"><strong>${stats?formatCurrency(stats.available_to_lend):'-'}</strong><span>Available to Loan</span></div>
-      </div>
-
-      <div class="total-box">
-        <div class="total-box-main">
-          <div class="total-box-label">Total Collected</div>
-          <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
-          <div class="total-box-desc">Sum of all collection sources below.</div>
-        </div>
-        <div class="total-box-breakdown">
-          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>Initial Deposits:</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>Shares:</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>Loan Interest:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>Other Income:</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
-        </div>
-      </div>
-    </div>
   `
   content.innerHTML = html
 }
@@ -345,11 +447,9 @@ async function renderAdminPanel() {
       <div class="grid-2">
         <div class="panel">
           <h3>Add New Member</h3>
+          <p>After adding, the member can fill in their details.</p>
           <div class="input-row"><input id="new-member-name" placeholder="Member name" /></div>
           <div class="input-row"><input id="new-member-phone" placeholder="Phone (optional)" /></div>
-          <div class="input-row"><input id="new-member-dob" type="date" placeholder="Date of birth" /></div>
-          <div class="input-row"><input id="new-member-address" placeholder="Address (optional)" /></div>
-          <div class="input-row"><input id="new-member-photo" placeholder="Photo URL (optional)" /></div>
           <button class="btn primary" id="add-member-btn">Add Member</button>
         </div>
         <div class="panel">
@@ -360,12 +460,148 @@ async function renderAdminPanel() {
           <div id="pending-payments"></div>
         </div>
       </div>
+      <div class="panel bank-income-box">
+        <div style="margin-top:0">
+          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">🏦 FD Management</h4>
+          <div class="fd-card-form">
+            <div class="fd-form-grid">
+              <div class="fd-field">
+                <label>FD Amount</label>
+                <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
+              </div>
+              <div class="fd-field">
+                <label>Start Date</label>
+                <div class="input-group"><input id="fd-start" class="dual-date" type="text" placeholder="DD/MM/YYYY" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
+              </div>
+              <div class="fd-field">
+                <label>End / Maturity</label>
+                <div class="input-group"><input id="fd-end" class="dual-date" type="text" placeholder="DD/MM/YYYY" /></div>
+              </div>
+              <div class="fd-field">
+                <label>Interest Rate</label>
+                <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
+              </div>
+              <div class="fd-field">
+                <label>Bank Name</label>
+                <div class="input-group"><input id="fd-bank" placeholder="e.g. SBI" /></div>
+              </div>
+              <div class="fd-field fd-field-btn">
+                <label>&nbsp;</label>
+                <button class="btn primary" id="fd-add-btn">Add FD</button>
+              </div>
+            </div>
+          </div>
+          <div class="fd-sections">
+            <div class="fd-section">
+              <div class="fd-section-head"><span class="fd-section-dot active"></span> Active</div>
+              <div id="fd-keeping"></div>
+            </div>
+            <div class="fd-section">
+              <div class="fd-section-head"><span class="fd-section-dot closed"></span> Record</div>
+              <div id="fd-record"></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:22px">
+          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">Income / Expenses</h4>
+          <div class="grid-2" style="gap:16px;margin-bottom:14px">
+            <div class="panel" style="margin:0">
+              <h4 style="color:#34d399;margin:0 0 8px">Income (Gains)</h4>
+              <button class="btn primary" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">+ Add Income</button>
+              <div id="income-form" style="display:none;margin-top:10px">
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="income-amount" type="text" /></div></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Date</label><input id="income-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Reason</label><input id="income-reason" placeholder="e.g. Donation from X" /></div>
+                <button class="btn primary" id="save-income-btn" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">Save</button>
+              </div>
+            </div>
+            <div class="panel" style="margin:0">
+              <h4 style="color:#fca5a5;margin:0 0 8px">Expenses</h4>
+              <button class="btn primary" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">+ Add Expense</button>
+              <div id="expense-form" style="display:none;margin-top:10px">
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="expense-amount" type="text" /></div></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Date</label><input id="expense-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">Reason</label><input id="expense-reason" placeholder="e.g. Meeting snacks" /></div>
+                <button class="btn primary" id="save-expense-btn" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Save</button>
+              </div>
+            </div>
+          </div>
+          <div id="ie-list"></div>
+        </div>
+      </div>
     </div>
   `
   content.innerHTML = html
   document.getElementById('add-member-btn').onclick = handleAddMember
+  document.getElementById('fd-add-btn').onclick = handleAddFd
+  document.getElementById('toggle-income-form').onclick = () => toggleForm('income')
+  document.getElementById('toggle-expense-form').onclick = () => toggleForm('expense')
+  document.getElementById('save-income-btn').onclick = () => handleSaveIe('credit')
+  document.getElementById('save-expense-btn').onclick = () => handleSaveIe('debit')
+  const fdAmt = document.getElementById('fd-amount')
+  if (fdAmt) indianizeInput(fdAmt)
+  const incAmt = document.getElementById('income-amount')
+  if (incAmt) indianizeInput(incAmt)
+  const expAmt = document.getElementById('expense-amount')
+  if (expAmt) indianizeInput(expAmt)
+  const fdStart = document.getElementById('fd-start')
+  if (fdStart) dualDateInput(fdStart)
+  const fdEnd = document.getElementById('fd-end')
+  if (fdEnd) dualDateInput(fdEnd)
   await renderPendingLoans()
   await renderPendingPayments()
+  await renderFdEntries()
+  await renderIeList()
+}
+
+
+function toggleForm(type) {
+  const id = type === 'income' ? 'income-form' : 'expense-form'
+  const btn = type === 'income' ? 'toggle-income-form' : 'toggle-expense-form'
+  const form = document.getElementById(id)
+  const isVisible = form.style.display !== 'none'
+  form.style.display = isVisible ? 'none' : 'block'
+  document.getElementById(btn).textContent = isVisible ? `+ Add ${type === 'income' ? 'Income' : 'Expense'}` : '− Cancel'
+}
+
+
+async function renderIeList() {
+  const div = document.getElementById('ie-list')
+  if (!div) return
+  div.innerHTML = '<p style="color:#94a3b8">Loading...</p>'
+  try {
+    const rows = await api('/admin/transactions', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    if (!rows || !rows.length) { div.innerHTML = '<p style="color:#64748b">No income or expense entries yet.</p>'; return }
+    div.innerHTML = '<table class="table"><thead><tr><th>Date</th><th>Type</th><th>Reason</th><th style="text-align:right">Amount</th></tr></thead><tbody>' +
+      rows.slice(0, 30).map(r => `<tr>
+        <td style="white-space:nowrap">${formatDate(r.timestamp)}</td>
+        <td><span style="color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? 'Income' : 'Expense'}</span></td>
+        <td style="color:#94a3b8">${r.desc || '-'}</td>
+        <td style="text-align:right;font-weight:600;color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? '+' : '-'}${formatCurrency(r.amount)}</td>
+      </tr>`).join('') + '</tbody></table>'
+  } catch (e) {
+    div.innerHTML = '<p style="color:#ef4444">Error loading transactions</p>'
+  }
+}
+
+
+async function handleSaveIe(type) {
+  const prefix = type === 'credit' ? 'income' : 'expense'
+  const amount = Number(document.getElementById(`${prefix}-amount`).value.replace(/,/g,''))
+  const desc = document.getElementById(`${prefix}-reason`).value.trim()
+  const entry_date = document.getElementById(`${prefix}-date`).value
+  if (!amount || amount <= 0) { showToast('Enter a valid amount', 'error'); return }
+  if (!desc) { showToast('Enter a reason', 'error'); return }
+  await api('/admin/income-expense/add', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+    body: JSON.stringify({type, amount, desc, entry_date}),
+  })
+  showToast(type === 'credit' ? 'Income recorded' : 'Expense recorded', 'success')
+  document.getElementById(`${prefix}-amount`).value = ''
+  document.getElementById(`${prefix}-reason`).value = ''
+  toggleForm(prefix === 'income' ? 'income' : 'expense')
+  renderAdminPanel()
 }
 
 
@@ -497,21 +733,25 @@ async function renderPendingLoans() {
 
 async function renderAllMembers() {
   await loadMembers()
-  const rows = state.members.map(m => `
-    <tr>
-      <td>${m.name}${m.is_admin ? ' ⭐' : ''}</td>
-      <td>${m.phone || '-'}</td>
-      <td>${formatDate(m.joined_date)}</td>
-      <td><button class="btn secondary" onclick="renderMemberProfile(${m.id})">Details</button></td>
-    </tr>
-  `).join('')
+  const cardColors = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#f97316','#6366f1','#14b8a6','#e11d48','#84cc16','#d946ef']
+  const cards = state.members.map((m, i) => {
+    const color = cardColors[i % cardColors.length]
+    const avatarHtml = m.photo_url
+      ? `<div class="mc-avatar" style="background-image:url('${m.photo_url}')"></div>`
+      : `<div class="mc-avatar mc-avatar-placeholder" style="background:${color}">${initials(m.name)}</div>`
+    return `<div class="member-card" onclick="renderMemberProfile(${m.id})" style="cursor:pointer">
+      ${avatarHtml}
+      <div class="mc-info">
+        <div class="mc-name">${m.name}${m.is_admin ? ' ⭐' : ''}</div>
+        <div class="mc-age">${m.dob ? calculateAge(m.dob) + ' yrs' : ''}</div>
+        <div class="mc-phone">${m.phone || ''}</div>
+      </div>
+    </div>`
+  }).join('')
   content.innerHTML = `
     <div class="panel">
-      <h2 class="page-title">All Member Details</h2>
-      <table class="table">
-        <thead><tr><th>Name</th><th>Phone</th><th>Joined</th><th>Action</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <h2 class="page-title">All Members</h2>
+      <div class="member-grid">${cards}</div>
     </div>
   `
 }
@@ -619,17 +859,19 @@ async function renderMemberProfile(memberId) {
       ${photoSnippet}
       <div class="profile-copy">
         <h2>${m.name}</h2>
-        <p><strong>Phone:</strong> <span class="input-readonly" id="ro-phone">${m.phone || '-'}</span></p>
-        <p><strong>DOB:</strong> <span class="input-readonly" id="ro-dob">${m.dob ? formatDate(m.dob) : '-'}</span></p>
-        <p><strong>Age:</strong> <span class="input-readonly">${calculateAge(m.dob)}</span></p>
-        <p><strong>Address:</strong> <span class="input-readonly" id="ro-address">${m.address || '-'}</span></p>
-        ${own ? `<div style="margin-top:8px;"><button class="btn" id="self-edit-btn">Edit Profile</button></div>` : ''}
-      </div>
-      <div class="profile-summary">
-        <div class="stats-grid">
-          <div class="stat-card"><strong>${m.contributions.length}</strong><span>Total Contributions</span></div>
-          <div class="stat-card"><strong>${m.loans.length}</strong><span>Loans</span></div>
-          <div class="stat-card"><strong>${m.dues.filter(d => !d.paid).length}</strong><span>Unpaid Dues</span></div>
+        <div class="pc-details">
+          <div class="pc-left">
+            <p><strong>Phone:</strong> <span class="input-readonly" id="ro-phone">${m.phone || '-'}</span></p>
+            <p><strong>DOB:</strong> <span class="input-readonly" id="ro-dob">${m.dob ? formatDate(m.dob) : '-'}</span></p>
+            <p><strong>Age:</strong> <span class="input-readonly">${calculateAge(m.dob)}</span></p>
+            <p><strong>Address:</strong> <span class="input-readonly" id="ro-address">${m.address || '-'}</span></p>
+            ${own || state.currentUser.is_admin ? `<div style="margin-top:6px;"><button class="btn" id="self-edit-btn">Edit Profile</button></div>` : ''}
+          </div>
+          <div class="pc-stats">
+            <div class="ps-item"><span class="ps-num">${m.contributions.length}</span> Contributions</div>
+            <div class="ps-item"><span class="ps-num">${m.loans.filter(l => l.status === 'active').length}</span> Active Loans</div>
+            <div class="ps-item"><span class="ps-num">${m.dues.filter(d => !d.paid).length}</span> Unpaid Dues</div>
+          </div>
         </div>
       </div>
     </div>
@@ -653,18 +895,10 @@ async function renderMemberProfile(memberId) {
   const totalDeposit = allHistory.reduce((s, r) => s + r.deposit, 0)
   const totalLoanPaid = allHistory.reduce((s, r) => s + r.loan, 0)
   const historyHeader = `<div style="margin-top:12px;"><strong>Total Share:</strong> ${formatCurrency(totalShare)} &nbsp;|&nbsp; <strong>Total Deposit:</strong> <span style="color:#a78bfa">${formatCurrency(totalDeposit)}</span> &nbsp;|&nbsp; <strong>Total Loan Paid:</strong> ${formatCurrency(totalLoanPaid)}</div>`
-  // Admin edit is hidden by default; show an "Edit Member (Admin)" button that reveals the form when clicked
-  const adminEdit = (state.currentUser.is_admin && !own) ? `
-    <div id="admin-edit-container" class="panel" style="padding:12px;">
-      <button class="btn" id="admin-edit-toggle">Edit Member (Admin)</button>
-      <div id="admin-edit-form" style="display:none;margin-top:12px"></div>
-    </div>
-  ` : ''
   const today = new Date().toISOString().slice(0, 10)
   content.innerHTML = `
     <div class="profile-wrapper">
       ${profileFields}
-      ${adminEdit}
     </div>
 
     <div class="grid-2" style="margin-top:18px; gap:20px;">
@@ -853,7 +1087,7 @@ async function renderMemberProfile(memberId) {
         if (removeBtn) removeBtn.style.display = m.photo_url ? 'inline-block' : 'none'
         // bind save/cancel
         document.getElementById('self-save-btn').onclick = async () => {
-          await handleSelfUpdate(m.id)
+          await handleUpdateDetails(m.id)
         }
         document.getElementById('self-cancel-btn').onclick = () => renderMemberProfile(m.id)
       }
@@ -938,46 +1172,145 @@ async function renderMemberProfile(memberId) {
         renderMemberProfile(m.id)
       }
     }
-    // Admin edit toggle: render admin form when requested
-    const adminToggle = document.getElementById('admin-edit-toggle')
-    if (adminToggle) {
-      adminToggle.onclick = () => {
-        const formDiv = document.getElementById('admin-edit-form')
-        if (!formDiv) return
-        if (formDiv.innerHTML.trim()) {
-          // already rendered -> toggle visibility
-          formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none'
-          return
-        }
-        formDiv.innerHTML = `
-          <h3>Edit Member Details</h3>
-          <div class="input-row"><input id="edit-phone" placeholder="Phone" value="${m.phone || ''}" /></div>
-          <div class="input-row"><input id="edit-dob" type="date" value="${m.dob || ''}" /></div>
-          <div class="input-row"><input id="edit-address" placeholder="Address" value="${m.address || ''}" /></div>
-          <div class="input-row"><input id="edit-photo" placeholder="Photo URL" value="${m.photo_url || ''}" /></div>
-          <div style="margin-top:8px;"><button class="btn primary" id="admin-save-btn">Save Details</button> <button class="btn" id="admin-cancel-btn">Cancel</button></div>
-        `
-        formDiv.style.display = 'block'
-        document.getElementById('admin-save-btn').onclick = async () => { await handleUpdateDetails(m.id) }
-        document.getElementById('admin-cancel-btn').onclick = () => { formDiv.style.display = 'none' }
-      }
-    }
 }
 
 async function handleAddMember() {
   const name = document.getElementById('new-member-name').value.trim()
   const phone = document.getElementById('new-member-phone').value.trim()
-  const dob = document.getElementById('new-member-dob').value
-  const address = document.getElementById('new-member-address').value.trim()
-  const photo_url = document.getElementById('new-member-photo').value.trim()
   if (!name) { showToast(t('Enter a name'), 'error'); return }
   await api('/members', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name, phone, dob, address, photo_url}),
+    body: JSON.stringify({name, phone}),
   })
   await loadMembers()
   renderAdminPanel()
+}
+
+async function renderFdEntries() {
+  const keepingDiv = document.getElementById('fd-keeping')
+  const recordDiv = document.getElementById('fd-record')
+  if (!keepingDiv) return
+  try {
+    const entries = await api('/admin/fd/list', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    state.fdEntries = entries
+    const active = entries ? entries.filter(e => e.status === 'active') : []
+    const closed = entries ? entries.filter(e => e.status !== 'active') : []
+    if (!entries || !entries.length) {
+      keepingDiv.innerHTML = '<div class="fd-empty">No FD entries yet.</div>'
+      return
+    }
+    keepingDiv.innerHTML = active.length
+      ? '<div class="fd-table-wrap">' + activeTable(active) + '</div>'
+      : '<div class="fd-empty">No active FDs.</div>'
+    recordDiv.innerHTML = closed.length
+      ? '<div class="fd-table-wrap">' + closedTable(closed) + '</div>'
+      : '<div class="fd-empty muted">No closed FDs.</div>'
+  } catch (e) {
+    keepingDiv.innerHTML = '<div class="fd-empty error">Error loading FD entries</div>'
+  }
+}
+
+function activeTable(fds) {
+  return '<table class="fd-table"><thead><tr><th>FD Amount</th><th>Start</th><th>Maturity</th><th>Rate</th><th>Bank</th><th></th></tr></thead><tbody>' +
+    fds.map(fd => `<tr>
+      <td class="td-amount">${formatCurrency(fd.amount)}</td>
+      <td>${formatDate(fd.start_date)}</td>
+      <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
+      <td>${fd.interest_rate}%</td>
+      <td class="td-bank">${fd.notes || '-'}</td>
+      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.id})">Withdraw</button></td>
+    </tr>`).join('') + '</tbody></table>'
+}
+
+function closedTable(fds) {
+  return '<table class="fd-table"><thead><tr><th>FD Amount</th><th>Start</th><th>Maturity</th><th>Rate</th><th>Interest</th><th>Bank</th></tr></thead><tbody>' +
+    fds.map(fd => `<tr>
+      <td class="td-amount">${formatCurrency(fd.amount)}</td>
+      <td>${formatDate(fd.start_date)}</td>
+      <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
+      <td>${fd.interest_rate}%</td>
+      <td class="td-interest">${fd.interest_earned ? formatCurrency(fd.interest_earned) : '-'}</td>
+      <td class="td-bank">${fd.notes || '-'}</td>
+    </tr>`).join('') + '</tbody></table>'
+}
+
+async function handleAddFd() {
+  const amount = Number(document.getElementById('fd-amount').value.replace(/,/g,''))
+  const start_date = toISODate(document.getElementById('fd-start').value)
+  const end_date = toISODate(document.getElementById('fd-end').value)
+  const interest_rate = parseFloat(document.getElementById('fd-rate').value)
+  const notes = document.getElementById('fd-bank').value.trim()
+  if (!amount || amount <= 0) { showToast('Enter valid FD amount', 'error'); return }
+  if (!start_date) { showToast('Enter valid start date', 'error'); return }
+  if (!end_date) { showToast('Enter valid maturity date', 'error'); return }
+  if (!interest_rate || interest_rate <= 0) { showToast('Enter valid rate', 'error'); return }
+  const sd = new Date(start_date + 'T00:00:00')
+  const ed = new Date(end_date + 'T00:00:00')
+  if (ed <= sd) { showToast('Maturity must be after start date', 'error'); return }
+  const term_months = (ed.getFullYear() - sd.getFullYear()) * 12 + (ed.getMonth() - sd.getMonth())
+  if (term_months < 1) { showToast('Term too short', 'error'); return }
+  await api('/admin/fd/add', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+    body: JSON.stringify({amount, start_date, term_months, interest_rate, notes}),
+  })
+  showToast('FD added', 'success')
+  await renderFdEntries()
+  document.getElementById('fd-amount').value = ''
+  document.getElementById('fd-bank').value = ''
+}
+
+window.closeFd = async function(fdId) {
+  const existing = document.getElementById('fd-close-overlay')
+  if (existing) existing.remove()
+  const fdRow = state.fdEntries ? state.fdEntries.find(e => e.id === fdId) : null
+  if (!fdRow) { showToast('FD not found', 'error'); return }
+  const amount = fdRow.amount
+  const termMonths = fdRow.term_months
+  const rate = fdRow.interest_rate
+  const bank = fdRow.notes || '-'
+  const expectedReturn = amount * (rate / 100) * (termMonths / 12)
+
+  const overlay = document.createElement('div')
+  overlay.id = 'fd-close-overlay'
+  overlay.className = 'modal-overlay'
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px">
+      <p style="margin:0 0 12px;font-weight:600">Withdraw FD</p>
+      <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">Bank</span><span>${bank}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">FD Amount</span><span style="font-weight:600">${formatCurrency(amount)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">Term</span><span>${termMonths}mo @ ${rate}%</span></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:0.8rem;color:#94a3b8;display:block;margin-bottom:4px">Interest / Return Amount</label>
+        <div class="input-with-currency"><span class="currency">₹</span><input id="fd-return-amount" type="text" value="${Math.round(expectedReturn)}" /></div>
+      </div>
+      <div class="reject-form-actions">
+        <button class="btn primary" id="fd-close-confirm" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm Withdraw</button>
+        <button class="btn secondary" id="fd-close-cancel">Cancel</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+  const returnInput = document.getElementById('fd-return-amount')
+  if (returnInput) indianizeInput(returnInput)
+
+  document.getElementById('fd-close-confirm').onclick = async () => {
+    const interestEarned = Number(document.getElementById('fd-return-amount').value.replace(/,/g,''))
+    if (isNaN(interestEarned) || interestEarned < 0) { showToast('Enter valid return amount', 'error'); return }
+    overlay.remove()
+    await api(`/admin/fd/close/${fdId}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
+    })
+    showToast('FD withdrawn. Interest added to Other Income.', 'success')
+    await renderFdEntries()
+    renderAdminPanel()
+  }
+  document.getElementById('fd-close-cancel').onclick = () => overlay.remove()
 }
 
 async function handlePayShare(memberId) {
