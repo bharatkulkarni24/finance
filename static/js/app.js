@@ -159,6 +159,13 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})
 }
 
+function formatDateTime(d) {
+  if (!d) return '-'
+  const dt = new Date(d)
+  return dt.toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})
+    + ' ' + dt.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'})
+}
+
 function calculateAge(dob) {
   if (!dob) return '-'
   const birth = new Date(dob)
@@ -182,10 +189,11 @@ function renderMenu() {
   const items = [
     {id: 'home', label: t('Dashboard')},
     {id: 'my-profile', label: t('My Profile')},
+    {id: 'my-history', label: '📜 All History'},
     {id: 'all-members', label: t('All Members')},
   ]
   if (state.currentUser.is_admin) {
-    items.splice(2, 0, {id: 'admin-panel', label: 'Admin Panel'})
+    items.splice(3, 0, {id: 'admin-panel', label: 'Admin Panel'})
   }
   items.push({id: 'sign-out', label: t('Sign Out')})
   items.forEach(item => {
@@ -249,6 +257,7 @@ function renderView() {
   const view = state.activeView
   if (view === 'admin-panel') return renderAdminPanel()
   if (view === 'my-profile') return renderMemberProfile(state.currentUser.id)
+  if (view === 'my-history') return renderAllHistory()
   if (view === 'all-members') return renderAllMembers()
   return renderHome()
 }
@@ -349,9 +358,6 @@ async function renderAdminPanel() {
           <div id="pending-loans"></div>
           <h3 style="margin-top:18px">Pending Payments</h3>
           <div id="pending-payments"></div>
-          <h3 style="margin-top:18px">Server Logs</h3>
-          <div id="admin-logs"></div>
-          <div style="margin-top:8px;"><button class="btn" id="refresh-logs">Refresh Logs</button></div>
         </div>
       </div>
     </div>
@@ -360,14 +366,12 @@ async function renderAdminPanel() {
   document.getElementById('add-member-btn').onclick = handleAddMember
   await renderPendingLoans()
   await renderPendingPayments()
-  document.getElementById('refresh-logs').onclick = renderAdminLogs
-  await renderAdminLogs()
 }
 
 
 async function renderPendingPayments() {
   const div = document.getElementById('pending-payments')
-  div.innerHTML = ''
+  div.innerHTML = '<p style="color:#94a3b8">Loading...</p>'
   try {
     const items = await api('/admin/payment_requests', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
     if (!items || items.length === 0) {
@@ -376,18 +380,47 @@ async function renderPendingPayments() {
     }
     const list = document.createElement('div')
     list.className = 'list-card'
-    items.forEach(it => {
+    items.forEach((it, idx) => {
       const row = document.createElement('div')
       row.className = 'list-item'
-      row.innerHTML = `<div><strong>${it.member_name}</strong><br><small>${it.type} ₹${it.amount} — ${it.note || ''}</small></div><div>${it.screenshot?`<a href="${it.screenshot}" target="_blank">Screenshot</a>`:''}</div><div><button class="btn primary approve-btn">Approve</button> <button class="btn secondary reject-btn">Reject</button></div>`
+      row.style.flexWrap = 'wrap'
+      row.innerHTML = `
+        <div>
+          <strong>${it.member_name}</strong><br>
+          <small>${it.type} ₹${it.amount} — ${it.note || ''}</small>
+        </div>
+        <div>${it.screenshot?`<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">📎 Screenshot</a>`:''}</div>
+        <div id="pay-actions-${idx}">
+          <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">Approve</button>
+          <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">Reject</button>
+        </div>
+        <div id="pay-reject-form-${idx}" class="reject-form hidden">
+          <textarea id="pay-reason-${idx}" placeholder="Reason for rejection..." rows="2"></textarea>
+          <div class="reject-form-actions">
+            <button class="btn primary" id="pay-reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm Reject</button>
+            <button class="btn secondary" id="pay-reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">Cancel</button>
+          </div>
+        </div>`
       row.querySelector('.approve-btn').onclick = async () => {
-        await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+        const res = await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+        if (!res.ok) { showToast('Approve failed', 'error'); return }
+        showToast('Payment approved', 'success')
         await renderPendingPayments()
       }
-      row.querySelector('.reject-btn').onclick = async () => {
-        const reason = prompt('Reason for rejection')
-        if (reason === null) return
-        await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+      row.querySelector('.reject-btn').onclick = () => {
+        document.getElementById('pay-actions-' + idx).classList.add('hidden')
+        document.getElementById('pay-reject-form-' + idx).classList.remove('hidden')
+      }
+      row.querySelector('#pay-reject-cancel-' + idx).onclick = () => {
+        document.getElementById('pay-actions-' + idx).classList.remove('hidden')
+        document.getElementById('pay-reject-form-' + idx).classList.add('hidden')
+      }
+      row.querySelector('#pay-reject-confirm-' + idx).onclick = async () => {
+        const reason = document.getElementById('pay-reason-' + idx).value.trim()
+        if (!reason) { showToast('Enter a reason', 'error'); return }
+        const res = await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+        if (!res.ok) { showToast('Reject failed', 'error'); return }
+        showToast('Payment rejected', 'info')
         await renderPendingPayments()
       }
       list.appendChild(row)
@@ -399,24 +432,64 @@ async function renderPendingPayments() {
 }
 
 async function renderPendingLoans() {
-  const loans = []
   const pendingDiv = document.getElementById('pending-loans')
-  pendingDiv.innerHTML = ''
-  for (const member of state.members) {
-    const detail = await api(`/members/${member.id}`)
-    detail.loans.filter(l => l.status === 'applied').forEach(loan => loans.push({member, loan}))
+  pendingDiv.innerHTML = '<p style="color:#94a3b8">Loading...</p>'
+  let loans = []
+  try {
+    loans = await api('/admin/pending_loans', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+  } catch (e) {
+    pendingDiv.innerHTML = '<p>Error loading pending loans</p>'
+    return
   }
-  if (loans.length === 0) {
+  if (!loans || loans.length === 0) {
     pendingDiv.innerHTML = '<p>No pending loans at the moment.</p>'
     return
   }
   const list = document.createElement('div')
   list.className = 'list-card'
-  loans.forEach(item => {
+  loans.forEach((item, idx) => {
     const row = document.createElement('div')
     row.className = 'list-item'
-    row.innerHTML = `<div><strong>${item.member.name}</strong><br><small>Loan ₹${item.loan.principal} for ${item.loan.term_months} mo</small></div><button class="btn secondary">View</button>`
-    row.querySelector('button').onclick = () => renderMemberProfile(item.member.id)
+    row.style.flexWrap = 'wrap'
+    row.id = 'loan-row-' + idx
+    row.innerHTML = `
+      <div>
+        <strong>${item.member_name}</strong><br>
+        <small>Loan ₹${item.principal} for ${item.term_months} mo</small>
+      </div>
+      <div id="loan-actions-${idx}">
+        <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">Approve</button>
+        <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">Reject</button>
+      </div>
+      <div id="loan-reject-form-${idx}" class="reject-form hidden">
+        <textarea id="reject-reason-${idx}" placeholder="Reason for rejection..." rows="2"></textarea>
+        <div class="reject-form-actions">
+          <button class="btn primary" id="reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">Confirm Reject</button>
+          <button class="btn secondary" id="reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">Cancel</button>
+        </div>
+      </div>`
+    row.querySelector('.approve-btn').onclick = async () => {
+      const res = await fetch(`/api/admin/approve_loan/${item.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+      if (!res.ok) { showToast('Approve failed', 'error'); return }
+      showToast(`${item.member_name}'s loan approved`, 'success')
+      await renderPendingLoans()
+    }
+    row.querySelector('.reject-btn').onclick = () => {
+      document.getElementById('loan-actions-' + idx).classList.add('hidden')
+      document.getElementById('loan-reject-form-' + idx).classList.remove('hidden')
+    }
+    row.querySelector('#reject-cancel-' + idx).onclick = () => {
+      document.getElementById('loan-actions-' + idx).classList.remove('hidden')
+      document.getElementById('loan-reject-form-' + idx).classList.add('hidden')
+    }
+    row.querySelector('#reject-confirm-' + idx).onclick = async () => {
+      const reason = document.getElementById('reject-reason-' + idx).value.trim()
+      if (!reason) { showToast('Enter a reason', 'error'); return }
+      const res = await fetch(`/api/admin/reject_loan/${item.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+      if (!res.ok) { showToast('Reject failed', 'error'); return }
+      showToast(`${item.member_name}'s loan rejected`, 'info')
+      await renderPendingLoans()
+    }
     list.appendChild(row)
   })
   pendingDiv.appendChild(list)
@@ -443,30 +516,87 @@ async function renderAllMembers() {
   `
 }
 
+async function renderAllHistory() {
+  const m = await api(`/members/${state.currentUser.id}`)
+  const requestRows = []
+  // Loan applications from m.loans
+  ;(m.loans || []).forEach(l => {
+    const appliedDate = l.last_accrual_date || l.disbursed_date || ''
+    const padSort = (s) => s && !s.includes('T') ? s + 'T00:00:00' : s
+    let info = l.status === 'applied' ? 'Pending approval' : (l.status === 'active' ? 'Approved and active' : (l.status === 'rejected' ? (l.reject_reason || 'Rejected') : l.status))
+    requestRows.push({ sortKey: padSort(appliedDate), date: appliedDate, type: 'Loan Application', amount: l.principal, status: l.status, info })
+  })
+  // Payment requests from m.payment_requests
+  ;(m.payment_requests || []).forEach(r => {
+    let info = r.status === 'rejected' ? (r.reject_reason || 'Rejected') : (r.status === 'approved' ? 'Approved on ' + formatDate(r.approved_date) : 'Pending')
+    requestRows.push({ sortKey: r.date_submitted, date: r.date_submitted, type: r.type === 'share' ? 'Share Payment' : 'Loan Payment', amount: r.amount, status: r.status, info })
+  })
+  requestRows.sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+  const rowsHtml = requestRows.length ? requestRows.map(r => `<tr><td>${r.date ? formatDateTime(r.date.includes('T') ? r.date : r.date + 'T00:00:00') : '-'}</td><td>${r.type}</td><td>${formatCurrency(r.amount)}</td><td>${r.status}</td><td>${r.info}</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No history yet</td></tr>`
+  content.innerHTML = `
+    <div class="panel">
+      <h2 class="page-title">📜 All History</h2>
+      <p>All your requests — payments, loan applications, and their statuses.</p>
+      <div class="table-scroll">
+        <table class="table"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th><th>Comments</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+      </div>
+    </div>
+  `
+}
+
 async function renderMemberProfile(memberId) {
   state.selectedMember = memberId
   const m = await api(`/members/${memberId}`)
   const own = state.currentUser.id === m.id
   const canManage = own || state.currentUser.is_admin
-  const loansHtml = m.loans.map(l => {
-    const statusBadge = l.status === 'active' ? '<span class="badge success">Active</span>' : '<span class="badge warn">Applied</span>'
-    const showApprove = state.currentUser.is_admin && l.status === 'applied'
-    const showPay = l.status === 'active' && (own || state.currentUser.is_admin)
-    const action = showApprove
-      ? `<button class="btn secondary" onclick="handleLoanAction(${m.id}, ${l.id}, '${l.status}')">Approve</button>`
-      : showPay
-        ? `<button class="btn secondary" onclick="handleLoanAction(${m.id}, ${l.id}, '${l.status}')">Pay</button>`
-        : '-'
+  // Calculate repaid amount per loan
+  const repaidByLoan = {}
+  ;(m.payments || []).forEach(p => {
+    if (p.loan_id) repaidByLoan[p.loan_id] = (repaidByLoan[p.loan_id] || 0) + (p.principal_paid || p.amount || 0)
+  })
+  let loansCardsHtml
+  try {
+    loansCardsHtml = m.loans && m.loans.filter(l => l.status === 'active').length ? m.loans.filter(l => l.status === 'active').map(l => {
+    const statusBadge = l.status === 'active' ? '<span class="badge success">Active</span>' : (l.status === 'applied' ? '<span class="badge warn">Applied</span>' : (l.status === 'rejected' ? '<span class="badge" style="background:rgba(239,68,68,0.15);color:#fca5a5">Rejected</span>' : '<span class="badge">' + l.status + '</span>'))
+    const takenDate = l.disbursed_date || l.last_accrual_date || ''
+    const repaid = repaidByLoan[l.id] || 0
+    let closeDate = '-'
+    if (l.disbursed_date && l.term_months) {
+      const d = new Date(l.disbursed_date)
+      d.setMonth(d.getMonth() + l.term_months)
+      closeDate = formatDate(d.toISOString().slice(0, 10))
+    }
+    const pct = l.principal > 0 ? Math.round((repaid / l.principal) * 100) : 0
+    const progressClass = pct >= 80 ? '' : (pct >= 40 ? 'warn' : '')
+    const interestRate = l.rate_monthly ? (l.rate_monthly * 100) + '%' : '1%'
     return `
-      <tr>
-        <td>${l.id}</td>
-        <td>${formatCurrency(l.principal)}</td>
-        <td>${formatCurrency(l.outstanding)}</td>
-        <td>${l.term_months} mo</td>
-        <td>${statusBadge}</td>
-        <td>${action}</td>
-      </tr>`
-  }).join('')
+      <div class="loan-card">
+        <div class="lc-top">
+          <div class="lc-top-left">
+            <span class="loan-id">💰 Loan #${l.id}</span>
+            ${statusBadge}
+            <span style="font-size:0.75rem;color:#64748b;margin-left:4px;">${interestRate}/mo</span>
+          </div>
+        </div>
+        <div class="lc-grid">
+          <div class="lc-cell lc-amount"><span class="lc-label">Loan Amount</span><span class="lc-value">${formatCurrency(l.principal)}</span></div>
+          <div class="lc-cell lc-taken"><span class="lc-label">Taken Date</span><span class="lc-value">${takenDate ? formatDate(takenDate) : '-'}</span></div>
+          <div class="lc-cell lc-close"><span class="lc-label">Close Date</span><span class="lc-value">${closeDate}</span></div>
+          <div class="lc-cell lc-term"><span class="lc-label">Term</span><span class="lc-value">${l.term_months ? l.term_months + ' mo' : '-'}</span></div>
+          <div class="lc-cell lc-repaid"><span class="lc-label">Repaid</span><span class="lc-value">${formatCurrency(repaid)}</span></div>
+          <div class="lc-cell lc-outstanding"><span class="lc-label">Outstanding</span><span class="lc-value">${formatCurrency(l.outstanding)}</span></div>
+        </div>
+        ${l.status === 'rejected' ? `<div style="margin-bottom:8px;padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:8px;font-size:0.8rem;color:#fca5a5">Reason: ${l.reject_reason || 'Not specified'}</div>` : ''}
+        <div class="lc-progress-row">
+          <span class="lc-progress-pct">${pct}% repaid</span>
+          <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${Math.min(pct, 100)}%"></div></div>
+        </div>
+      </div>`
+  }).join('') : '<p style="color:#94a3b8;font-size:0.9rem;text-align:center;padding:12px 0;">No loans yet</p>'
+  } catch (e) {
+    console.error('Loans render error:', e)
+    loansCardsHtml = '<p style="color:#ef4444;font-size:0.9rem;text-align:center;padding:12px 0;">Failed to load loans</p>'
+  }
   // clickable avatar with inline edit/upload controls
   const avatarUrl = m.photo_url || ''
   const photoSnippet = `
@@ -504,20 +634,25 @@ async function renderMemberProfile(memberId) {
       </div>
     </div>
   `
-  const requestsHtml = m.payment_requests && m.payment_requests.length ? `
-    <div class="panel" style="margin-top:12px;">
-      <h3>Payment Requests</h3>
-      <table class="table"><thead><tr><th>Date</th><th>Txn Date</th><th>Amount</th><th>Type</th><th>Status</th><th>Info</th><th>Action</th></tr></thead><tbody>
-      ${m.payment_requests.map(r => `<tr><td>${formatDate(r.date_submitted)}</td><td>${r.txn_date||'-'}</td><td>${formatCurrency(r.amount)}</td><td>${r.type}</td><td>${r.status}</td><td>${r.status==='rejected'? (r.reject_reason||'Rejected') : (r.status==='approved'?('Approved on '+formatDate(r.approved_date)): 'Pending')}</td><td>${(r.status==='pending' && own) ? `<button class="btn secondary" onclick="handleCancelRequest(${m.id}, ${r.id})">${t('Cancel')}</button>` : '-'}</td></tr>`).join('')}
-      </tbody></table>
-    </div>
-  ` : ''
-  // contributions: put deposit at top
-  const deposits = m.contributions.filter(c => c.type === 'deposit')
-  const shares = m.contributions.filter(c => c.type !== 'deposit')
-  const expectedMonths = monthsBetweenInclusive(m.joined_date)
-  const paidMonths = shares.length
-  const contributionHeader = `<div style="margin-top:12px;"><strong>Total contributions:</strong> ${paidMonths}/${expectedMonths}</div>`
+  // Build unified payment history (share contributions + loan payments merged by date)
+  const historyByDate = {}
+  m.contributions.forEach(c => {
+    const key = c.date
+    if (!historyByDate[key]) historyByDate[key] = { date: c.date, share: 0, deposit: 0, loan: 0 }
+    if (c.type === 'deposit') historyByDate[key].deposit += c.amount
+    else historyByDate[key].share += c.amount
+  })
+  ;(m.payments || []).forEach(p => {
+    const key = p.date
+    if (!historyByDate[key]) historyByDate[key] = { date: p.date, share: 0, deposit: 0, loan: 0 }
+    historyByDate[key].loan += p.amount
+  })
+  const allHistory = Object.values(historyByDate).sort((a, b) => b.date.localeCompare(a.date))
+  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0)
+  const totalShare = allHistory.reduce((s, r) => s + r.share, 0)
+  const totalDeposit = allHistory.reduce((s, r) => s + r.deposit, 0)
+  const totalLoanPaid = allHistory.reduce((s, r) => s + r.loan, 0)
+  const historyHeader = `<div style="margin-top:12px;"><strong>Total Share:</strong> ${formatCurrency(totalShare)} &nbsp;|&nbsp; <strong>Total Deposit:</strong> <span style="color:#a78bfa">${formatCurrency(totalDeposit)}</span> &nbsp;|&nbsp; <strong>Total Loan Paid:</strong> ${formatCurrency(totalLoanPaid)}</div>`
   // Admin edit is hidden by default; show an "Edit Member (Admin)" button that reveals the form when clicked
   const adminEdit = (state.currentUser.is_admin && !own) ? `
     <div id="admin-edit-container" class="panel" style="padding:12px;">
@@ -527,65 +662,86 @@ async function renderMemberProfile(memberId) {
   ` : ''
   const today = new Date().toISOString().slice(0, 10)
   content.innerHTML = `
-    <div class="panel">
+    <div class="profile-wrapper">
       ${profileFields}
       ${adminEdit}
     </div>
 
     <div class="grid-2" style="margin-top:18px; gap:20px;">
-      <div class="panel compact-panel">
-        <h3>📥 Submit Payment / Receipt</h3>
-        <div class="input-row">
-          <label style="flex-basis:100%">Share Amount *</label>
-          <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
-        </div>
-        <div class="input-row">
-          <label style="flex-basis:100%">Loan Amount (optional)</label>
-          <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
-        </div>
-        <div class="input-row small-row">
-          <label style="flex-basis:100%">Payment Date</label>
-          <input id="pay-txn-date" type="date" value="${today}" max="${today}" />
-        </div>
-        <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
-        <div class="upload-area" id="upload-area">
-          <input id="screenshot-input" type="file" accept="image/*" hidden />
-          <div class="upload-placeholder">
-            <span class="upload-icon">📎</span>
-            <span class="upload-text">Tap to upload receipt / proof</span>
-            <span class="upload-hint">Image only</span>
-          </div>
-          <div class="upload-preview hidden">
-            <img id="upload-preview-img" />
-            <span id="upload-filename"></span>
-            <button class="upload-remove" id="upload-remove-btn" type="button">✕</button>
-          </div>
-        </div>
-        <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
-      </div>
-
       <div>
-        <div class="panel">
-          <h3>⚡ Actions</h3>
+        <div class="panel compact-panel">
+          <h3>📤 Submit Proof of Payment</h3>
+          <div class="input-row" style="display:flex;gap:12px;">
+            <div style="flex:1">
+              <label>Share Amount *</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
+            </div>
+            <div style="flex:1">
+              <label>Loan Amount</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
+            </div>
+          </div>
+          <div class="input-row small-row">
+            <label style="flex-basis:100%">Payment Date</label>
+            <input id="pay-txn-date" type="date" value="${today}" max="${today}" />
+          </div>
+          <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
+          <div class="upload-area" id="upload-area">
+            <input id="screenshot-input" type="file" accept="image/*" hidden />
+            <div class="upload-placeholder">
+              <span class="upload-icon">📎</span>
+              <span class="upload-text">Tap to upload receipt / proof</span>
+              <span class="upload-hint">Image only</span>
+            </div>
+            <div class="upload-preview hidden">
+              <img id="upload-preview-img" />
+              <span id="upload-filename"></span>
+              <button class="upload-remove" id="upload-remove-btn" type="button">✕</button>
+            </div>
+          </div>
+          <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
+        </div>
+        <div class="panel compact-panel" style="margin-top:12px;">
+          <h3>💰 Request Loan</h3>
           ${canManage ? `
-            <div class="input-row"><label style="flex-basis:100%">Request Loan</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
+            <div class="input-row"><label style="flex-basis:100%">Loan Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
+            <div class="input-row" style="display:flex;gap:12px;">
+              <div style="flex:1">
+                <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Years</label>
+                <div class="stepper">
+                  <button class="stepper-btn" id="loan-years-down">−</button>
+                  <span class="stepper-value" id="loan-years-display">1</span>
+                  <button class="stepper-btn" id="loan-years-up">+</button>
+                </div>
+              </div>
+              <div style="flex:1">
+                <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Months</label>
+                <div class="stepper">
+                  <button class="stepper-btn" id="loan-months-down">−</button>
+                  <span class="stepper-value" id="loan-months-display">0</span>
+                  <button class="stepper-btn" id="loan-months-up">+</button>
+                </div>
+              </div>
+            </div>
+            <div id="loan-period-display" style="text-align:center;font-size:0.85rem;color:#94a3b8;margin-bottom:10px;">1 year 0 months</div>
             <button class="btn primary" id="request-loan-btn">Request Loan</button>
           ` : '<p>This member profile is view-only.</p>'}
         </div>
-        <div class="panel" style="margin-top:12px;">
-          <h3>📊 Contribution History</h3>
-          ${contributionHeader}
-          <table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Type</th></tr></thead><tbody>${[...deposits, ...shares].map(c => `<tr><td>${formatDate(c.date)}</td><td>${formatCurrency(c.amount)}</td><td>${c.type}</td></tr>`).join('')}</tbody></table>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom:12px;">
+          <h3>📊 Payment History</h3>
+          ${historyHeader}
+          <div class="table-scroll">
+            <table class="table"><thead><tr><th>Date</th><th>Share</th><th>Deposit</th><th>Loan Paid</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? formatCurrency(r.share) : '-'}</td><td>${r.deposit ? `<span style="color:#a78bfa">${formatCurrency(r.deposit)}</span>` : '-'}</td><td>${r.loan ? formatCurrency(r.loan) : '-'}</td><td>${formatCurrency(r.share + r.deposit + r.loan)}</td></tr>`).join('')}</tbody></table>
+          </div>
+        </div>
+        <div class="panel compact-panel" id="loans-panel">
+          <h3 style="margin-bottom:10px;">🏦 Loans</h3>
+          ${loansCardsHtml}
         </div>
       </div>
     </div>
-
-    <div class="panel" style="margin-top:18px;">
-      <h3>🏦 Loans</h3>
-      <table class="table"><thead><tr><th>ID</th><th>Principal</th><th>Outstanding</th><th>Term</th><th>Status</th><th>Action</th></tr></thead><tbody>${loansHtml}</tbody></table>
-    </div>
-
-    ${requestsHtml}
   `
     // Attach handlers for inline profile photo and edit/save flow
     const avatar = document.getElementById('profile-avatar')
@@ -594,7 +750,6 @@ async function renderMemberProfile(memberId) {
     const cancelBtn = document.getElementById('cancel-photo-btn')
     const removeBtn = document.getElementById('remove-photo-btn')
     const editBtn = document.getElementById('self-edit-btn')
-    const submitPaymentBtn = document.getElementById('submit-payment-btn')
     const submitPaymentBtnTop = document.getElementById('submit-payment-btn-top')
     let stagedBlob = null
 
@@ -742,23 +897,42 @@ async function renderMemberProfile(memberId) {
       }
     }
 
-    if (submitPaymentBtn) {
-      submitPaymentBtn.onclick = () => handleSubmitPayment(m.id)
-    }
     if (submitPaymentBtnTop) {
       submitPaymentBtnTop.onclick = () => handleSubmitPayment(m.id)
     }
     // loan request button handler
     const requestLoanBtn = document.getElementById('request-loan-btn')
     if (requestLoanBtn) {
+      // Set up year/month steppers
+      let loanYears = 1, loanMonths = 0
+      const yearsDisplay = document.getElementById('loan-years-display')
+      const monthsDisplay = document.getElementById('loan-months-display')
+      const periodDisplay = document.getElementById('loan-period-display')
+      function updatePeriodDisplay() {
+        if (yearsDisplay) yearsDisplay.textContent = loanYears
+        if (monthsDisplay) monthsDisplay.textContent = loanMonths
+        if (periodDisplay) {
+          const y = loanYears + ' year' + (loanYears !== 1 ? 's' : '')
+          const m = loanMonths + ' month' + (loanMonths !== 1 ? 's' : '')
+          periodDisplay.textContent = y + ' ' + m
+        }
+      }
+      document.getElementById('loan-years-up')?.addEventListener('click', () => { loanYears = Math.min(loanYears + 1, 10); updatePeriodDisplay() })
+      document.getElementById('loan-years-down')?.addEventListener('click', () => { loanYears = Math.max(loanYears - 1, 0); updatePeriodDisplay() })
+      document.getElementById('loan-months-up')?.addEventListener('click', () => { loanMonths = Math.min(loanMonths + 1, 11); updatePeriodDisplay() })
+      document.getElementById('loan-months-down')?.addEventListener('click', () => { loanMonths = Math.max(loanMonths - 1, 0); updatePeriodDisplay() })
+      updatePeriodDisplay()
+
       requestLoanBtn.onclick = async () => {
         const raw = document.getElementById('request-loan-amount').value.replace(/,/g, '')
         const amt = Number(raw) || 0
         if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
-        const res = await api(`/members/${m.id}/apply_loan`, {
+        const totalMonths = loanYears * 12 + loanMonths
+        if (totalMonths < 1) { showToast('Select at least 1 month term', 'error'); return }
+        await api(`/members/${m.id}/apply_loan`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({amount: amt, term_months: 12}),
+          body: JSON.stringify({amount: amt, term_months: totalMonths}),
         })
         showToast('Loan request submitted', 'success')
         renderMemberProfile(m.id)
@@ -845,23 +1019,6 @@ async function handleApplyLoan(memberId) {
   renderMemberProfile(memberId)
 }
 
-async function handleLoanAction(memberId, loanId, status) {
-  if (status === 'applied') {
-    if (!state.currentUser.is_admin) {
-      return showToast(t('Only admin'), 'error')
-    }
-    await api(`/admin/approve_loan/${loanId}`, {method: 'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-  } else {
-    const amount = Number(prompt('Enter payment amount'))
-    if (!amount || amount <= 0) return
-    await api(`/members/${memberId}/pay_loan`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({loan_id: loanId, amount}),
-    })
-  }
-  renderMemberProfile(memberId)
-}
 
 async function handlePayDue(memberId, dueId, amount) {
   await api(`/members/${memberId}/pay_due`, {
@@ -888,7 +1045,6 @@ async function handleUpdateDetails(memberId) {
   renderMemberProfile(memberId)
 }
 
-window.handleLoanAction = handleLoanAction
 window.handlePayDue = handlePayDue
 window.handlePayShare = handlePayShare
 window.handleApplyLoan = handleApplyLoan
@@ -902,7 +1058,7 @@ async function handleCancelRequest(memberId, reqId) {
   const res = await fetch(`/api/members/${memberId}/cancel_request/${reqId}`, {method:'POST'})
   if (res.ok) {
     showToast('Cancelled', 'success')
-    renderMemberProfile(memberId)
+    state.activeView === 'my-history' ? renderAllHistory() : renderMemberProfile(memberId)
   } else {
     const e = await res.json().catch(()=>({error:'failed'}))
     showToast(e.error || 'Failed to cancel', 'error')

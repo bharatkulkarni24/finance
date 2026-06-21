@@ -15,6 +15,7 @@ from models import (
     create_loan,
     get_loan,
     approve_loan,
+    reject_loan,
     compute_interest_accrued,
     apply_payment_to_loan,
     pay_due,
@@ -228,6 +229,16 @@ def admin_payment_requests():
     return jsonify(items)
 
 
+@app.route('/api/admin/pending_loans', methods=['GET'])
+def admin_pending_loans():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    from models import list_pending_loans
+    items = list_pending_loans()
+    return jsonify(items)
+
+
 @app.route('/api/admin/approve_request/<int:req_id>', methods=['POST'])
 def admin_approve_request(req_id):
     pin = request.headers.get('X-ADMIN-PIN', '')
@@ -310,6 +321,17 @@ def approve_loan_route(loan_id):
     approve_loan(loan_id)
     loan = get_loan(loan_id)
     return jsonify({'status': 'approved', 'loan': loan})
+
+
+@app.route('/api/admin/reject_loan/<int:loan_id>', methods=['POST'])
+def reject_loan_route(loan_id):
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    reason = data.get('reason', '')
+    reject_loan(loan_id, reason)
+    return jsonify({'status': 'rejected'})
 
 
 @app.route('/api/members/<int:member_id>/pay_loan', methods=['POST'])
