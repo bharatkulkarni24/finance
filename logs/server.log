@@ -636,3 +636,573 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2026-06-20 22:23:57,649 INFO REQUEST GET /api/admin/stats from 127.0.0.1
 2026-06-20 22:24:05,359 INFO REQUEST GET /api/members/12 from 127.0.0.1
 2026-06-20 22:24:05,410 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-20 22:26:40,857 INFO REQUEST GET / from 127.0.0.1
+2026-06-20 22:26:40,906 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-20 22:26:40,914 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-20 22:26:41,062 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-20 22:26:41,081 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-20 22:26:41,185 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-20 22:26:41,212 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-20 22:26:45,449 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:26:45,451 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:26:45,478 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:26:45,501 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:26:50,663 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-20 22:26:50,717 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-20 22:27:07,955 INFO REQUEST GET / from 127.0.0.1
+2026-06-20 22:27:08,021 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-20 22:27:08,096 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-20 22:27:08,447 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-20 22:27:08,604 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-20 22:27:08,728 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-20 22:27:11,067 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:27:11,070 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:27:11,123 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:27:11,159 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:27:12,489 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-20 22:27:12,559 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-20 22:30:04,678 INFO REQUEST GET / from 127.0.0.1
+2026-06-20 22:30:04,718 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-20 22:30:04,719 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-20 22:30:05,039 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-20 22:30:05,255 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-20 22:30:05,296 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-20 22:30:05,302 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-20 22:30:08,171 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:30:08,174 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:30:08,200 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:30:08,219 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:30:09,823 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-20 22:30:09,892 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-20 22:30:49,095 INFO REQUEST GET / from 127.0.0.1
+2026-06-20 22:30:49,119 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-20 22:30:49,122 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-20 22:30:49,335 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-20 22:30:49,434 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-20 22:30:49,446 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-20 22:30:49,452 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-20 22:30:52,173 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:30:52,175 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:30:52,187 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:30:52,193 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:30:54,530 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-20 22:30:54,553 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-20 22:43:08,915 INFO REQUEST GET / from 127.0.0.1
+2026-06-20 22:43:08,964 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-20 22:43:08,966 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-20 22:43:08,990 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-20 22:43:08,992 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-20 22:43:09,023 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-20 22:43:09,036 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-20 22:43:12,758 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:43:12,760 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-20 22:43:12,774 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:43:12,787 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-20 22:43:15,598 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-20 22:43:15,644 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-21 10:06:56,489 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 10:06:56,592 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 10:06:57,570 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 10:06:57,636 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 10:06:57,639 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 10:06:58,136 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 10:06:58,151 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 10:06:58,154 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 10:07:03,400 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 10:07:03,402 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 10:07:03,425 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 10:07:03,436 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 10:07:05,648 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 10:07:05,692 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-21 16:44:14,522 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:44:14,690 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:44:14,777 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:44:15,153 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 16:44:15,708 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 16:44:15,854 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:47:58,438 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:47:58,485 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:47:58,687 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:47:59,170 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 16:47:59,688 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 16:47:59,698 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:48:13,215 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:48:13,361 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:48:13,468 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:48:13,751 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 16:48:14,788 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 16:48:14,797 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:48:56,883 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:48:57,231 INFO REQUEST GET /.well-known/appspecific/com.chrome.devtools.json from 127.0.0.1
+2026-06-21 16:48:57,237 ERROR Exception on /.well-known/appspecific/com.chrome.devtools.json: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:50:02,155 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:50:44,258 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:50:44,415 INFO REQUEST GET /.well-known/appspecific/com.chrome.devtools.json from 127.0.0.1
+2026-06-21 16:50:44,420 ERROR Exception on /.well-known/appspecific/com.chrome.devtools.json: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:50:57,651 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:50:57,967 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:50:58,049 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:50:58,265 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 16:50:58,298 INFO REQUEST GET /.well-known/appspecific/com.chrome.devtools.json from 127.0.0.1
+2026-06-21 16:50:58,306 ERROR Exception on /.well-known/appspecific/com.chrome.devtools.json: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:50:58,618 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 16:50:58,622 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:51:43,938 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 16:51:52,729 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:52:00,072 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:58:26,115 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:58:26,146 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:58:26,376 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:58:26,484 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 16:58:26,698 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 16:58:26,702 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:58:26,819 INFO REQUEST GET /.well-known/appspecific/com.chrome.devtools.json from 127.0.0.1
+2026-06-21 16:58:26,820 ERROR Exception on /.well-known/appspecific/com.chrome.devtools.json: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 16:58:49,429 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 16:58:49,680 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 16:58:49,757 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 16:58:49,758 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 16:58:49,999 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 16:58:50,003 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 17:01:32,531 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:04:51,714 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:04:51,744 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:04:51,963 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:04:52,080 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:04:52,123 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 17:04:52,129 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 17:04:52,428 INFO REQUEST GET /.well-known/appspecific/com.chrome.devtools.json from 127.0.0.1
+2026-06-21 17:04:52,432 ERROR Exception on /.well-known/appspecific/com.chrome.devtools.json: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 17:07:37,019 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:07:37,041 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:07:37,270 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:07:37,369 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:07:37,454 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:07:37,589 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 17:07:37,595 ERROR Exception on /favicon.ico: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 17:07:37,785 INFO REQUEST GET /.well-known/appspecific/com.chrome.devtools.json from 127.0.0.1
+2026-06-21 17:07:37,786 ERROR Exception on /.well-known/appspecific/com.chrome.devtools.json: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Traceback (most recent call last):
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1788, in dispatch_request
+    self.raise_routing_exception(req)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\app.py", line 1770, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\My projects\Finance\.venv\Lib\site-packages\flask\ctx.py", line 351, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\My projects\Finance\.venv\Lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+2026-06-21 17:07:41,054 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:07:41,055 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:07:41,314 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:07:41,375 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:07:45,363 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:07:45,726 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-21 17:17:11,118 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:17:11,203 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:17:11,366 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:17:11,670 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:17:11,703 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:17:12,042 INFO REQUEST GET /favicon.ico from 127.0.0.1
+2026-06-21 17:17:15,275 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:17:15,581 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:17:15,597 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:17:15,915 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:18:33,752 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:18:33,772 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:18:34,001 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:18:34,185 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:18:34,315 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:18:37,277 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:18:37,280 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:18:37,536 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:18:37,619 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:18:40,144 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:18:40,502 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-21 17:21:08,500 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:21:08,739 INFO REQUEST GET /api/members/13 from 127.0.0.1
+2026-06-21 17:21:08,827 INFO REQUEST GET /api/members/14 from 127.0.0.1
+2026-06-21 17:21:09,072 INFO REQUEST GET /api/members/15 from 127.0.0.1
+2026-06-21 17:21:09,160 INFO REQUEST GET /api/members/16 from 127.0.0.1
+2026-06-21 17:21:09,407 INFO REQUEST GET /api/members/17 from 127.0.0.1
+2026-06-21 17:21:09,506 INFO REQUEST GET /api/members/18 from 127.0.0.1
+2026-06-21 17:21:09,742 INFO REQUEST GET /api/members/19 from 127.0.0.1
+2026-06-21 17:21:09,839 INFO REQUEST GET /api/members/20 from 127.0.0.1
+2026-06-21 17:21:10,088 INFO REQUEST GET /api/members/21 from 127.0.0.1
+2026-06-21 17:21:10,164 INFO REQUEST GET /api/members/22 from 127.0.0.1
+2026-06-21 17:21:10,406 INFO REQUEST GET /api/members/23 from 127.0.0.1
+2026-06-21 17:21:10,493 INFO REQUEST GET /api/admin/payment_requests from 127.0.0.1
+2026-06-21 17:21:10,739 INFO REQUEST GET /api/logs from 127.0.0.1
+2026-06-21 17:21:23,029 INFO REQUEST POST /api/admin/approve_request/3 from 127.0.0.1
+2026-06-21 17:21:23,361 INFO REQUEST GET /api/admin/payment_requests from 127.0.0.1
+2026-06-21 17:21:27,235 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:21:28,567 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:21:52,115 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:21:52,425 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:21:52,444 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:21:52,761 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:21:52,777 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:21:55,713 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:21:55,715 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:21:55,976 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:21:56,041 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:21:58,742 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:21:59,092 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-21 17:22:15,863 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:22:16,189 INFO REQUEST GET /api/members/13 from 127.0.0.1
+2026-06-21 17:22:16,454 INFO REQUEST GET /api/members/14 from 127.0.0.1
+2026-06-21 17:22:16,536 INFO REQUEST GET /api/members/15 from 127.0.0.1
+2026-06-21 17:22:16,787 INFO REQUEST GET /api/members/16 from 127.0.0.1
+2026-06-21 17:22:16,859 INFO REQUEST GET /api/members/17 from 127.0.0.1
+2026-06-21 17:22:17,138 INFO REQUEST GET /api/members/18 from 127.0.0.1
+2026-06-21 17:22:17,222 INFO REQUEST GET /api/members/19 from 127.0.0.1
+2026-06-21 17:22:17,488 INFO REQUEST GET /api/members/20 from 127.0.0.1
+2026-06-21 17:22:17,556 INFO REQUEST GET /api/members/21 from 127.0.0.1
+2026-06-21 17:22:17,838 INFO REQUEST GET /api/members/22 from 127.0.0.1
+2026-06-21 17:22:17,869 INFO REQUEST GET /api/members/23 from 127.0.0.1
+2026-06-21 17:22:18,170 INFO REQUEST GET /api/admin/payment_requests from 127.0.0.1
+2026-06-21 17:22:18,185 INFO REQUEST GET /api/logs from 127.0.0.1
+2026-06-21 17:22:20,174 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:22:39,412 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:22:46,442 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:29:05,287 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:29:05,313 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:29:05,541 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:29:05,736 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:29:05,855 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:29:09,615 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:29:09,617 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:29:09,866 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:29:09,936 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:31:24,667 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:31:24,919 INFO REQUEST GET /static/uploads/profile_12_20260620155306_photo.jpg from 127.0.0.1
+2026-06-21 17:31:33,304 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:31:33,625 INFO REQUEST GET /api/members/13 from 127.0.0.1
+2026-06-21 17:31:33,887 INFO REQUEST GET /api/members/14 from 127.0.0.1
+2026-06-21 17:31:33,955 INFO REQUEST GET /api/members/15 from 127.0.0.1
+2026-06-21 17:31:34,206 INFO REQUEST GET /api/members/16 from 127.0.0.1
+2026-06-21 17:31:34,271 INFO REQUEST GET /api/members/17 from 127.0.0.1
+2026-06-21 17:31:34,530 INFO REQUEST GET /api/members/18 from 127.0.0.1
+2026-06-21 17:31:34,588 INFO REQUEST GET /api/members/19 from 127.0.0.1
+2026-06-21 17:31:34,857 INFO REQUEST GET /api/members/20 from 127.0.0.1
+2026-06-21 17:31:34,905 INFO REQUEST GET /api/members/21 from 127.0.0.1
+2026-06-21 17:31:35,190 INFO REQUEST GET /api/members/22 from 127.0.0.1
+2026-06-21 17:31:35,221 INFO REQUEST GET /api/members/23 from 127.0.0.1
+2026-06-21 17:31:35,520 INFO REQUEST GET /api/admin/payment_requests from 127.0.0.1
+2026-06-21 17:31:35,537 INFO REQUEST GET /api/logs from 127.0.0.1
+2026-06-21 17:31:46,911 INFO REQUEST GET /api/members/12 from 127.0.0.1
+2026-06-21 17:31:48,063 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:31:56,028 INFO REQUEST GET / from 127.0.0.1
+2026-06-21 17:31:56,351 INFO REQUEST GET /static/css/styles.css from 127.0.0.1
+2026-06-21 17:31:56,368 INFO REQUEST GET /static/js/app.js from 127.0.0.1
+2026-06-21 17:31:56,690 INFO REQUEST GET /api/members from 127.0.0.1
+2026-06-21 17:31:56,698 INFO REQUEST GET /static/img/lord_venkateshwara.svg from 127.0.0.1
+2026-06-21 17:31:59,271 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:31:59,585 INFO REQUEST POST /api/login from 127.0.0.1
+2026-06-21 17:31:59,600 INFO REQUEST GET /api/admin/stats from 127.0.0.1
+2026-06-21 17:31:59,941 INFO REQUEST GET /api/admin/stats from 127.0.0.1

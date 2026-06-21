@@ -232,34 +232,68 @@ function renderView() {
 async function renderHome() {
   const stats = await api('/admin/stats', {headers: {'X-ADMIN-PIN': ADMIN_PIN}}).catch(()=>null)
   const html = `
-    <div class="panel">
+    <div class="panel welcome-panel">
       <h2 class="page-title">Welcome, ${state.currentUser.name}</h2>
-      <p>Overview: incoming collections, loans, and available funds.</p>
+    </div>
+
+    <div class="group-info">
+      <h3 class="section-heading">📋 Group Information</h3>
+      <div class="group-info-grid">
+        <div class="gi-card gi-started">
+          <div class="gi-icon">🚀</div>
+          <div class="gi-value">${stats?stats.group_start_date:'-'}</div>
+          <div class="gi-label">Started</div>
+        </div>
+        <div class="gi-card gi-members">
+          <div class="gi-icon">👥</div>
+          <div class="gi-value">${stats?stats.member_count:'-'}</div>
+          <div class="gi-label">Members</div>
+        </div>
+        <div class="gi-card gi-share">
+          <div class="gi-icon">📊</div>
+          <div class="gi-value">${stats?formatCurrency(stats.share_amount):'-'}</div>
+          <div class="gi-label">Share / Month</div>
+        </div>
+        <div class="gi-card gi-onetime">
+          <div class="gi-icon">💰</div>
+          <div class="gi-value">${stats?formatCurrency(stats.one_time_amount):'-'}</div>
+          <div class="gi-label">One-time Deposit</div>
+        </div>
+        <div class="gi-card gi-period">
+          <div class="gi-icon">📅</div>
+          <div class="gi-value">${stats?stats.total_period_months/12+' Years':'-'}</div>
+          <div class="gi-label">Total Period</div>
+        </div>
+        <div class="gi-card gi-interest">
+          <div class="gi-icon">📈</div>
+          <div class="gi-value">${stats?stats.loan_interest_rate+'% / month':'-'}</div>
+          <div class="gi-label">Loan Interest</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="section-heading">💰 Financial Overview</h3>
       <div class="stats-grid" style="margin-top:12px">
         <div class="stat-card loan-given"><strong>${stats?formatCurrency(stats.total_lent):'-'}</strong><span>Loan Given</span></div>
         <div class="stat-card hardlocked"><strong>${stats?formatCurrency(stats.cash_on_hand):'-'}</strong><span>Hardlocked / FD</span></div>
         <div class="stat-card available"><strong>${stats?formatCurrency(stats.available_to_lend):'-'}</strong><span>Available to Loan</span></div>
       </div>
 
-      <!-- Big Total box with inline breakdown -->
-      <div class="panel" style="margin-top:14px;padding:18px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div style="flex:1;min-width:220px">
-            <div style="font-size:20px;color:#374151">Total Collected</div>
-            <div style="font-size:28px;font-weight:700;margin-top:6px">${stats?formatCurrency(stats.total_collected):'-'}</div>
-            <div style="color:#6b7280;margin-top:8px">This is the sum of all collection sources below.</div>
-          </div>
-          <div style="flex:1;min-width:220px">
-            <ul style="list-style:none;padding:0;margin:0">
-              <li style="margin-bottom:6px"><strong>Initial Deposits:</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</li>
-              <li style="margin-bottom:6px"><strong>Shares:</strong> ${stats?formatCurrency(stats.shares_total):'-'}</li>
-              <li style="margin-bottom:6px"><strong>Loan Interest:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</li>
-              <li style="margin-bottom:6px"><strong>Other Income:</strong> ${stats?formatCurrency(stats.others_total):'-'}</li>
-            </ul>
-          </div>
+      <div class="total-box">
+        <div class="total-box-main">
+          <div class="total-box-label">Total Collected</div>
+          <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
+          <div class="total-box-desc">Sum of all collection sources below.</div>
+        </div>
+        <div class="total-box-breakdown">
+          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>Initial Deposits:</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>Shares:</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>Loan Interest:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>Other Income:</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
         </div>
       </div>
-      <!-- removed separate "All Members" and "Admin Panel" cards; use menu links instead -->
+    </div>
   `
   content.innerHTML = html
 }
@@ -390,13 +424,6 @@ async function renderMemberProfile(memberId) {
   const m = await api(`/members/${memberId}`)
   const own = state.currentUser.id === m.id
   const canManage = own || state.currentUser.is_admin
-  const duesHtml = m.dues.map(d => {
-    const dueDate = formatDate(d.due_date)
-    const paid = d.paid ? 'Yes' : 'No'
-    const lateDays = d.paid ? 0 : Math.max(0, Math.floor((new Date() - new Date(d.due_date)) / 86400000))
-    const lateFee = lateDays * 50
-    return `<tr><td>${dueDate}</td><td>${formatCurrency(d.amount)}</td><td>${paid}</td><td>${lateFee ? formatCurrency(lateFee) : '-'}</td><td>${!d.paid && canManage ? `<button class="btn secondary" onclick="handlePayDue(${m.id}, ${d.id}, ${d.amount})">Pay</button>` : '-'}</td></tr>`
-  }).join('')
   const loansHtml = m.loans.map(l => {
     const statusBadge = l.status === 'active' ? '<span class="badge success">Active</span>' : '<span class="badge warn">Applied</span>'
     const showApprove = state.currentUser.is_admin && l.status === 'applied'
@@ -445,10 +472,7 @@ async function renderMemberProfile(memberId) {
         ${own ? `<div style="margin-top:8px;"><button class="btn" id="self-edit-btn">Edit Profile</button></div>` : ''}
       </div>
       <div class="profile-summary">
-        <p><strong>Joined:</strong> ${formatDate(m.joined_date)}</p>
-        <p><strong>Deposit:</strong> ${formatCurrency(m.deposit_amount)}</p>
-        <p><strong>Role:</strong> ${m.is_admin ? 'Admin' : 'Member'}</p>
-        <div class="stats-grid" style="margin-top:8px">
+        <div class="stats-grid">
           <div class="stat-card"><strong>${m.contributions.length}</strong><span>Total Contributions</span></div>
           <div class="stat-card"><strong>${m.loans.length}</strong><span>Loans</span></div>
           <div class="stat-card"><strong>${m.dues.filter(d => !d.paid).length}</strong><span>Unpaid Dues</span></div>
@@ -498,7 +522,6 @@ async function renderMemberProfile(memberId) {
               <input id="pay-txn-date" type="date" value="" />
             </div>
             <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
-            <div class="input-row"><input id="pay-screenshot" type="file" accept="image/*" /></div>
             <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
           </div>
         </div>
@@ -507,7 +530,6 @@ async function renderMemberProfile(memberId) {
             <h3>Actions</h3>
             ${canManage ? `
               <div class="input-row"><label style="flex-basis:100%">Request Loan</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="number" placeholder="Loan amount" min="0" step="0.01" /></div></div>
-              <div class="input-row"><label style="flex-basis:100%">Upload document (mandatory)</label><input id="request-loan-file" type="file" accept="image/*" /></div>
               <button class="btn primary" id="request-loan-btn">Request Loan</button>
             ` : '<p>This member profile is view-only.</p>'}
           </div>
@@ -518,15 +540,9 @@ async function renderMemberProfile(memberId) {
           </div>
         </div>
       </div>
-      <div class="grid-2" style="margin-top:18px;">
-        <div class="panel">
-          <h3>Monthly Dues</h3>
-          <table class="table"><thead><tr><th>Due Date</th><th>Amount</th><th>Paid</th><th>Late Fee</th><th>Action</th></tr></thead><tbody>${duesHtml}</tbody></table>
-        </div>
-        <div class="panel">
-          <h3>Loans</h3>
-          <table class="table"><thead><tr><th>ID</th><th>Principal</th><th>Outstanding</th><th>Term</th><th>Status</th><th>Action</th></tr></thead><tbody>${loansHtml}</tbody></table>
-        </div>
+      <div class="panel" style="margin-top:18px;">
+        <h3>Loans</h3>
+        <table class="table"><thead><tr><th>ID</th><th>Principal</th><th>Outstanding</th><th>Term</th><th>Status</th><th>Action</th></tr></thead><tbody>${loansHtml}</tbody></table>
       </div>
       <!-- bottom submit payment removed; primary submit panel above -->
       ${requestsHtml}
@@ -655,21 +671,19 @@ async function renderMemberProfile(memberId) {
     if (submitPaymentBtnTop) {
       submitPaymentBtnTop.onclick = () => handleSubmitPayment(m.id)
     }
-    // loan request button handler (single numeric field, file mandatory)
+    // loan request button handler
     const requestLoanBtn = document.getElementById('request-loan-btn')
     if (requestLoanBtn) {
       requestLoanBtn.onclick = async () => {
         const amt = Number(document.getElementById('request-loan-amount').value) || 0
-        const fileInp = document.getElementById('request-loan-file')
         if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
-        if (!fileInp || !fileInp.files || !fileInp.files[0]) { showToast('Please attach a document', 'error'); return }
-        const fd = new FormData()
-        fd.append('amount', amt)
-        fd.append('type', 'loan')
-        fd.append('note', 'Loan request via UI')
-        fd.append('screenshot', fileInp.files[0])
-        const res = await fetch(`/api/members/${m.id}/submit_payment_request`, {method:'POST', body: fd})
-        if (res.ok) { showToast('Loan request submitted', 'success'); renderMemberProfile(m.id) } else { const e = await res.json().catch(()=>({})); showToast(e.error||'Failed','error') }
+        const res = await api(`/members/${m.id}/apply_loan`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({amount: amt, term_months: 12}),
+        })
+        showToast('Loan request submitted', 'success')
+        renderMemberProfile(m.id)
       }
     }
     // Admin edit toggle: render admin form when requested
@@ -822,7 +836,6 @@ async function handleSubmitPayment(memberId) {
   const shareAmount = Number(document.getElementById('share-amount-input').value) || 0
   const loanAmount = Number(document.getElementById('loan-amount-input').value) || 0
   const note = document.getElementById('pay-note').value
-  const file = document.getElementById('pay-screenshot').files[0]
   // Share amount is mandatory
   if (!shareAmount || shareAmount <= 0) { showToast('Share amount is required', 'error'); return }
   // submit share payment request
@@ -831,7 +844,6 @@ async function handleSubmitPayment(memberId) {
     fd1.append('amount', shareAmount)
     fd1.append('type', 'share')
     fd1.append('note', note)
-    if (file) fd1.append('screenshot', file)
     const res1 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd1})
     if (!res1.ok) {
       const e = await res1.json().catch(()=>({error:'failed'}))

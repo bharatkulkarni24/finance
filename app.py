@@ -45,7 +45,12 @@ def log_request_info():
     app.logger.info(f"REQUEST {request.method} {request.path} from {request.remote_addr}")
 
 
-@app.errorhandler(Exception)
+@app.errorhandler(404)
+def handle_not_found(e):
+    return jsonify({'error': 'not_found', 'message': 'The requested URL was not found on the server.'}), 404
+
+
+@app.errorhandler(500)
 def handle_exception(e):
     tb = traceback.format_exc()
     app.logger.error(f"Exception on {request.path}: {str(e)}\n{tb}")

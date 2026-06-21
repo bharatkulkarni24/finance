@@ -92,13 +92,16 @@ body {
   margin: 0;
   font-size: 1.7rem;
   letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .kn-heading {
-  font-size: 12px;
-  color: #cbd5e1;
+  font-size: 1.7rem;
+  color: #a78bfa;
   margin-top: 2px;
   font-weight: 700;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
 }
 
 .logo-text p,
@@ -422,6 +425,127 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* Welcome panel - no extra styling needed, just remove the old collective padding */
+.welcome-panel { margin-bottom:18px }
+
+/* Group Info Section */
+.group-info {
+  background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.95));
+  border-radius: 28px;
+  border: 1px solid rgba(148,163,184,0.12);
+  box-shadow: 0 30px 60px rgba(8,17,36,0.35);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+.section-heading {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f1f5f9;
+  padding: 0 0 12px;
+}
+
+.group-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 20px 26px 26px;
+}
+
+.gi-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.08);
+  border-radius: 18px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(8,17,36,0.4);
+}
+
+.gi-icon { font-size: 1.8rem }
+.gi-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+.gi-label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* individual gi-card colors */
+.gi-started { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04)); border-color: rgba(99,102,241,0.2) }
+.gi-started .gi-value { color: #c7d2fe }
+.gi-members { background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)); border-color: rgba(52,211,153,0.2) }
+.gi-members .gi-value { color: #a7f3d0 }
+.gi-share { background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(251,191,36,0.04)); border-color: rgba(251,191,36,0.2) }
+.gi-share .gi-value { color: #fde68a }
+.gi-onetime { background: linear-gradient(135deg, rgba(244,63,94,0.12), rgba(244,63,94,0.04)); border-color: rgba(244,63,94,0.2) }
+.gi-onetime .gi-value { color: #fecdd3 }
+.gi-period { background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)); border-color: rgba(168,85,247,0.2) }
+.gi-period .gi-value { color: #d8b4fe }
+.gi-interest { background: linear-gradient(135deg, rgba(34,211,238,0.12), rgba(34,211,238,0.04)); border-color: rgba(34,211,238,0.2) }
+.gi-interest .gi-value { color: #a5f3fc }
+
+/* Total box */
+.total-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding: 18px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 22px;
+  border: 1px solid rgba(148,163,184,0.06);
+}
+
+.total-box-main { flex: 1; min-width: 220px }
+.total-box-label { font-size: 1.1rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em }
+.total-box-amount { font-size: 2rem; font-weight: 800; margin-top: 6px; background: linear-gradient(135deg, #a78bfa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text }
+.total-box-desc { color: #64748b; font-size: 0.9rem; margin-top: 6px }
+
+.total-box-breakdown { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 8px }
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #cbd5e1;
+}
+
+.breakdown-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.deposits-dot { background: #a78bfa }
+.shares-dot { background: #34d399 }
+.interest-dot { background: #fbbf24 }
+.other-dot { background: #fb7185 }
+
+@media (max-width: 640px) {
+  .group-info-grid { grid-template-columns: repeat(2, 1fr) }
 }
 
 /* Toast notifications */

@@ -514,6 +514,9 @@ def get_admin_stats():
     others_total = cur.fetchone()[0] or 0.0
     # recompute total_collected as sum of these categories
     total_collected = deposits_total + shares_total + loan_principal_received + loan_interest_received + others_total
+    # member count
+    cur.execute("SELECT COUNT(*) FROM members")
+    member_count = cur.fetchone()[0] or 0
     # loan metrics
     cur.execute("SELECT SUM(outstanding) FROM loans WHERE status='active'")
     total_outstanding = cur.fetchone()[0] or 0.0
@@ -533,6 +536,12 @@ def get_admin_stats():
         'total_outstanding': total_outstanding,
         'cash_on_hand': cash_on_hand,
         'available_to_lend': available_to_lend,
+        'member_count': member_count,
+        'group_start_date': 'April 2025',
+        'share_amount': 500,
+        'one_time_amount': 25000,
+        'total_period_months': 36,
+        'loan_interest_rate': 1,
     }
 
 
