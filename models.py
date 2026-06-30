@@ -591,8 +591,8 @@ def get_admin_stats():
     loan_principal_received = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(interest_paid) FROM payments")
     loan_interest_received = cur.fetchone()[0] or 0.0
-    # other income = FD interest + manual income entries
-    cur.execute("SELECT SUM(amount) FROM transactions WHERE debit_credit='credit' AND (desc LIKE 'FD Interest%' OR source='manual_ie')")
+    # other income = FD interest + manual income + late fees
+    cur.execute("SELECT SUM(amount) FROM transactions WHERE debit_credit='credit' AND (desc LIKE 'FD Interest%' OR source='manual_ie' OR desc='Late fee')")
     others_total = cur.fetchone()[0] or 0.0
     # expenses from debit transactions
     cur.execute("SELECT SUM(amount) FROM transactions WHERE debit_credit='debit'")
@@ -609,8 +609,8 @@ def get_admin_stats():
     total_lent = cur.fetchone()[0] or 0.0
     conn.close()
     hardlocked_fd = get_active_fd_total()
-    cash_on_hand = total_collected - total_outstanding - hardlocked_fd
-    available_to_lend = total_collected - total_lent - hardlocked_fd
+    cash_on_hand = total_collected - total_lent - hardlocked_fd
+    available_to_lend = cash_on_hand
     return {
         'total_collected': total_collected,
         'deposits_total': deposits_total,

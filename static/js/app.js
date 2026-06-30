@@ -24,6 +24,25 @@ function showToast(msg, type = 'info', timeout = 3500) {
   setTimeout(() => t.remove(), timeout)
 }
 
+// Loading spinner helpers
+function setLoading(btn, loading) {
+  if (!btn) return
+  if (loading) {
+    btn.disabled = true
+    btn.classList.add('loading')
+    btn._origHtml = btn.innerHTML
+    btn.innerHTML = '<span class="spinner"></span>'
+  } else {
+    btn.disabled = false
+    btn.classList.remove('loading')
+    if (btn._origHtml) btn.innerHTML = btn._origHtml
+  }
+}
+
+function loadingHtml() {
+  return '<div style="display:flex;align-items:center;justify-content:center;padding:24px"><span class="spinner"></span></div>'
+}
+
 // Simple i18n map (English + simple Kannada for common people)
 const I18N = {
   en: {
@@ -461,14 +480,17 @@ function toIndianNumber(str) {
 }
 
 function indianizeInput(input) {
-  input.addEventListener('input', function () {
+  function format() {
     let start = this.selectionStart
     let raw = this.value.replace(/,/g, '')
     let formatted = toIndianNumber(raw)
     let added = formatted.length - this.value.length
     this.value = formatted
     this.setSelectionRange(start + added, start + added)
-  })
+  }
+  input.addEventListener('input', format)
+  // format immediately for initial values
+  format.call(input)
 }
 
 function formatDate(d) {
@@ -525,22 +547,24 @@ function toISODate(val) {
 function dualDateInput(input) {
   smartDateInput(input)
   const wrapper = input.parentElement
+  wrapper.style.position = 'relative'
   const icon = document.createElement('span')
   icon.className = 'cal-icon'
   icon.innerHTML = '📅'
   icon.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;opacity:0.6'
   const hiddenInput = document.createElement('input')
-  hiddenInput.type = 'date'
+  hiddenInput.type = 'text'
   hiddenInput.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:0;height:0'
-  wrapper.style.position = 'relative'
   wrapper.appendChild(icon)
   wrapper.appendChild(hiddenInput)
-  icon.onclick = () => {
+  createDatePicker(hiddenInput)
+  icon.onclick = (e) => {
+    e.stopPropagation()
     const parsed = parseSmartDate(input.value)
     if (parsed) hiddenInput.value = parsed.toISOString().slice(0, 10)
-    hiddenInput.showPicker ? hiddenInput.showPicker() : hiddenInput.click()
+    hiddenInput.focus()
   }
-  hiddenInput.onchange = () => {
+  hiddenInput.addEventListener('change', () => {
     if (hiddenInput.value) {
       const d = new Date(hiddenInput.value + 'T00:00:00')
       const dd = String(d.getDate()).padStart(2, '0')
@@ -548,7 +572,80 @@ function dualDateInput(input) {
       const yyyy = d.getFullYear()
       input.value = `${dd}/${mm}/${yyyy}`
     }
+  })
+}
+
+function createDatePicker(input) {
+  input.autocomplete = 'off'
+  let wrapper = input.parentElement
+  if (!wrapper.classList.contains('dp-wrap')) {
+    wrapper = document.createElement('div')
+    wrapper.className = 'dp-wrap'
+    input.parentNode.insertBefore(wrapper, input)
+    wrapper.appendChild(input)
   }
+  const icon = document.createElement('span')
+  icon.className = 'cal-icon'
+  icon.textContent = '📅'
+  icon.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;opacity:0.6'
+  wrapper.appendChild(icon)
+  function openPicker() {
+    closeAllPickers()
+    const picker = document.createElement('div')
+    picker.className = 'date-picker-dropdown'
+    let year, month, selVal
+    if (input.value) { const d = new Date(input.value + 'T00:00:00'); year = d.getFullYear(); month = d.getMonth(); selVal = input.value }
+    else { const d = new Date(); year = d.getFullYear(); month = d.getMonth(); selVal = '' }
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    picker.innerHTML = `<div class="dp-header"><button class="dp-nav" data-a="dp">\u00AB\u00AB</button><button class="dp-nav" data-a="yp">\u2039</button><span class="dp-title"><select class="dp-month-select">${months.map((m,i) => `<option value="${i}">${m}</option>`).join('')}</select><select class="dp-year-select">${Array.from({length:125},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')}</select></span><button class="dp-nav" data-a="yn">\u203A</button><button class="dp-nav" data-a="dn">\u00BB\u00BB</button></div><div class="dp-days-header">${['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<span>${d}</span>`).join('')}</div><div class="dp-days-grid"></div>`
+    function renderDays() {
+      const grid = picker.querySelector('.dp-days-grid')
+      const firstDay = new Date(year, month, 1).getDay()
+      const daysInMonth = new Date(year, month + 1, 0).getDate()
+      const today = new Date()
+      let html = ''
+      for (let i = 0; i < firstDay; i++) html += '<span></span>'
+      for (let d = 1; d <= daysInMonth; d++) {
+        const val = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+        const max = input.dataset.max
+        const disabled = max && val > max
+        const sel = selVal === val
+        const tod = d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
+        html += `<span class="dp-day${sel?' selected':''}${tod?' today':''}${disabled?' dp-disabled':''}" data-val="${val}">${d}</span>`
+      }
+      grid.innerHTML = html
+      grid.querySelectorAll('.dp-day:not(.dp-disabled)').forEach(el => {
+        el.onclick = () => { selVal = el.dataset.val; input.value = selVal; input.dispatchEvent(new Event('change', {bubbles: true})); picker.remove() }
+      })
+      picker.querySelector('.dp-month-select').value = month
+      const ys = picker.querySelector('.dp-year-select')
+      ys.innerHTML = Array.from({length:125},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')
+      ys.value = year
+    }
+    picker.querySelector('.dp-month-select').onchange = e => { month = parseInt(e.target.value); renderDays() }
+    picker.querySelector('.dp-year-select').onchange = e => { year = parseInt(e.target.value); renderDays() }
+    picker.querySelectorAll('.dp-nav').forEach(btn => {
+      btn.onclick = e => { e.stopPropagation(); const a = btn.dataset.a; if (a==='yp') year--; else if (a==='yn') year++; else if (a==='dp') year-=10; else if (a==='dn') year+=10; renderDays() }
+    })
+    renderDays()
+    wrapper.appendChild(picker)
+  }
+  input.addEventListener('focus', openPicker)
+  icon.addEventListener('click', e => { e.stopPropagation(); openPicker() })
+}
+function closeAllPickers() { document.querySelectorAll('.date-picker-dropdown').forEach(el => el.remove()) }
+
+// Custom confirmation overlay
+function showConfirm(title, msg) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div')
+    overlay.className = 'confirm-overlay'
+    overlay.innerHTML = `<div class="confirm-box"><h3>${title}</h3><p>${msg}</p><div class="confirm-actions"><button class="btn primary" id="confirm-yes">Yes</button><button class="btn secondary" id="confirm-no">Cancel</button></div></div>`
+    document.body.appendChild(overlay)
+    document.getElementById('confirm-yes').onclick = () => { overlay.remove(); resolve(true) }
+    document.getElementById('confirm-no').onclick = () => { overlay.remove(); resolve(false) }
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false) } })
+  })
 }
 
 function calculateAge(dob) {
@@ -574,6 +671,7 @@ function renderMenu() {
   const items = [
     {id: 'home', label: t('Dashboard')},
     {id: 'my-profile', label: t('My Profile')},
+    {id: 'submit', label: t('Submit')},
     {id: 'my-history', label: t('📜 My Activity')},
     {id: 'all-members', label: t('All Members')},
   ]
@@ -615,6 +713,8 @@ async function init() {
 }
 
 async function handleLogin() {
+  const btn = document.getElementById('login-button')
+  setLoading(btn, true)
   try {
     loginError.classList.add('hidden')
     const name = memberSelect.value
@@ -632,6 +732,8 @@ async function handleLogin() {
   } catch (err) {
     loginError.textContent = t(err.error || 'Login failed. Check your name/PIN.')
     loginError.classList.remove('hidden')
+  } finally {
+    setLoading(btn, false)
   }
 }
 
@@ -676,6 +778,7 @@ function renderView() {
   const view = state.activeView
   if (view === 'admin-panel') return renderAdminPanel()
   if (view === 'my-profile') return renderMemberProfile(state.currentUser.id)
+  if (view === 'submit') return renderSubmitView()
   if (view === 'my-history') return renderAllHistory()
   if (view === 'all-members') return renderAllMembers()
   if (view === 'passbook') return renderPassbook()
@@ -828,8 +931,8 @@ async function renderAdminPanel() {
               <button class="btn primary" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
               <div id="income-form" style="display:none;margin-top:10px">
                 <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="income-amount" type="text" /></div></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="income-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="income-reason" placeholder="${t('e.g. Donation from X')}" /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="income-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="income-reason" class="admin-input" placeholder="${t('e.g. Donation from X')}" /></div>
                 <button class="btn primary" id="save-income-btn" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('Save')}</button>
               </div>
             </div>
@@ -838,8 +941,8 @@ async function renderAdminPanel() {
               <button class="btn primary" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
               <div id="expense-form" style="display:none;margin-top:10px">
                 <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="expense-amount" type="text" /></div></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="expense-date" type="date" value="${new Date().toISOString().slice(0,10)}" /></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="expense-reason" placeholder="${t('e.g. Meeting snacks')}" /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="expense-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="expense-reason" class="admin-input" placeholder="${t('e.g. Meeting snacks')}" /></div>
                 <button class="btn primary" id="save-expense-btn" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Save')}</button>
               </div>
             </div>
@@ -862,6 +965,10 @@ async function renderAdminPanel() {
   if (incAmt) indianizeInput(incAmt)
   const expAmt = document.getElementById('expense-amount')
   if (expAmt) indianizeInput(expAmt)
+  const incDate = document.getElementById('income-date')
+  if (incDate) createDatePicker(incDate)
+  const expDate = document.getElementById('expense-date')
+  if (expDate) createDatePicker(expDate)
   const fdStart = document.getElementById('fd-start')
   if (fdStart) dualDateInput(fdStart)
   const fdEnd = document.getElementById('fd-end')
@@ -886,7 +993,7 @@ function toggleForm(type) {
 async function renderIeList() {
   const div = document.getElementById('ie-list')
   if (!div) return
-  div.innerHTML = '<p style="color:#94a3b8">' + t('Loading...') + '</p>'
+  div.innerHTML = loadingHtml()
   try {
     const rows = await api('/admin/transactions', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
     if (!rows || !rows.length) { div.innerHTML = '<p style="color:#64748b">' + t('No income or expense entries yet.') + '</p>'; return }
@@ -905,27 +1012,34 @@ async function renderIeList() {
 
 async function handleSaveIe(type) {
   const prefix = type === 'credit' ? 'income' : 'expense'
+  const btn = document.getElementById(`save-${prefix}-btn`)
   const amount = Number(document.getElementById(`${prefix}-amount`).value.replace(/,/g,''))
   const desc = document.getElementById(`${prefix}-reason`).value.trim()
   const entry_date = document.getElementById(`${prefix}-date`).value
   if (!amount || amount <= 0) { showToast('Enter a valid amount', 'error'); return }
   if (!desc) { showToast('Enter a reason', 'error'); return }
-  await api('/admin/income-expense/add', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
-    body: JSON.stringify({type, amount, desc, entry_date}),
-  })
-  showToast(type === 'credit' ? 'Income recorded' : 'Expense recorded', 'success')
-  document.getElementById(`${prefix}-amount`).value = ''
-  document.getElementById(`${prefix}-reason`).value = ''
-  toggleForm(prefix === 'income' ? 'income' : 'expense')
-  renderAdminPanel()
+  if (!(await showConfirm(type === 'credit' ? 'Record Income' : 'Record Expense', `${formatCurrency(amount)} — ${desc}${entry_date ? ' on '+formatDate(entry_date) : ''}?`))) return
+  setLoading(btn, true)
+  try {
+    await api('/admin/income-expense/add', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify({type, amount, desc, entry_date}),
+    })
+    showToast(type === 'credit' ? 'Income recorded' : 'Expense recorded', 'success')
+    document.getElementById(`${prefix}-amount`).value = ''
+    document.getElementById(`${prefix}-reason`).value = ''
+    toggleForm(prefix === 'income' ? 'income' : 'expense')
+    renderAdminPanel()
+  } finally {
+    setLoading(btn, false)
+  }
 }
 
 
 async function renderPendingPayments() {
   const div = document.getElementById('pending-payments')
-  div.innerHTML = '<p style="color:#94a3b8">' + t('Loading...') + '</p>'
+  div.innerHTML = loadingHtml()
   try {
     const items = await api('/admin/payment_requests', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
     if (!items || items.length === 0) {
@@ -941,7 +1055,7 @@ async function renderPendingPayments() {
       row.innerHTML = `
         <div>
           <strong>${it.member_name}</strong><br>
-          <small>${it.type} ₹${it.amount} — ${it.note || ''}</small>
+          <small>${it.type} ${formatCurrency(it.amount)} — ${it.note || ''}</small>
         </div>
         <div>${it.screenshot?`<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">${t('📎 Screenshot')}</a>`:''}</div>
         <div id="pay-actions-${idx}">
@@ -956,7 +1070,11 @@ async function renderPendingPayments() {
           </div>
         </div>`
       row.querySelector('.approve-btn').onclick = async () => {
+        if (!(await showConfirm('Approve Payment', `Approve ${it.type} payment of ${formatCurrency(it.amount)} from ${it.member_name}?`))) return
+        const btn = row.querySelector('.approve-btn')
+        setLoading(btn, true)
         const res = await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+        setLoading(btn, false)
         if (!res.ok) { showToast(t('Approve failed'), 'error'); return }
         showToast(t('Payment approved'), 'success')
         await renderPendingPayments()
@@ -970,9 +1088,12 @@ async function renderPendingPayments() {
         document.getElementById('pay-reject-form-' + idx).classList.add('hidden')
       }
       row.querySelector('#pay-reject-confirm-' + idx).onclick = async () => {
+        const btn = row.querySelector('#pay-reject-confirm-' + idx)
         const reason = document.getElementById('pay-reason-' + idx).value.trim()
         if (!reason) { showToast(t('Enter a reason'), 'error'); return }
+        setLoading(btn, true)
         const res = await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+        setLoading(btn, false)
         if (!res.ok) { showToast(t('Reject failed'), 'error'); return }
         showToast(t('Payment rejected'), 'info')
         await renderPendingPayments()
@@ -987,7 +1108,7 @@ async function renderPendingPayments() {
 
 async function renderPendingLoans() {
   const pendingDiv = document.getElementById('pending-loans')
-  pendingDiv.innerHTML = '<p style="color:#94a3b8">Loading...</p>'
+  pendingDiv.innerHTML = loadingHtml()
   let loans = []
   try {
     loans = await api('/admin/pending_loans', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
@@ -1009,7 +1130,7 @@ async function renderPendingLoans() {
     row.innerHTML = `
       <div>
         <strong>${item.member_name}</strong><br>
-        <small>${t('Loan')} ₹${item.principal} ${t('for')} ${item.term_months} ${t('mo')}</small>
+        <small>${t('Loan')} ${formatCurrency(item.principal)} ${t('for')} ${item.term_months} ${t('mo')}</small>
       </div>
       <div id="loan-actions-${idx}">
         <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">${t('Approve')}</button>
@@ -1023,7 +1144,11 @@ async function renderPendingLoans() {
         </div>
       </div>`
     row.querySelector('.approve-btn').onclick = async () => {
+      if (!(await showConfirm('Approve Loan', `Approve loan of ${formatCurrency(item.principal)} for ${item.member_name}?`))) return
+      const btn = row.querySelector('.approve-btn')
+      setLoading(btn, true)
       const res = await fetch(`/api/admin/approve_loan/${item.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+      setLoading(btn, false)
       if (!res.ok) { showToast(t('Approve failed'), 'error'); return }
       showToast(t("'s loan approved").replace("'s"," " + item.member_name + "'s"), 'success')
       await renderPendingLoans()
@@ -1037,9 +1162,12 @@ async function renderPendingLoans() {
       document.getElementById('loan-reject-form-' + idx).classList.add('hidden')
     }
     row.querySelector('#reject-confirm-' + idx).onclick = async () => {
+      const btn = row.querySelector('#reject-confirm-' + idx)
       const reason = document.getElementById('reject-reason-' + idx).value.trim()
       if (!reason) { showToast(t('Enter a reason'), 'error'); return }
+      setLoading(btn, true)
       const res = await fetch(`/api/admin/reject_loan/${item.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+      setLoading(btn, false)
       if (!res.ok) { showToast(t('Reject failed'), 'error'); return }
       showToast(t('Loan rejected'), 'info')
       await renderPendingLoans()
@@ -1075,7 +1203,7 @@ async function renderAllMembers() {
 }
 
 async function renderPassbook() {
-  content.innerHTML = '<div class="panel"><h2 class="page-title">' + t('📒 Passbook') + '</h2><p style="color:#94a3b8;margin:0 0 14px">' + t('All transactions in one place.') + '</p><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto"><p style="color:#94a3b8">' + t('Loading...') + '</p></div></div>'
+  content.innerHTML = '<div class="panel"><h2 class="page-title">' + t('📒 Passbook') + '</h2><p style="color:#94a3b8;margin:0 0 14px">' + t('All transactions in one place.') + '</p><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto">' + loadingHtml() + '</div></div>'
   await loadPbData()
 }
 
@@ -1149,8 +1277,8 @@ function pbToggleFilter(col) {
       `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterName()">Apply</button>${clearCol}</div>`
   } else if (col === 'ts') {
     filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">Filter by Date Range</div>` +
-      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-from-input" type="date" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.from || ''}" placeholder="From" /></div>` +
-      `<div style="display:flex;gap:6px;margin-bottom:8px"><input id="pb-to-input" type="date" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.to || ''}" placeholder="To" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-from-input" type="text" class="admin-input" value="${pbFilters.from || ''}" placeholder="From" readonly /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:8px"><input id="pb-to-input" type="text" class="admin-input" value="${pbFilters.to || ''}" placeholder="To" readonly /></div>` +
       `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterDate()">Apply</button>${clearCol}</div>`
   } else if (col === 'amount') {
     filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:8px">Filter by Amount</div>` +
@@ -1167,6 +1295,14 @@ function pbToggleFilter(col) {
   panel.innerHTML = sortRow + filterHtml
   panel.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5);margin-top:4px'
   th.appendChild(panel)
+  ;['pb-amt-min', 'pb-amt-max', 'pb-amt-exact'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) indianizeInput(el)
+  })
+  ;['pb-from-input', 'pb-to-input'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) createDatePicker(el)
+  })
   document.addEventListener('click', pbCloseOutside, true)
 }
 
@@ -1349,6 +1485,7 @@ async function renderAllHistory() {
 
 async function renderMemberProfile(memberId) {
   state.selectedMember = memberId
+  content.innerHTML = loadingHtml()
   const m = await api(`/members/${memberId}`)
   const own = state.currentUser.id === m.id
   const canManage = own || state.currentUser.is_admin
@@ -1370,7 +1507,8 @@ async function renderMemberProfile(memberId) {
       closeDate = formatDate(d.toISOString().slice(0, 10))
     }
     const pct = l.principal > 0 ? Math.round((repaid / l.principal) * 100) : 0
-    const progressClass = pct >= 80 ? '' : (pct >= 40 ? 'warn' : '')
+    const displayPct = Math.min(pct, 100)
+    const progressClass = displayPct >= 80 ? '' : (displayPct >= 40 ? 'warn' : '')
     const interestRate = l.rate_monthly ? (l.rate_monthly * 100) + '%' : '1%'
     return `
       <div class="loan-card">
@@ -1391,8 +1529,8 @@ async function renderMemberProfile(memberId) {
         </div>
         ${l.status === 'rejected' ? `<div style="margin-bottom:8px;padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:8px;font-size:0.8rem;color:#fca5a5">Reason: ${l.reject_reason || 'Not specified'}</div>` : ''}
         <div class="lc-progress-row">
-          <span class="lc-progress-pct">${pct}% repaid</span>
-          <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${Math.min(pct, 100)}%"></div></div>
+          <span class="lc-progress-pct">${displayPct}% repaid</span>
+          <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${displayPct}%"></div></div>
         </div>
       </div>`
   }).join('') : '<p style="color:#94a3b8;font-size:0.9rem;text-align:center;padding:12px 0;">No loans yet</p>'
@@ -1404,7 +1542,7 @@ async function renderMemberProfile(memberId) {
   const avatarUrl = m.photo_url || ''
   const photoSnippet = `
     <div style="position:relative">
-      <div id="profile-avatar" class="profile-avatar ${own || state.currentUser.is_admin ? 'clickable' : ''}" style="background-image: url('${avatarUrl}');">${!avatarUrl ? initials(m.name) : ''}</div>
+      <div id="profile-avatar" class="profile-avatar ${avatarUrl ? 'has-photo' : ''} ${own || state.currentUser.is_admin ? 'clickable' : ''}" style="${avatarUrl ? `background-image: url('${avatarUrl}')` : ''}"><span class="avatar-init">${initials(m.name)}</span></div>
       <input id="profile-photo-input" type="file" accept="image/*" style="display:none" />
       <div id="avatar-menu" class="avatar-menu hidden">
         <button class="btn" id="avatar-add-btn">Add new profile photo</button>
@@ -1430,113 +1568,51 @@ async function renderMemberProfile(memberId) {
             <p><strong>Address:</strong> <span class="input-readonly" id="ro-address">${m.address || '-'}</span></p>
             ${own || state.currentUser.is_admin ? `<div style="margin-top:6px;"><button class="btn" id="self-edit-btn">Edit Profile</button></div>` : ''}
           </div>
-          <div class="pc-stats">
-            <div class="ps-item"><span class="ps-num">${m.contributions.length}</span> Contributions</div>
-            <div class="ps-item"><span class="ps-num">${m.loans.filter(l => l.status === 'active').length}</span> Active Loans</div>
-            <div class="ps-item"><span class="ps-num">${m.dues.filter(d => !d.paid).length}</span> Unpaid Dues</div>
-          </div>
         </div>
       </div>
     </div>
   `
-  // Build unified payment history (share contributions + loan payments merged by date)
+  // Build unified payment history (share contributions + loan payments + late fees merged by date)
   const historyByDate = {}
-  m.contributions.forEach(c => {
+  m.contributions.filter(c => c.type === 'share').forEach(c => {
     const key = c.date
-    if (!historyByDate[key]) historyByDate[key] = { date: c.date, share: 0, deposit: 0, loan: 0 }
-    if (c.type === 'deposit') historyByDate[key].deposit += c.amount
-    else historyByDate[key].share += c.amount
+    if (!historyByDate[key]) historyByDate[key] = { date: c.date, share: 0, loan: 0, fine: 0 }
+    historyByDate[key].share += c.amount
   })
   ;(m.payments || []).forEach(p => {
     const key = p.date
-    if (!historyByDate[key]) historyByDate[key] = { date: p.date, share: 0, deposit: 0, loan: 0 }
-    historyByDate[key].loan += p.amount
+    if (!historyByDate[key]) historyByDate[key] = { date: p.date, share: 0, loan: 0, fine: 0 }
+    historyByDate[key].loan += (p.principal_paid || 0)
+  })
+  ;(m.late_fees || []).forEach(f => {
+    const key = f.timestamp.slice(0, 10)
+    if (!historyByDate[key]) historyByDate[key] = { date: key, share: 0, loan: 0, fine: 0 }
+    historyByDate[key].fine += f.amount
   })
   const allHistory = Object.values(historyByDate).sort((a, b) => b.date.localeCompare(a.date))
-  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0)
+  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0 || r.fine > 0)
   const totalShare = allHistory.reduce((s, r) => s + r.share, 0)
-  const totalDeposit = allHistory.reduce((s, r) => s + r.deposit, 0)
   const totalLoanPaid = allHistory.reduce((s, r) => s + r.loan, 0)
-  const historyHeader = `<div style="margin-top:12px;"><strong>Total Share:</strong> ${formatCurrency(totalShare)} &nbsp;|&nbsp; <strong>Total Deposit:</strong> <span style="color:#a78bfa">${formatCurrency(totalDeposit)}</span> &nbsp;|&nbsp; <strong>Total Loan Paid:</strong> ${formatCurrency(totalLoanPaid)}</div>`
-  const today = new Date().toISOString().slice(0, 10)
+  const totalFine = allHistory.reduce((s, r) => s + r.fine, 0)
+  let historyHeader = `<div style="margin-top:12px;margin-bottom:10px"><strong>Total Share:</strong> ${formatCurrency(totalShare)} &nbsp;|&nbsp; <strong>Total Loan Paid:</strong> ${formatCurrency(totalLoanPaid)}`
+  if (totalFine > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Fine Paid:</strong> ${formatCurrency(totalFine)}`
+  historyHeader += '</div>'
   content.innerHTML = `
     <div class="profile-wrapper">
       ${profileFields}
     </div>
 
     <div class="grid-2" style="margin-top:18px; gap:20px;">
-      <div>
-        <div class="panel compact-panel">
-          <h3>📤 Submit Proof of Payment</h3>
-          <div class="input-row" style="display:flex;gap:12px;">
-            <div style="flex:1">
-              <label>Share Amount *</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
-            </div>
-            <div style="flex:1">
-              <label>Loan Amount</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
-            </div>
-          </div>
-          <div class="input-row small-row">
-            <label style="flex-basis:100%">Payment Date</label>
-            <input id="pay-txn-date" type="date" value="${today}" max="${today}" />
-          </div>
-          <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
-          <div class="upload-area" id="upload-area">
-            <input id="screenshot-input" type="file" accept="image/*" hidden />
-            <div class="upload-placeholder">
-              <span class="upload-icon">📎</span>
-              <span class="upload-text">Tap to upload receipt / proof</span>
-              <span class="upload-hint">Image only</span>
-            </div>
-            <div class="upload-preview hidden">
-              <img id="upload-preview-img" />
-              <span id="upload-filename"></span>
-              <button class="upload-remove" id="upload-remove-btn" type="button">✕</button>
-            </div>
-          </div>
-          <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
-        </div>
-        <div class="panel compact-panel" style="margin-top:12px;">
-          <h3>💰 Request Loan</h3>
-          ${canManage ? `
-            <div class="input-row"><label style="flex-basis:100%">Loan Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
-            <div class="input-row" style="display:flex;gap:12px;">
-              <div style="flex:1">
-                <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Years</label>
-                <div class="stepper">
-                  <button class="stepper-btn" id="loan-years-down">−</button>
-                  <span class="stepper-value" id="loan-years-display">1</span>
-                  <button class="stepper-btn" id="loan-years-up">+</button>
-                </div>
-              </div>
-              <div style="flex:1">
-                <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Months</label>
-                <div class="stepper">
-                  <button class="stepper-btn" id="loan-months-down">−</button>
-                  <span class="stepper-value" id="loan-months-display">0</span>
-                  <button class="stepper-btn" id="loan-months-up">+</button>
-                </div>
-              </div>
-            </div>
-            <div id="loan-period-display" style="text-align:center;font-size:0.85rem;color:#94a3b8;margin-bottom:10px;">1 year 0 months</div>
-            <button class="btn primary" id="request-loan-btn">Request Loan</button>
-          ` : '<p>This member profile is view-only.</p>'}
+      <div class="panel" style="margin-bottom:12px;">
+        <h3>📊 Payment History</h3>
+        ${historyHeader}
+        <div class="table-scroll">
+          <table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? formatCurrency(r.share) : '-'}</td><td>${r.loan ? formatCurrency(r.loan) : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td>${formatCurrency(r.share + r.loan + r.fine)}</td></tr>`).join('')}</tbody></table>
         </div>
       </div>
-      <div>
-        <div class="panel" style="margin-bottom:12px;">
-          <h3>📊 Payment History</h3>
-          ${historyHeader}
-          <div class="table-scroll">
-            <table class="table"><thead><tr><th>Date</th><th>Share</th><th>Deposit</th><th>Loan Paid</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? formatCurrency(r.share) : '-'}</td><td>${r.deposit ? `<span style="color:#a78bfa">${formatCurrency(r.deposit)}</span>` : '-'}</td><td>${r.loan ? formatCurrency(r.loan) : '-'}</td><td>${formatCurrency(r.share + r.deposit + r.loan)}</td></tr>`).join('')}</tbody></table>
-          </div>
-        </div>
-        <div class="panel compact-panel" id="loans-panel">
-          <h3 style="margin-bottom:10px;">🏦 Loans</h3>
-          ${loansCardsHtml}
-        </div>
+      <div class="panel compact-panel" id="loans-panel">
+        <h3 style="margin-bottom:10px;">🏦 Loans</h3>
+        ${loansCardsHtml}
       </div>
     </div>
   `
@@ -1547,7 +1623,6 @@ async function renderMemberProfile(memberId) {
     const cancelBtn = document.getElementById('cancel-photo-btn')
     const removeBtn = document.getElementById('remove-photo-btn')
     const editBtn = document.getElementById('self-edit-btn')
-    const submitPaymentBtnTop = document.getElementById('submit-payment-btn-top')
     let stagedBlob = null
 
     // avatar click opens a small visible menu (owner/admin) with clear actions
@@ -1563,13 +1638,13 @@ async function renderMemberProfile(memberId) {
       if (avatarAddBtn) avatarAddBtn.addEventListener('click', () => { photoInput.click(); if (avatarMenu) avatarMenu.classList.add('hidden') })
       // Remove via avatar menu delegates to same remove flow
       if (avatarRemoveBtn) avatarRemoveBtn.addEventListener('click', async () => {
-        if (!confirm('Remove photo?')) return
+        if (!(await showConfirm('Remove Photo', 'Are you sure you want to remove your profile photo?'))) return
         await api(`/members/${m.id}/self`, {method:'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({photo_url: ''})})
         showToast('Photo removed', 'info')
         renderMemberProfile(m.id)
       })
       // clicking outside hides the menu
-      document.addEventListener('click', () => { if (avatarMenu) avatarMenu.classList.add('hidden') })
+      // (delegated listener added once at init)
       photoInput.addEventListener('change', async (ev) => {
         const file = ev.target.files && ev.target.files[0]
         if (!file) return
@@ -1588,6 +1663,7 @@ async function renderMemberProfile(memberId) {
           ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size)
           const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
           avatar.style.backgroundImage = `url(${dataUrl})`
+          avatar.classList.add('has-photo')
           // prepare blob for upload when confirmed
           canvas.toBlob((b) => { stagedBlob = b }, 'image/jpeg', 0.9)
           if (confirmBtn) confirmBtn.style.display = 'inline-block'
@@ -1601,9 +1677,11 @@ async function renderMemberProfile(memberId) {
     if (confirmBtn) {
       confirmBtn.onclick = async () => {
         if (!stagedBlob) { showToast('No image selected', 'error'); return }
+        setLoading(confirmBtn, true)
         const fd = new FormData()
         fd.append('photo', stagedBlob, 'photo.jpg')
         const res = await fetch(`/api/members/${m.id}/upload_photo`, {method: 'POST', body: fd})
+        setLoading(confirmBtn, false)
         if (res.ok) { showToast(t('Photo uploaded'), 'success'); renderMemberProfile(m.id) } else { const e = await res.json().catch(()=>({})); showToast(e.error||t('Upload failed'),'error') }
       }
     }
@@ -1614,7 +1692,7 @@ async function renderMemberProfile(memberId) {
         if (inp) inp.value = ''
         stagedBlob = null
         if (m.photo_url) avatar.style.backgroundImage = `url('${m.photo_url}')`
-        else avatar.style.backgroundImage = ''
+        else { avatar.style.backgroundImage = ''; avatar.classList.remove('has-photo') }
         if (confirmBtn) confirmBtn.style.display = 'none'
         if (cancelBtn) cancelBtn.style.display = 'none'
       }
@@ -1640,9 +1718,10 @@ async function renderMemberProfile(memberId) {
         const addrSpan = copy.querySelector('#ro-address')
         if (!phoneSpan || !dobSpan || !addrSpan) return
         phoneSpan.outerHTML = `<input id="self-phone" class="input-edit" value="${m.phone||''}" />`
-        dobSpan.outerHTML = `<input id="self-dob" class="input-edit" type="date" value="${m.dob||''}" />`
+        dobSpan.outerHTML = `<input id="self-dob" class="input-edit" type="text" value="${m.dob||''}" readonly />`
         addrSpan.outerHTML = `<input id="self-address" class="input-edit" value="${m.address||''}" />`
         editBtn.style.display = 'none'
+        createDatePicker(document.getElementById('self-dob'))
         const btnWrap = document.createElement('div')
         btnWrap.style.marginTop = '8px'
         btnWrap.innerHTML = `<button class="btn primary" id="self-save-btn">Save</button> <button class="btn" id="self-cancel-btn">Cancel</button>`
@@ -1656,98 +1735,200 @@ async function renderMemberProfile(memberId) {
       }
     }
 
-    // Apply Indian number formatting to amount inputs
-    ;['share-amount-input', 'loan-amount-input', 'request-loan-amount'].forEach(id => {
-      const el = document.getElementById(id)
-      if (el) indianizeInput(el)
+}
+
+async function renderSubmitView() {
+  content.innerHTML = loadingHtml()
+  const m = await api(`/members/${state.currentUser.id}`)
+  const today = new Date().toISOString().slice(0, 10)
+  content.innerHTML = `
+    <div class="panel">
+      <h2 class="page-title" style="margin-bottom:4px;">Submit Payment</h2>
+      <p style="color:#94a3b8;margin-bottom:16px;">Submit proof of payment or request a loan</p>
+      <div class="grid-2" style="gap:20px;">
+        <div class="panel compact-panel">
+          <h3>📤 Submit Proof of Payment</h3>
+          <div class="input-row" style="display:flex;gap:12px;">
+            <div style="flex:1">
+              <label>Share Amount *</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
+            </div>
+            <div style="flex:1">
+              <label>Loan Amount</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
+            </div>
+          </div>
+          <div class="input-row small-row">
+            <label style="flex-basis:100%">Payment Date</label>
+            <input id="pay-txn-date" type="text" value="${today}" data-max="${today}" readonly />
+          </div>
+          <div class="input-row small-row" style="display:flex;gap:12px;">
+            <div style="flex:1">
+              <label>Fine (₹50/day after 10th)</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text" value="0" /></div>
+            </div>
+          </div>
+          <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
+          <div class="upload-area" id="upload-area">
+            <input id="screenshot-input" type="file" accept="image/*" hidden />
+            <div class="upload-placeholder">
+              <span class="upload-icon">📎</span>
+              <span class="upload-text">Tap to upload receipt / proof</span>
+              <span class="upload-hint">Image only</span>
+            </div>
+            <div class="upload-preview hidden">
+              <img id="upload-preview-img" />
+              <span id="upload-filename"></span>
+              <button class="upload-remove" id="upload-remove-btn" type="button">✕</button>
+            </div>
+          </div>
+          <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
+        </div>
+        <div class="panel compact-panel">
+          <h3>💰 Request Loan</h3>
+          <div class="input-row"><label style="flex-basis:100%">Loan Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
+          <div class="input-row" style="display:flex;gap:12px;">
+            <div style="flex:1">
+              <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Years</label>
+              <div class="stepper">
+                <button class="stepper-btn" id="loan-years-down">−</button>
+                <span class="stepper-value" id="loan-years-display">1</span>
+                <button class="stepper-btn" id="loan-years-up">+</button>
+              </div>
+            </div>
+            <div style="flex:1">
+              <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Months</label>
+              <div class="stepper">
+                <button class="stepper-btn" id="loan-months-down">−</button>
+                <span class="stepper-value" id="loan-months-display">0</span>
+                <button class="stepper-btn" id="loan-months-up">+</button>
+              </div>
+            </div>
+          </div>
+          <div id="loan-period-display" style="text-align:center;font-size:0.85rem;color:#94a3b8;margin-bottom:10px;">1 year 0 months</div>
+          <button class="btn primary" id="request-loan-btn">Request Loan</button>
+        </div>
+      </div>
+    </div>
+  `
+  // Apply Indian number formatting to amount inputs
+  ;['share-amount-input', 'loan-amount-input', 'request-loan-amount', 'fine-amount'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) indianizeInput(el)
+  })
+  const payDate = document.getElementById('pay-txn-date')
+  if (payDate) createDatePicker(payDate)
+
+  // Upload area handler
+  const uploadArea = document.getElementById('upload-area')
+  const screenshotInput = document.getElementById('screenshot-input')
+  const uploadPreview = uploadArea?.querySelector('.upload-preview')
+  const uploadPlaceholder = uploadArea?.querySelector('.upload-placeholder')
+  const previewImg = document.getElementById('upload-preview-img')
+  const filenameSpan = document.getElementById('upload-filename')
+  const uploadRemoveBtn = document.getElementById('upload-remove-btn')
+  if (uploadArea && screenshotInput) {
+    uploadArea.addEventListener('click', () => screenshotInput.click())
+    screenshotInput.addEventListener('change', () => {
+      const file = screenshotInput.files && screenshotInput.files[0]
+      if (!file) return
+      if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden')
+      if (uploadPreview) uploadPreview.classList.remove('hidden')
+      if (filenameSpan) filenameSpan.textContent = file.name
+      const reader = new FileReader()
+      reader.onload = (e) => { if (previewImg) previewImg.src = e.target.result }
+      reader.readAsDataURL(file)
     })
-
-    // Upload area handler
-    const uploadArea = document.getElementById('upload-area')
-    const screenshotInput = document.getElementById('screenshot-input')
-    const uploadPreview = uploadArea?.querySelector('.upload-preview')
-    const uploadPlaceholder = uploadArea?.querySelector('.upload-placeholder')
-    const previewImg = document.getElementById('upload-preview-img')
-    const filenameSpan = document.getElementById('upload-filename')
-    const uploadRemoveBtn = document.getElementById('upload-remove-btn')
-    if (uploadArea && screenshotInput) {
-      uploadArea.addEventListener('click', () => screenshotInput.click())
-      screenshotInput.addEventListener('change', () => {
-        const file = screenshotInput.files && screenshotInput.files[0]
-        if (!file) return
-        if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden')
-        if (uploadPreview) uploadPreview.classList.remove('hidden')
-        if (filenameSpan) filenameSpan.textContent = file.name
-        const reader = new FileReader()
-        reader.onload = (e) => { if (previewImg) previewImg.src = e.target.result }
-        reader.readAsDataURL(file)
+    if (uploadRemoveBtn) {
+      uploadRemoveBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        screenshotInput.value = ''
+        if (uploadPreview) uploadPreview.classList.add('hidden')
+        if (uploadPlaceholder) uploadPlaceholder.classList.remove('hidden')
+        if (previewImg) previewImg.src = ''
+        if (filenameSpan) filenameSpan.textContent = ''
       })
-      if (uploadRemoveBtn) {
-        uploadRemoveBtn.addEventListener('click', (e) => {
-          e.stopPropagation()
-          screenshotInput.value = ''
-          if (uploadPreview) uploadPreview.classList.add('hidden')
-          if (uploadPlaceholder) uploadPlaceholder.classList.remove('hidden')
-          if (previewImg) previewImg.src = ''
-          if (filenameSpan) filenameSpan.textContent = ''
-        })
+    }
+  }
+
+  const submitPaymentBtn = document.getElementById('submit-payment-btn-top')
+  if (submitPaymentBtn) {
+    submitPaymentBtn.onclick = () => handleSubmitPayment(m.id)
+  }
+  // auto-calculate fine on date change
+  const payDateInput = document.getElementById('pay-txn-date')
+  const fineInput = document.getElementById('fine-amount')
+  if (payDateInput && fineInput) {
+    const calcFine = () => {
+      const day = new Date(payDateInput.value).getDate()
+      fineInput.value = toIndianNumber(String(day > 10 ? (day - 10) * 50 : 0))
+    }
+    payDateInput.addEventListener('change', calcFine)
+    calcFine()
+  }
+  // loan request button handler
+  const requestLoanBtn = document.getElementById('request-loan-btn')
+  if (requestLoanBtn) {
+    let loanYears = 1, loanMonths = 0
+    const yearsDisplay = document.getElementById('loan-years-display')
+    const monthsDisplay = document.getElementById('loan-months-display')
+    const periodDisplay = document.getElementById('loan-period-display')
+    function updatePeriodDisplay() {
+      if (yearsDisplay) yearsDisplay.textContent = loanYears
+      if (monthsDisplay) monthsDisplay.textContent = loanMonths
+      if (periodDisplay) {
+        const y = loanYears + ' year' + (loanYears !== 1 ? 's' : '')
+        const m = loanMonths + ' month' + (loanMonths !== 1 ? 's' : '')
+        periodDisplay.textContent = y + ' ' + m
       }
     }
+    document.getElementById('loan-years-up')?.addEventListener('click', () => { loanYears = Math.min(loanYears + 1, 10); updatePeriodDisplay() })
+    document.getElementById('loan-years-down')?.addEventListener('click', () => { loanYears = Math.max(loanYears - 1, 0); updatePeriodDisplay() })
+    document.getElementById('loan-months-up')?.addEventListener('click', () => { loanMonths = Math.min(loanMonths + 1, 11); updatePeriodDisplay() })
+    document.getElementById('loan-months-down')?.addEventListener('click', () => { loanMonths = Math.max(loanMonths - 1, 0); updatePeriodDisplay() })
+    updatePeriodDisplay()
 
-    if (submitPaymentBtnTop) {
-      submitPaymentBtnTop.onclick = () => handleSubmitPayment(m.id)
-    }
-    // loan request button handler
-    const requestLoanBtn = document.getElementById('request-loan-btn')
-    if (requestLoanBtn) {
-      // Set up year/month steppers
-      let loanYears = 1, loanMonths = 0
-      const yearsDisplay = document.getElementById('loan-years-display')
-      const monthsDisplay = document.getElementById('loan-months-display')
-      const periodDisplay = document.getElementById('loan-period-display')
-      function updatePeriodDisplay() {
-        if (yearsDisplay) yearsDisplay.textContent = loanYears
-        if (monthsDisplay) monthsDisplay.textContent = loanMonths
-        if (periodDisplay) {
-          const y = loanYears + ' year' + (loanYears !== 1 ? 's' : '')
-          const m = loanMonths + ' month' + (loanMonths !== 1 ? 's' : '')
-          periodDisplay.textContent = y + ' ' + m
-        }
-      }
-      document.getElementById('loan-years-up')?.addEventListener('click', () => { loanYears = Math.min(loanYears + 1, 10); updatePeriodDisplay() })
-      document.getElementById('loan-years-down')?.addEventListener('click', () => { loanYears = Math.max(loanYears - 1, 0); updatePeriodDisplay() })
-      document.getElementById('loan-months-up')?.addEventListener('click', () => { loanMonths = Math.min(loanMonths + 1, 11); updatePeriodDisplay() })
-      document.getElementById('loan-months-down')?.addEventListener('click', () => { loanMonths = Math.max(loanMonths - 1, 0); updatePeriodDisplay() })
-      updatePeriodDisplay()
-
-      requestLoanBtn.onclick = async () => {
-        const raw = document.getElementById('request-loan-amount').value.replace(/,/g, '')
-        const amt = Number(raw) || 0
-        if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
-        const totalMonths = loanYears * 12 + loanMonths
-        if (totalMonths < 1) { showToast('Select at least 1 month term', 'error'); return }
+    requestLoanBtn.onclick = async () => {
+      const raw = document.getElementById('request-loan-amount').value.replace(/,/g, '')
+      const amt = Number(raw) || 0
+      if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
+      const totalMonths = loanYears * 12 + loanMonths
+      if (totalMonths < 1) { showToast('Select at least 1 month term', 'error'); return }
+      if (!(await showConfirm('Request Loan', `Request loan of ${formatCurrency(amt)} for ${loanYears}y ${loanMonths}m?`))) return
+      setLoading(requestLoanBtn, true)
+      try {
         await api(`/members/${m.id}/apply_loan`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({amount: amt, term_months: totalMonths}),
         })
         showToast('Loan request submitted', 'success')
-        renderMemberProfile(m.id)
+        renderSubmitView()
+      } finally {
+        setLoading(requestLoanBtn, false)
       }
     }
+  }
 }
 
 async function handleAddMember() {
+  const btn = document.getElementById('add-member-btn')
   const name = document.getElementById('new-member-name').value.trim()
   const phone = document.getElementById('new-member-phone').value.trim()
   if (!name) { showToast(t('Enter a name'), 'error'); return }
-  await api('/members', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name, phone}),
-  })
-  await loadMembers()
-  renderAdminPanel()
+  if (!(await showConfirm('Add Member', `Add new member "${name}"${phone ? ' ('+phone+')' : ''}?`))) return
+  setLoading(btn, true)
+  try {
+    await api('/members', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, phone}),
+    })
+    await loadMembers()
+    renderAdminPanel()
+  } finally {
+    setLoading(btn, false)
+  }
 }
 
 async function renderFdEntries() {
@@ -1799,6 +1980,7 @@ function closedTable(fds) {
 }
 
 async function handleAddFd() {
+  const btn = document.getElementById('fd-add-btn')
   const amount = Number(document.getElementById('fd-amount').value.replace(/,/g,''))
   const start_date = toISODate(document.getElementById('fd-start').value)
   const end_date = toISODate(document.getElementById('fd-end').value)
@@ -1813,15 +1995,21 @@ async function handleAddFd() {
   if (ed <= sd) { showToast(t('Maturity must be after start date'), 'error'); return }
   const term_months = (ed.getFullYear() - sd.getFullYear()) * 12 + (ed.getMonth() - sd.getMonth())
   if (term_months < 1) { showToast(t('Term too short'), 'error'); return }
-  await api('/admin/fd/add', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
-    body: JSON.stringify({amount, start_date, term_months, interest_rate, notes}),
-  })
-  showToast(t('FD added'), 'success')
-  await renderFdEntries()
-  document.getElementById('fd-amount').value = ''
-  document.getElementById('fd-bank').value = ''
+  if (!(await showConfirm('Add FD', `Add FD of ${formatCurrency(amount)} at ${interest_rate}% for ${term_months} months?`))) return
+  setLoading(btn, true)
+  try {
+    await api('/admin/fd/add', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify({amount, start_date, term_months, interest_rate, notes}),
+    })
+    showToast(t('FD added'), 'success')
+    await renderFdEntries()
+    document.getElementById('fd-amount').value = ''
+    document.getElementById('fd-bank').value = ''
+  } finally {
+    setLoading(btn, false)
+  }
 }
 
 window.closeFd = async function(fdId) {
@@ -1861,118 +2049,91 @@ window.closeFd = async function(fdId) {
   if (returnInput) indianizeInput(returnInput)
 
   document.getElementById('fd-close-confirm').onclick = async () => {
+    const btn = document.getElementById('fd-close-confirm')
     const interestEarned = Number(document.getElementById('fd-return-amount').value.replace(/,/g,''))
     if (isNaN(interestEarned) || interestEarned < 0) { showToast(t('Enter valid return amount'), 'error'); return }
-    overlay.remove()
-    await api(`/admin/fd/close/${fdId}`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
-      body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
-    })
-    showToast(t('FD closed. Interest added to Other Income.'), 'success')
-    await renderFdEntries()
-    renderAdminPanel()
+    setLoading(btn, true)
+    try {
+      await api(`/admin/fd/close/${fdId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+        body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
+      })
+      overlay.remove()
+      showToast(t('FD closed. Interest added to Other Income.'), 'success')
+      await renderFdEntries()
+      renderAdminPanel()
+    } finally {
+      setLoading(btn, false)
+    }
   }
   document.getElementById('fd-close-cancel').onclick = () => overlay.remove()
 }
 
-async function handlePayShare(memberId) {
-  const amount = Number(document.getElementById('share-amount').value) || 500
-  const txn_date = document.getElementById('share-date').value || new Date().toISOString().slice(0,10)
-  if (new Date(txn_date) > new Date()) { showToast('Txn date cannot be in the future', 'error'); return }
-  const fd = new FormData()
-  fd.append('amount', amount)
-  fd.append('type', 'share')
-  fd.append('txn_date', txn_date)
-  const res = await fetch(`/api/members/${memberId}/submit_payment_request`, {method: 'POST', body: fd})
-  if (res.ok) {
-    showToast(t('Share requested'), 'success')
+async function handleUpdateDetails(memberId) {
+  const btn = document.getElementById('self-save-btn')
+  const phone = document.getElementById('self-phone').value.trim()
+  const dob = document.getElementById('self-dob').value
+  const address = document.getElementById('self-address').value.trim()
+  const url = `/members/${memberId}/self`
+  setLoading(btn, true)
+  try {
+    await api(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({phone, dob, address}),
+    })
     renderMemberProfile(memberId)
-  } else {
-    const e = await res.json().catch(()=>({error:'failed'}))
-    showToast(e.error || 'Failed', 'error')
+  } catch (e) {
+    showToast(e?.error || 'Save failed', 'error')
+    console.error('Profile save error:', e)
+  } finally {
+    setLoading(btn, false)
   }
 }
 
-async function handleApplyLoan(memberId) {
-  const amount = Number(document.getElementById('loan-amount').value)
-  const term = Number(document.getElementById('loan-term').value) || 12
-  const txn_date = document.getElementById('loan-date') ? document.getElementById('loan-date').value : new Date().toISOString().slice(0,10)
-  if (!amount || amount <= 0) { showToast(t('Enter loan amount'), 'error'); return }
-  // create loan application
-  await api(`/members/${memberId}/apply_loan`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({amount, term_months: term}),
-  })
-  // also create payment request for initial loan payment if amount > 0
-  const fd = new FormData()
-  fd.append('amount', amount)
-  fd.append('type', 'loan')
-  fd.append('txn_date', txn_date)
-  await fetch(`/api/members/${memberId}/submit_payment_request`, {method: 'POST', body: fd})
-  showToast(t('Loan applied'), 'success')
-  renderMemberProfile(memberId)
-}
-
-
-async function handlePayDue(memberId, dueId, amount) {
-  await api(`/members/${memberId}/pay_due`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({due_id: dueId, amount}),
-  })
-  renderMemberProfile(memberId)
-}
-
-async function handleUpdateDetails(memberId) {
-  const phone = document.getElementById('edit-phone').value.trim()
-  const dob = document.getElementById('edit-dob').value
-  const address = document.getElementById('edit-address').value.trim()
-  const photo_url = document.getElementById('edit-photo').value.trim()
-  const url = state.currentUser.is_admin ? `/members/${memberId}` : `/members/${memberId}/self`
-  await api(url, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({phone, dob, address, photo_url}),
-  })
-  renderMemberProfile(memberId)
-}
-
-window.handlePayDue = handlePayDue
-window.handlePayShare = handlePayShare
-window.handleApplyLoan = handleApplyLoan
 window.handleUpdateDetails = handleUpdateDetails
 window.renderMemberProfile = renderMemberProfile
 window.setView = setView
 
 // Member cancels their own pending request
 async function handleCancelRequest(memberId, reqId) {
-  if (!confirm(t('Confirm cancel?'))) return
+  if (!(await showConfirm(t('Cancel Request'), t('Are you sure you want to cancel this request?')))) return
   const res = await fetch(`/api/members/${memberId}/cancel_request/${reqId}`, {method:'POST'})
   if (res.ok) {
     showToast('Cancelled', 'success')
-    state.activeView === 'my-history' ? renderAllHistory() : renderMemberProfile(memberId)
+    if (state.activeView === 'my-history') renderAllHistory()
+    else if (state.activeView === 'submit') renderSubmitView()
+    else renderMemberProfile(memberId)
   } else {
     const e = await res.json().catch(()=>({error:'failed'}))
     showToast(e.error || 'Failed to cancel', 'error')
   }
-}
+  }
 window.handleCancelRequest = handleCancelRequest
 
 async function handleSubmitPayment(memberId) {
+  const btn = document.getElementById('submit-payment-btn-top')
   const shareRaw = document.getElementById('share-amount-input').value.replace(/,/g, '')
   const loanRaw = document.getElementById('loan-amount-input').value.replace(/,/g, '')
   const shareAmount = Number(shareRaw) || 0
   const loanAmount = Number(loanRaw) || 0
   const txnDate = document.getElementById('pay-txn-date').value
   const note = document.getElementById('pay-note').value
+  const fineRaw = document.getElementById('fine-amount').value.replace(/,/g, '')
+  const lateFee = Number(fineRaw) || 0
   if (!txnDate) { showToast('Select a payment date', 'error'); return }
   if (new Date(txnDate) > new Date()) { showToast('Date cannot be in the future', 'error'); return }
   // Share amount is mandatory
   if (!shareAmount || shareAmount <= 0) { showToast('Share amount is required', 'error'); return }
+  // Confirm with user
+  let msg = `Share: ${formatCurrency(shareAmount)}`
+  if (loanAmount > 0) msg += `<br>Loan: ${formatCurrency(loanAmount)}`
+  if (lateFee > 0) msg += `<br>Fine: ${formatCurrency(lateFee)}`
+  if (!(await showConfirm('Submit Payment', msg))) return
+  setLoading(btn, true)
   // submit share payment request
   const screenshotInput = document.getElementById('screenshot-input')
   const screenshotFile = screenshotInput?.files?.[0]
@@ -1982,6 +2143,7 @@ async function handleSubmitPayment(memberId) {
     fd1.append('type', 'share')
     fd1.append('note', note)
     fd1.append('txn_date', txnDate)
+    if (lateFee > 0) fd1.append('late_fee', lateFee)
     if (screenshotFile) fd1.append('screenshot', screenshotFile)
     const res1 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd1})
     if (!res1.ok) {
@@ -1996,45 +2158,21 @@ async function handleSubmitPayment(memberId) {
       fd2.append('type', 'loan')
       fd2.append('note', note)
       fd2.append('txn_date', txnDate)
+      if (lateFee > 0) fd2.append('late_fee', lateFee)
       const res2 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd2})
       if (!res2.ok) {
         const e = await res2.json().catch(()=>({error:'failed'}))
         showToast(e.error || 'Share submitted; loan request failed', 'warn')
-        renderMemberProfile(memberId)
+        renderSubmitView()
         return
       }
     }
     showToast(t('Submitted for approval'), 'success')
-    renderMemberProfile(memberId)
+    renderSubmitView()
   } catch (err) {
     showToast((err && err.message) || 'Submit failed', 'error')
-  }
-}
-
-async function handleSelfUpdate(memberId) {
-  const phone = document.getElementById('self-phone').value.trim()
-  const dob = document.getElementById('self-dob').value
-  const address = document.getElementById('self-address').value.trim()
-  await api(`/members/${memberId}/self`, {
-    method: 'PATCH',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({phone, dob, address}),
-  })
-  renderMemberProfile(memberId)
-}
-
-async function handleUploadPhoto(memberId) {
-  const input = document.getElementById('self-photo-file')
-  if (!input || !input.files || !input.files[0]) { showToast('Choose a photo file', 'error'); return }
-  const fd = new FormData()
-  fd.append('photo', input.files[0])
-  const res = await fetch(`/api/members/${memberId}/upload_photo`, {method: 'POST', body: fd})
-  if (res.ok) {
-    showToast(t('Photo uploaded'), 'success')
-    renderMemberProfile(memberId)
-  } else {
-    const e = await res.json().catch(()=>({error:'failed'}))
-    showToast(e.error || t('Upload failed'), 'error')
+  } finally {
+    setLoading(btn, false)
   }
 }
 
@@ -2058,21 +2196,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adminPin) adminPin.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin() })
     if (memberSelect) memberSelect.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin() })
     translatePage()
+    // Click outside avatar menu to close (delegated, added once)
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dp-wrap')) closeAllPickers()
+      const menu = document.getElementById('avatar-menu')
+      if (menu && !menu.contains(e.target) && !e.target.closest('#profile-avatar')) {
+        menu.classList.add('hidden')
+      }
+    })
     init()
   } catch (e) {
     try { fetch('/api/client_error', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: 'binding_error', stack: (e && e.stack)||String(e), ua: navigator.userAgent})}) } catch(_){}
   }
 })
 
-// Robust delegation: catch clicks on login button even if direct binding failed
-document.addEventListener('click', (e) => {
-  const target = e.target || e.srcElement
-  if (!target) return
-  if (target.id === 'login-button' || target.closest && target.closest('#login-button')) {
-    showToast(t('Logging in...'), 'info', 1200)
-    try { handleLogin() } catch(err) { try { fetch('/api/client_error', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message:'login_click_error', stack: (err && err.stack)||String(err)})}) } catch(_){} }
-  }
-})
+
 
 // Client-side error reporting: send errors to server for inspection
 window.addEventListener('error', function (ev) {
