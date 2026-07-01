@@ -3,9 +3,9 @@ import os
 from flask import Blueprint, jsonify, request, current_app
 
 from core.config import ADMIN_PIN
-from core.models.payment import list_pending_requests, approve_payment_request, reject_payment_request
+from core.models.payment import list_pending_requests, approve_payment_request, reject_payment_request, admin_direct_entry
 from core.models.loan import list_pending_loans, get_loan, approve_loan, reject_loan
-from core.models.fd import add_fd, close_fd, get_fd_entries
+from core.models.fd import add_fd, add_fd_installment, close_fd, get_fd_entries
 from core.models.transaction import admin_add_funds, add_transaction, get_recent_transactions, get_admin_stats, get_passbook_entries
 
 admin_bp = Blueprint('admin', __name__)
@@ -92,8 +92,29 @@ def admin_fd_add():
         term_months=int(data.get('term_months', 0)),
         interest_rate=float(data.get('interest_rate', 0)),
         notes=data.get('notes', ''),
+        investment_type=data.get('investment_type', 'one_time'),
     )
     return jsonify(fd)
+
+
+@admin_bp.route('/api/admin/fd/installment', methods=['POST'])
+def admin_fd_installment():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    parent_id = int(data.get('parent_id', 0))
+    if not parent_id:
+        return jsonify({'error': 'parent_id required'}), 400
+    amount = float(data.get('amount', 0))
+    if amount <= 0:
+        return jsonify({'error': 'amount must be > 0'}), 400
+    installment_date = data.get('installment_date', '')
+    notes = data.get('notes', '')
+    inst = add_fd_installment(parent_id, amount, installment_date, notes)
+    if not inst:
+        return jsonify({'error': 'parent scheme not found'}), 404
+    return jsonify(inst)
 
 
 @admin_bp.route('/api/admin/fd/close/<int:fd_id>', methods=['POST'])
@@ -143,9 +164,6 @@ def admin_transactions():
 
 @admin_bp.route('/api/admin/passbook', methods=['GET'])
 def admin_passbook():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
-        return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_passbook_entries())
 
 
@@ -176,3 +194,30 @@ def reject_loan_route(loan_id):
     reason = data.get('reason', '')
     reject_loan(loan_id, reason)
     return jsonify({'status': 'rejected'})
+
+
+@admin_bp.route('/api/admin/direct_entry', methods=['POST'])
+def admin_direct_entry_route():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    member_id = int(data.get('member_id', 0))
+    if not member_id:
+        return jsonify({'error': 'member_id is required'}), 400
+    share_amount = float(data.get('share_amount', 0))
+    late_fee = float(data.get('late_fee', 0))
+    loan_amount = float(data.get('loan_amount', 0))
+    interest_amount = float(data.get('interest_amount', 0))
+    entry_date = data.get('entry_date', '')
+    note = data.get('note', '')
+    admin_direct_entry(
+        member_id=member_id,
+        share_amount=share_amount,
+        late_fee=late_fee,
+        loan_amount=loan_amount,
+        interest_amount=interest_amount,
+        entry_date=entry_date or None,
+        note=note,
+    )
+    return jsonify({'status': 'ok'})

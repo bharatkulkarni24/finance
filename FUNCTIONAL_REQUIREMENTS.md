@@ -28,6 +28,8 @@ Status legend: not-started | in-progress | completed
 - Admin panel shows pending payments and loans (completed)
 - Admin can add funds (completed)
 - Admin stats: total collected, deposit/share breakdown, loan lent/outstanding (completed)
+- Admin direct entry: record payment on behalf of a member (auto-approved) with share, fine, loan, interest (completed)
+- Hardlock / Investment section: dual-purpose support for one-time FD investments and monthly schemes (gold investment). Monthly schemes allow adding varying amount installments via + button, with batch closing at maturity. Interest rate optional (0 for gold schemes) (completed)
 
 7. UX
 - Replace alerts with toast notifications (completed)

@@ -1,18 +1,16 @@
 # Family Finance Local App
 
-This is a simple local-first demo app for tracking one-time deposits, monthly shares, loans, payments, interest (1%/month), and late fees (₹50/day after 10th).
+Local-first app for tracking deposits, monthly shares, loans, payments, interest, and late fees.
 
-Run locally (Windows):
-
-1. Create a Python virtual env and install:
+## Run
 
 ```powershell
-python -m venv venv
-.\venv\Scripts\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
+python run.py
 ```
 
-2. Initialize DB with sample data:
+Open http://localhost:5000
 
 ```powershell
 python db_init.py

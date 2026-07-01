@@ -123,6 +123,24 @@ def init_db():
     )
     ''')
 
+    cur.execute('PRAGMA table_info(fd_entries)')
+    fd_cols = [row['name'] for row in cur.fetchall()]
+    if 'investment_type' not in fd_cols:
+        try:
+            cur.execute("ALTER TABLE fd_entries ADD COLUMN investment_type TEXT DEFAULT 'one_time'")
+        except Exception:
+            pass
+    if 'parent_id' not in fd_cols:
+        try:
+            cur.execute('ALTER TABLE fd_entries ADD COLUMN parent_id INTEGER DEFAULT NULL')
+        except Exception:
+            pass
+    if 'installment_date' not in fd_cols:
+        try:
+            cur.execute('ALTER TABLE fd_entries ADD COLUMN installment_date TEXT DEFAULT NULL')
+        except Exception:
+            pass
+
     cur.execute('PRAGMA table_info(members)')
     existing = [row['name'] for row in cur.fetchall()]
     if 'is_admin' not in existing:
@@ -143,6 +161,11 @@ def init_db():
     if 'reject_reason' not in pr_cols:
         try:
             cur.execute('ALTER TABLE payment_requests ADD COLUMN reject_reason TEXT')
+        except Exception:
+            pass
+    if 'late_fee' not in pr_cols:
+        try:
+            cur.execute("ALTER TABLE payment_requests ADD COLUMN late_fee REAL DEFAULT 0")
         except Exception:
             pass
     cur.execute('PRAGMA table_info(loans)')
@@ -190,6 +213,10 @@ def seed_db():
         cur.execute(
             'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
             (member_id, joined, 25000, 'deposit'),
+        )
+        cur.execute(
+            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
+            (member_id, datetime.utcnow().isoformat(), 'Initial deposit', 'credit', 25000),
         )
         generate_dues_for_member_internal(cur, member_id, datetime.utcnow().date())
     conn.commit()

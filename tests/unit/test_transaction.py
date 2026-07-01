@@ -4,9 +4,11 @@ from core.models.transaction import (
     admin_add_funds, add_transaction, get_recent_transactions,
     get_member_statement, get_admin_stats, get_passbook_entries,
 )
+from datetime import date as dt_date
 from core.models.member import create_member
 from core.models.loan import create_loan, approve_loan
 from core.models.fd import add_fd
+from core.models.payment import add_contribution
 from core.database import get_conn, row_to_dict
 
 
@@ -95,14 +97,35 @@ class TestTransactionBoundary:
         assert stats['total_lent'] >= 50000
         assert stats['hardlocked_fd'] >= 100000
 
-    def test_passbook_contains_entries(self, setup_db):
+    def test_passbook_contains_initial_deposit(self, setup_db):
         m = create_member('Passbook Test')
         entries = get_passbook_entries()
-        assert isinstance(entries, list)
-        if entries:
-            assert 'ts' in entries[0]
-            assert 'category' in entries[0]
-            assert 'amount' in entries[0]
+        deposit_entries = [e for e in entries if e['category'] == 'Deposit' and e['member_name'] == 'Passbook Test']
+        assert len(deposit_entries) == 1
+        assert deposit_entries[0]['amount'] == 25000
+        assert deposit_entries[0]['debit_credit'] == 'credit'
+
+    def test_passbook_descending_order(self, setup_db):
+        m = create_member('Order Test')
+        add_contribution(m['id'], dt_date(2026, 6, 1), 100, 'share')
+        add_contribution(m['id'], dt_date(2026, 6, 2), 200, 'share')
+        entries = get_passbook_entries()
+        ts_filtered = [e['ts'] for e in entries if e['member_name'] == 'Order Test']
+        assert ts_filtered == sorted(ts_filtered, reverse=True)
+
+    def test_passbook_no_duplicate_entries(self, setup_db):
+        m = create_member('Dedup Test')
+        add_contribution(m['id'], dt_date(2026, 6, 1), 500, 'share')
+        entries = get_passbook_entries()
+        member_entries = [e for e in entries if e['member_name'] == 'Dedup Test']
+        assert len(member_entries) == 2  # initial deposit + share
+        assert len([e for e in member_entries if e['category'] == 'Share']) == 1
+
+    def test_passbook_includes_fd_entries(self, setup_db):
+        add_fd(100000, '2026-01-01', 12, 7, 'HDFC')
+        entries = get_passbook_entries()
+        fd_deposits = [e for e in entries if e['category'] == 'FD Deposit']
+        assert len(fd_deposits) >= 1
 
     def test_admin_add_funds_large(self, setup_db):
         t = admin_add_funds(1000000, 'Large deposit')

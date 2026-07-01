@@ -116,13 +116,7 @@ def get_passbook_entries():
     cur = conn.cursor()
     cur.execute("""
     SELECT ts, category, member_name, amount, debit_credit FROM (
-        SELECT c.date || 'T12:00:00' as ts, 'Share' as category, m.name as member_name, c.amount as amount, 'credit' as debit_credit
-        FROM contributions c JOIN members m ON m.id = c.member_id WHERE c.type='share'
-        UNION ALL
-        SELECT c.date || 'T12:00:00', 'Deposit', m.name, c.amount, 'credit'
-        FROM contributions c JOIN members m ON m.id = c.member_id WHERE c.type='deposit'
-        UNION ALL
-        SELECT p.date || 'T12:00:00', 'Loan Payment', m.name, p.principal_paid + p.interest_paid + COALESCE(p.late_fee_paid,0), 'credit'
+        SELECT p.date || 'T12:00:00' as ts, 'Loan Payment' as category, m.name as member_name, p.principal_paid + p.interest_paid + COALESCE(p.late_fee_paid,0) as amount, 'credit' as debit_credit
         FROM payments p JOIN loans l ON l.id = p.loan_id JOIN members m ON m.id = l.member_id
         UNION ALL
         SELECT l.disbursed_date || 'T12:00:00', 'Loan Disbursed', m.name, l.principal, 'debit'
@@ -133,6 +127,7 @@ def get_passbook_entries():
                 WHEN t.desc LIKE 'FD Interest%' THEN 'FD Interest'
                 WHEN t.desc LIKE 'Share%' THEN 'Share'
                 WHEN t.desc LIKE 'Deposit%' THEN 'Deposit'
+                WHEN t.desc = 'Initial deposit' THEN 'Deposit'
                 WHEN t.desc LIKE 'Loan%' AND t.debit_credit='credit' THEN 'Loan Payment'
                 WHEN t.desc LIKE 'Due payment%' THEN 'Due Payment'
                 WHEN t.source='manual_ie' AND t.debit_credit='credit' THEN 'Income'

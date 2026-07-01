@@ -466,6 +466,13 @@ function formatCurrency(amount) {
   return '₹' + Number(amount || 0).toLocaleString('en-IN', {maximumFractionDigits: 2})
 }
 
+function escHtml(str) {
+  if (!str) return ''
+  const div = document.createElement('div')
+  div.textContent = str
+  return div.innerHTML
+}
+
 function toIndianNumber(str) {
   let num = str.replace(/[^0-9.]/g, '')
   let parts = num.split('.')
@@ -558,6 +565,11 @@ function dualDateInput(input) {
   wrapper.appendChild(icon)
   wrapper.appendChild(hiddenInput)
   createDatePicker(hiddenInput)
+  const dpWrap = hiddenInput.closest('.dp-wrap')
+  if (dpWrap) {
+    const extraIcon = dpWrap.querySelector('.cal-icon')
+    if (extraIcon) extraIcon.remove()
+  }
   icon.onclick = (e) => {
     e.stopPropagation()
     const parsed = parseSmartDate(input.value)
@@ -597,7 +609,7 @@ function createDatePicker(input) {
     if (input.value) { const d = new Date(input.value + 'T00:00:00'); year = d.getFullYear(); month = d.getMonth(); selVal = input.value }
     else { const d = new Date(); year = d.getFullYear(); month = d.getMonth(); selVal = '' }
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-    picker.innerHTML = `<div class="dp-header"><button class="dp-nav" data-a="dp">\u00AB\u00AB</button><button class="dp-nav" data-a="yp">\u2039</button><span class="dp-title"><select class="dp-month-select">${months.map((m,i) => `<option value="${i}">${m}</option>`).join('')}</select><select class="dp-year-select">${Array.from({length:125},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')}</select></span><button class="dp-nav" data-a="yn">\u203A</button><button class="dp-nav" data-a="dn">\u00BB\u00BB</button></div><div class="dp-days-header">${['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<span>${d}</span>`).join('')}</div><div class="dp-days-grid"></div>`
+    picker.innerHTML = `<div class="dp-header"><button class="dp-nav" data-a="dp">\u00AB\u00AB</button><button class="dp-nav" data-a="yp">\u2039</button><span class="dp-title"><select class="dp-month-select">${months.map((m,i) => `<option value="${i}">${m}</option>`).join('')}</select>        <select class="dp-year-select">${Array.from({length:new Date().getFullYear()+20-1899},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')}</select></span><button class="dp-nav" data-a="yn">\u203A</button><button class="dp-nav" data-a="dn">\u00BB\u00BB</button></div><div class="dp-days-header">${['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<span>${d}</span>`).join('')}</div><div class="dp-days-grid"></div>`
     function renderDays() {
       const grid = picker.querySelector('.dp-days-grid')
       const firstDay = new Date(year, month, 1).getDay()
@@ -619,7 +631,7 @@ function createDatePicker(input) {
       })
       picker.querySelector('.dp-month-select').value = month
       const ys = picker.querySelector('.dp-year-select')
-      ys.innerHTML = Array.from({length:125},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')
+      ys.innerHTML = Array.from({length:new Date().getFullYear()+20-1899},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')
       ys.value = year
     }
     picker.querySelector('.dp-month-select').onchange = e => { month = parseInt(e.target.value); renderDays() }
@@ -676,8 +688,9 @@ function renderMenu() {
     {id: 'all-members', label: t('All Members')},
   ]
   if (state.currentUser.is_admin) {
-    items.splice(3, 0, {id: 'admin-panel', label: t('Admin Panel')}, {id: 'passbook', label: t('📒 Passbook')})
+    items.splice(3, 0, {id: 'admin-panel', label: t('Admin Panel')})
   }
+  items.splice(4, 0, {id: 'passbook', label: t('📒 Passbook')})
   items.forEach(item => {
     const a = document.createElement('a')
     a.href = '#'
@@ -867,11 +880,28 @@ async function renderAdminPanel() {
       <h2 class="page-title">${t('Admin Panel')}</h2>
       <div class="grid-2">
         <div class="panel">
-          <h3 class="section-heading">${t('Add New Member')}</h3>
-          <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
-          <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
-          <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
-          <button class="btn primary" id="add-member-btn">${t('Add Member')}</button>
+          <button class="btn primary" id="toggle-add-member" style="width:100%;justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
+          <div id="add-member-form" style="display:none;margin-top:12px">
+            <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
+            <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
+            <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
+            <button class="btn primary" id="add-member-btn">${t('Add Member')}</button>
+          </div>
+          <hr style="border-color:rgba(148,163,184,0.15);margin:16px 0">
+          <h3 class="section-heading" style="margin-top:0">${t('Direct Entry')}</h3>
+          <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
+          <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
+          <div class="input-row" style="display:flex;gap:12px">
+            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Share Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
+            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
+          </div>
+          <div class="input-row" style="display:flex;gap:12px">
+            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan" type="text" placeholder="0" /></div></div>
+            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-interest" type="text" placeholder="0" /></div></div>
+          </div>
+          <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+          <div class="input-row"><input id="de-note" placeholder="${t('Note (optional)')}" /></div>
+          <button class="btn primary" id="de-submit-btn">${t('Submit & Auto-Approve')}</button>
         </div>
         <div class="panel">
           <h3 class="section-heading">${t('Pending Loans')}</h3>
@@ -883,47 +913,6 @@ async function renderAdminPanel() {
       </div>
       <div class="panel bank-income-box">
         <div style="margin-top:0">
-          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('🏦 FD Management')}</h4>
-          <div class="fd-card-form">
-            <div class="fd-form-grid">
-              <div class="fd-field">
-                <label>${t('FD Amount')}</label>
-                <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
-              </div>
-              <div class="fd-field">
-                <label>${t('Start Date')}</label>
-                <div class="input-group"><input id="fd-start" class="dual-date" type="text" placeholder="DD/MM/YYYY" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
-              </div>
-              <div class="fd-field">
-                <label>${t('End / Maturity')}</label>
-                <div class="input-group"><input id="fd-end" class="dual-date" type="text" placeholder="DD/MM/YYYY" /></div>
-              </div>
-              <div class="fd-field">
-                <label>${t('Interest Rate')}</label>
-                <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
-              </div>
-              <div class="fd-field">
-                <label>${t('Bank Name')}</label>
-                <div class="input-group"><input id="fd-bank" placeholder="${t('e.g. SBI')}" /></div>
-              </div>
-              <div class="fd-field fd-field-btn">
-                <label>&nbsp;</label>
-                <button class="btn primary" id="fd-add-btn">${t('Add FD')}</button>
-              </div>
-            </div>
-          </div>
-          <div class="fd-sections">
-            <div class="fd-section">
-              <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
-              <div id="fd-keeping"></div>
-            </div>
-            <div class="fd-section">
-              <div class="fd-section-head"><span class="fd-section-dot closed"></span> ${t('Record')}</div>
-              <div id="fd-record"></div>
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:22px">
           <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('Income / Expenses')}</h4>
           <div class="grid-2" style="gap:16px;margin-bottom:14px">
             <div class="panel" style="margin:0">
@@ -949,6 +938,60 @@ async function renderAdminPanel() {
           </div>
           <div id="ie-list"></div>
         </div>
+        <div style="margin-top:22px">
+          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('🔒 Hardlock / Investment')}</h4>
+          <div class="fd-card-form">
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+              <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
+                <input type="radio" name="inv-type" value="one_time" checked onchange="window.toggleInvType()" /> ${t('One-time')}
+              </label>
+              <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
+                <input type="radio" name="inv-type" value="monthly" onchange="window.toggleInvType()" /> ${t('Monthly Scheme')}
+              </label>
+            </div>
+            <div class="fd-form-grid">
+              <div class="fd-field" id="inv-amount-field">
+                <label>${t('Amount')}</label>
+                <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
+              </div>
+              <div class="fd-field">
+                <label>${t('Start Date')}</label>
+                <div class="input-group"><input id="fd-start" class="dual-date" type="text" placeholder="DD/MM/YYYY" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
+              </div>
+              <div class="fd-field">
+                <label>${t('End / Maturity')}</label>
+                <div class="input-group"><input id="fd-end" class="dual-date" type="text" placeholder="DD/MM/YYYY" /></div>
+              </div>
+              <div class="fd-field" id="inv-rate-field">
+                <label>${t('Interest Rate')}</label>
+                <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
+              </div>
+              <div class="fd-field">
+                <label id="inv-provider-label">${t('Bank / Scheme')}</label>
+                <div class="input-group"><input id="fd-bank" placeholder="${t('e.g. SBI')}" /></div>
+              </div>
+              <div class="fd-field fd-field-btn">
+                <label>&nbsp;</label>
+                <button class="btn primary" id="fd-add-btn">${t('Add')}</button>
+              </div>
+            </div>
+            <p id="inv-monthly-note" style="display:none;color:#94a3b8;font-size:0.85rem;margin:8px 0 0">${t('Add monthly installments using the + button in Active section.')}</p>
+          </div>
+          <div class="fd-sections">
+            <div class="fd-section">
+              <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
+              <div id="fd-keeping"></div>
+            </div>
+            <div class="fd-section">
+              <div class="fd-section-head"><span class="fd-section-dot closed"></span> ${t('Record')}</div>
+              <div id="fd-record"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:18px">
+        <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">📋 Server Logs</h4>
+        <div id="admin-logs"></div>
       </div>
     </div>
   `
@@ -965,18 +1008,36 @@ async function renderAdminPanel() {
   if (incAmt) indianizeInput(incAmt)
   const expAmt = document.getElementById('expense-amount')
   if (expAmt) indianizeInput(expAmt)
+  const deShare = document.getElementById('de-share')
+  if (deShare) indianizeInput(deShare)
+  const deFine = document.getElementById('de-fine')
+  if (deFine) indianizeInput(deFine)
+  const deLoan = document.getElementById('de-loan')
+  if (deLoan) indianizeInput(deLoan)
+  const deInterest = document.getElementById('de-interest')
+  if (deInterest) indianizeInput(deInterest)
+  const deBtn = document.getElementById('de-submit-btn')
+  if (deBtn) deBtn.onclick = handleDirectEntry
+  document.getElementById('toggle-add-member').onclick = () => {
+    const form = document.getElementById('add-member-form')
+    form.style.display = form.style.display === 'none' ? 'block' : 'none'
+  }
   const incDate = document.getElementById('income-date')
   if (incDate) createDatePicker(incDate)
   const expDate = document.getElementById('expense-date')
   if (expDate) createDatePicker(expDate)
+  const deDate = document.getElementById('de-date')
+  if (deDate) createDatePicker(deDate)
   const fdStart = document.getElementById('fd-start')
   if (fdStart) dualDateInput(fdStart)
   const fdEnd = document.getElementById('fd-end')
   if (fdEnd) dualDateInput(fdEnd)
+  window.toggleInvType()
   await renderPendingLoans()
   await renderPendingPayments()
   await renderFdEntries()
   await renderIeList()
+  await renderAdminLogs()
 }
 
 
@@ -987,6 +1048,20 @@ function toggleForm(type) {
   const isVisible = form.style.display !== 'none'
   form.style.display = isVisible ? 'none' : 'block'
   document.getElementById(btn).textContent = isVisible ? t('− Cancel') : (type === 'income' ? t('+ Add Income') : t('+ Add Expense'))
+}
+
+window.toggleInvType = function() {
+  const isMonthly = document.querySelector('input[name="inv-type"]:checked')?.value === 'monthly'
+  const amtField = document.getElementById('inv-amount-field')
+  const rateField = document.getElementById('inv-rate-field')
+  const label = document.getElementById('inv-provider-label')
+  const note = document.getElementById('inv-monthly-note')
+  const btn = document.getElementById('fd-add-btn')
+  if (amtField) amtField.style.display = isMonthly ? 'none' : ''
+  if (rateField) rateField.style.display = isMonthly ? 'none' : ''
+  if (label) label.textContent = isMonthly ? t('Scheme Name') : t('Bank / Scheme')
+  if (note) note.style.display = isMonthly ? '' : 'none'
+  if (btn) btn.textContent = isMonthly ? t('Create Scheme') : t('Add')
 }
 
 
@@ -1046,6 +1121,7 @@ async function renderPendingPayments() {
       div.innerHTML = '<p style="color:#64748b">' + t('No pending payments') + '</p>'
       return
     }
+    div.innerHTML = ''
     const list = document.createElement('div')
     list.className = 'list-card'
     items.forEach((it, idx) => {
@@ -1073,11 +1149,12 @@ async function renderPendingPayments() {
         if (!(await showConfirm('Approve Payment', `Approve ${it.type} payment of ${formatCurrency(it.amount)} from ${it.member_name}?`))) return
         const btn = row.querySelector('.approve-btn')
         setLoading(btn, true)
-        const res = await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-        setLoading(btn, false)
-        if (!res.ok) { showToast(t('Approve failed'), 'error'); return }
-        showToast(t('Payment approved'), 'success')
-        await renderPendingPayments()
+        try {
+          const res = await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+          if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Approve failed') }
+          showToast(t('Payment approved'), 'success')
+          await renderPendingPayments()
+        } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
       }
       row.querySelector('.reject-btn').onclick = () => {
         document.getElementById('pay-actions-' + idx).classList.add('hidden')
@@ -1092,11 +1169,12 @@ async function renderPendingPayments() {
         const reason = document.getElementById('pay-reason-' + idx).value.trim()
         if (!reason) { showToast(t('Enter a reason'), 'error'); return }
         setLoading(btn, true)
-        const res = await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
-        setLoading(btn, false)
-        if (!res.ok) { showToast(t('Reject failed'), 'error'); return }
-        showToast(t('Payment rejected'), 'info')
-        await renderPendingPayments()
+        try {
+          const res = await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+          if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Reject failed') }
+          showToast(t('Payment rejected'), 'info')
+          await renderPendingPayments()
+        } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
       }
       list.appendChild(row)
     })
@@ -1120,6 +1198,7 @@ async function renderPendingLoans() {
     pendingDiv.innerHTML = '<p style="color:#64748b">' + t('No pending loans at the moment.') + '</p>'
     return
   }
+  pendingDiv.innerHTML = ''
   const list = document.createElement('div')
   list.className = 'list-card'
   loans.forEach((item, idx) => {
@@ -1147,11 +1226,12 @@ async function renderPendingLoans() {
       if (!(await showConfirm('Approve Loan', `Approve loan of ${formatCurrency(item.principal)} for ${item.member_name}?`))) return
       const btn = row.querySelector('.approve-btn')
       setLoading(btn, true)
-      const res = await fetch(`/api/admin/approve_loan/${item.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-      setLoading(btn, false)
-      if (!res.ok) { showToast(t('Approve failed'), 'error'); return }
-      showToast(t("'s loan approved").replace("'s"," " + item.member_name + "'s"), 'success')
-      await renderPendingLoans()
+      try {
+        const res = await fetch(`/api/admin/approve_loan/${item.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Approve failed') }
+        showToast(t("'s loan approved").replace("'s"," " + item.member_name + "'s"), 'success')
+        await renderPendingLoans()
+      } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
     }
     row.querySelector('.reject-btn').onclick = () => {
       document.getElementById('loan-actions-' + idx).classList.add('hidden')
@@ -1166,11 +1246,12 @@ async function renderPendingLoans() {
       const reason = document.getElementById('reject-reason-' + idx).value.trim()
       if (!reason) { showToast(t('Enter a reason'), 'error'); return }
       setLoading(btn, true)
-      const res = await fetch(`/api/admin/reject_loan/${item.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
-      setLoading(btn, false)
-      if (!res.ok) { showToast(t('Reject failed'), 'error'); return }
-      showToast(t('Loan rejected'), 'info')
-      await renderPendingLoans()
+      try {
+        const res = await fetch(`/api/admin/reject_loan/${item.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Reject failed') }
+        showToast(t('Loan rejected'), 'info')
+        await renderPendingLoans()
+      } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
     }
     list.appendChild(row)
   })
@@ -1214,7 +1295,7 @@ let pbFilters = {}
 
 async function loadPbData() {
   try {
-    pbData = await api('/admin/passbook', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    pbData = await api('/admin/passbook')
     applyPbFilters()
   } catch (e) {
     document.getElementById('pb-list').innerHTML = '<p style="color:#ef4444">Error loading passbook</p>'
@@ -1293,8 +1374,12 @@ function pbToggleFilter(col) {
   }
 
   panel.innerHTML = sortRow + filterHtml
-  panel.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5);margin-top:4px'
-  th.appendChild(panel)
+  panel.style.cssText = 'z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5)'
+  document.body.appendChild(panel)
+  const r = th.getBoundingClientRect()
+  panel.style.position = 'fixed'
+  panel.style.left = Math.max(4, Math.min(r.left + r.width/2 - 135, window.innerWidth - 278)) + 'px'
+  panel.style.top = (r.bottom + 4) + 'px'
   ;['pb-amt-min', 'pb-amt-max', 'pb-amt-exact'].forEach(id => {
     const el = document.getElementById(id)
     if (el) indianizeInput(el)
@@ -1489,10 +1574,14 @@ async function renderMemberProfile(memberId) {
   const m = await api(`/members/${memberId}`)
   const own = state.currentUser.id === m.id
   const canManage = own || state.currentUser.is_admin
-  // Calculate repaid amount per loan
+  // Calculate repaid and interest per loan
   const repaidByLoan = {}
+  const interestByLoan = {}
   ;(m.payments || []).forEach(p => {
-    if (p.loan_id) repaidByLoan[p.loan_id] = (repaidByLoan[p.loan_id] || 0) + (p.principal_paid || p.amount || 0)
+    if (p.loan_id) {
+      repaidByLoan[p.loan_id] = (repaidByLoan[p.loan_id] || 0) + (p.principal_paid || p.amount || 0)
+      interestByLoan[p.loan_id] = (interestByLoan[p.loan_id] || 0) + (p.interest_paid || 0)
+    }
   })
   let loansCardsHtml
   try {
@@ -1500,6 +1589,9 @@ async function renderMemberProfile(memberId) {
     const statusBadge = l.status === 'active' ? '<span class="badge success">Active</span>' : (l.status === 'applied' ? '<span class="badge warn">Applied</span>' : (l.status === 'rejected' ? '<span class="badge" style="background:rgba(239,68,68,0.15);color:#fca5a5">Rejected</span>' : '<span class="badge">' + l.status + '</span>'))
     const takenDate = l.disbursed_date || l.last_accrual_date || ''
     const repaid = repaidByLoan[l.id] || 0
+    const interestPaid = interestByLoan[l.id] || 0
+    const loanPayments = (m.payments || []).filter(p => p.loan_id === l.id)
+    const paidMonths = new Set(loanPayments.map(p => (p.date || '').slice(0, 7))).size
     let closeDate = '-'
     if (l.disbursed_date && l.term_months) {
       const d = new Date(l.disbursed_date)
@@ -1520,12 +1612,13 @@ async function renderMemberProfile(memberId) {
           </div>
         </div>
         <div class="lc-grid">
-          <div class="lc-cell lc-amount"><span class="lc-label">Loan Amount</span><span class="lc-value">${formatCurrency(l.principal)}</span></div>
+          <div class="lc-cell lc-amount"><span class="lc-label">Loan Amount</span><span class="lc-value lc-value-lg">${formatCurrency(l.principal)}</span></div>
+          <div class="lc-cell lc-repaid"><span class="lc-label">Total Paid</span><span class="lc-value lc-value-lg">${formatCurrency(repaid)}</span></div>
           <div class="lc-cell lc-taken"><span class="lc-label">Taken Date</span><span class="lc-value">${takenDate ? formatDate(takenDate) : '-'}</span></div>
           <div class="lc-cell lc-close"><span class="lc-label">Close Date</span><span class="lc-value">${closeDate}</span></div>
-          <div class="lc-cell lc-term"><span class="lc-label">Term</span><span class="lc-value">${l.term_months ? l.term_months + ' mo' : '-'}</span></div>
-          <div class="lc-cell lc-repaid"><span class="lc-label">Repaid</span><span class="lc-value">${formatCurrency(repaid)}</span></div>
           <div class="lc-cell lc-outstanding"><span class="lc-label">Outstanding</span><span class="lc-value">${formatCurrency(l.outstanding)}</span></div>
+          <div class="lc-cell lc-interest"><span class="lc-label">Interest Paid</span><span class="lc-value">${interestPaid > 0 ? formatCurrency(interestPaid) : '-'}</span></div>
+          <div class="lc-cell lc-term lc-full"><span class="lc-label">Term</span><span class="lc-value">${paidMonths} / ${l.term_months || '?'} months</span></div>
         </div>
         ${l.status === 'rejected' ? `<div style="margin-bottom:8px;padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:8px;font-size:0.8rem;color:#fca5a5">Reason: ${l.reject_reason || 'Not specified'}</div>` : ''}
         <div class="lc-progress-row">
@@ -1576,25 +1669,28 @@ async function renderMemberProfile(memberId) {
   const historyByDate = {}
   m.contributions.filter(c => c.type === 'share').forEach(c => {
     const key = c.date
-    if (!historyByDate[key]) historyByDate[key] = { date: c.date, share: 0, loan: 0, fine: 0 }
+    if (!historyByDate[key]) historyByDate[key] = { date: c.date, share: 0, loan: 0, interest: 0, fine: 0 }
     historyByDate[key].share += c.amount
   })
   ;(m.payments || []).forEach(p => {
     const key = p.date
-    if (!historyByDate[key]) historyByDate[key] = { date: p.date, share: 0, loan: 0, fine: 0 }
+    if (!historyByDate[key]) historyByDate[key] = { date: p.date, share: 0, loan: 0, interest: 0, fine: 0 }
     historyByDate[key].loan += (p.principal_paid || 0)
+    historyByDate[key].interest += (p.interest_paid || 0)
   })
   ;(m.late_fees || []).forEach(f => {
     const key = f.timestamp.slice(0, 10)
-    if (!historyByDate[key]) historyByDate[key] = { date: key, share: 0, loan: 0, fine: 0 }
+    if (!historyByDate[key]) historyByDate[key] = { date: key, share: 0, loan: 0, interest: 0, fine: 0 }
     historyByDate[key].fine += f.amount
   })
   const allHistory = Object.values(historyByDate).sort((a, b) => b.date.localeCompare(a.date))
-  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0 || r.fine > 0)
+  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0 || r.interest > 0 || r.fine > 0)
   const totalShare = allHistory.reduce((s, r) => s + r.share, 0)
   const totalLoanPaid = allHistory.reduce((s, r) => s + r.loan, 0)
+  const totalInterest = allHistory.reduce((s, r) => s + r.interest, 0)
   const totalFine = allHistory.reduce((s, r) => s + r.fine, 0)
   let historyHeader = `<div style="margin-top:12px;margin-bottom:10px"><strong>Total Share:</strong> ${formatCurrency(totalShare)} &nbsp;|&nbsp; <strong>Total Loan Paid:</strong> ${formatCurrency(totalLoanPaid)}`
+  if (totalInterest > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Interest:</strong> ${formatCurrency(totalInterest)}`
   if (totalFine > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Fine Paid:</strong> ${formatCurrency(totalFine)}`
   historyHeader += '</div>'
   content.innerHTML = `
@@ -1602,12 +1698,12 @@ async function renderMemberProfile(memberId) {
       ${profileFields}
     </div>
 
-    <div class="grid-2" style="margin-top:18px; gap:20px;">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-top:18px">
       <div class="panel" style="margin-bottom:12px;">
         <h3>📊 Payment History</h3>
         ${historyHeader}
         <div class="table-scroll">
-          <table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? formatCurrency(r.share) : '-'}</td><td>${r.loan ? formatCurrency(r.loan) : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td>${formatCurrency(r.share + r.loan + r.fine)}</td></tr>`).join('')}</tbody></table>
+          <table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>
         </div>
       </div>
       <div class="panel compact-panel" id="loans-panel">
@@ -1754,19 +1850,23 @@ async function renderSubmitView() {
               <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
             </div>
             <div style="flex:1">
+              <label>Fine (₹50/day after 10th)</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text" value="0" /></div>
+            </div>
+          </div>
+          <div class="input-row" style="display:flex;gap:12px;">
+            <div style="flex:1">
               <label>Loan Amount</label>
               <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
+            </div>
+            <div style="flex:1">
+              <label>Interest</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="interest-amount-input" type="text" placeholder="0" /></div>
             </div>
           </div>
           <div class="input-row small-row">
             <label style="flex-basis:100%">Payment Date</label>
             <input id="pay-txn-date" type="text" value="${today}" data-max="${today}" readonly />
-          </div>
-          <div class="input-row small-row" style="display:flex;gap:12px;">
-            <div style="flex:1">
-              <label>Fine (₹50/day after 10th)</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text" value="0" /></div>
-            </div>
           </div>
           <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
           <div class="upload-area" id="upload-area">
@@ -1812,7 +1912,7 @@ async function renderSubmitView() {
     </div>
   `
   // Apply Indian number formatting to amount inputs
-  ;['share-amount-input', 'loan-amount-input', 'request-loan-amount', 'fine-amount'].forEach(id => {
+  ;['share-amount-input', 'loan-amount-input', 'interest-amount-input', 'request-loan-amount', 'fine-amount'].forEach(id => {
     const el = document.getElementById(id)
     if (el) indianizeInput(el)
   })
@@ -1931,6 +2031,61 @@ async function handleAddMember() {
   }
 }
 
+async function handleDirectEntry() {
+  const btn = document.getElementById('de-submit-btn')
+  const memberId = Number(document.getElementById('de-member').value)
+  const shareRaw = document.getElementById('de-share').value.replace(/,/g, '')
+  const fineRaw = document.getElementById('de-fine').value.replace(/,/g, '')
+  const loanRaw = document.getElementById('de-loan').value.replace(/,/g, '')
+  const interestRaw = document.getElementById('de-interest').value.replace(/,/g, '')
+  const shareAmount = Number(shareRaw) || 0
+  const loanAmount = Number(loanRaw) || 0
+  const interestAmount = Number(interestRaw) || 0
+  const lateFee = Number(fineRaw) || 0
+  const entryDate = document.getElementById('de-date').value
+  const note = document.getElementById('de-note').value
+  if (!memberId) { showToast(t('Select a member'), 'error'); return }
+  if (!shareAmount && !loanAmount && !interestAmount) { showToast(t('Enter at least share or loan amount'), 'error'); return }
+  let msg = ''
+  if (shareAmount > 0) msg += `Share: ${formatCurrency(shareAmount)} `
+  if (lateFee > 0) msg += `Fine: ${formatCurrency(lateFee)} `
+  if (loanAmount > 0) msg += `Loan: ${formatCurrency(loanAmount)} `
+  if (interestAmount > 0) msg += `Interest: ${formatCurrency(interestAmount)} `
+  if (!(await showConfirm('Direct Entry', msg.trim()))) return
+  setLoading(btn, true)
+  try {
+    const res = await fetch('/api/admin/direct_entry', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify({
+        member_id: memberId,
+        share_amount: shareAmount,
+        late_fee: lateFee,
+        loan_amount: loanAmount,
+        interest_amount: interestAmount,
+        entry_date: entryDate || undefined,
+        note: note || '',
+      }),
+    })
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({error: 'failed'}))
+      showToast(e.error || 'Direct entry failed', 'error')
+      return
+    }
+    showToast(t('Entry recorded successfully'), 'success')
+    document.getElementById('de-share').value = '500'
+    document.getElementById('de-fine').value = '0'
+    document.getElementById('de-loan').value = ''
+    document.getElementById('de-interest').value = ''
+    document.getElementById('de-note').value = ''
+    await renderAdminPanel()
+  } catch (err) {
+    showToast((err && err.message) || 'Direct entry failed', 'error')
+  } finally {
+    setLoading(btn, false)
+  }
+}
+
 async function renderFdEntries() {
   const keepingDiv = document.getElementById('fd-keeping')
   const recordDiv = document.getElementById('fd-record')
@@ -1938,42 +2093,116 @@ async function renderFdEntries() {
   try {
     const entries = await api('/admin/fd/list', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
     state.fdEntries = entries
-    const active = entries ? entries.filter(e => e.status === 'active') : []
-    const closed = entries ? entries.filter(e => e.status !== 'active') : []
     if (!entries || !entries.length) {
-      keepingDiv.innerHTML = '<div class="fd-empty">' + t('No FD entries yet.') + '</div>'
+      keepingDiv.innerHTML = '<div class="fd-empty">' + t('No entries yet.') + '</div>'
       return
     }
-    keepingDiv.innerHTML = active.length
-      ? '<div class="fd-table-wrap">' + activeTable(active) + '</div>'
-      : '<div class="fd-empty">No active FDs.</div>'
-    recordDiv.innerHTML = closed.length
-      ? '<div class="fd-table-wrap">' + closedTable(closed) + '</div>'
-      : '<div class="fd-empty muted">No closed FDs.</div>'
+    const oneTimeActive = entries.filter(e => e.status === 'active' && e.investment_type !== 'monthly' && e.investment_type !== 'installment')
+    const schemes = entries.filter(e => e.status === 'active' && e.investment_type === 'monthly')
+    const installments = entries.filter(e => e.investment_type === 'installment')
+    const closedOneTime = entries.filter(e => e.status !== 'active' && e.investment_type !== 'monthly' && e.investment_type !== 'installment')
+    const closedSchemes = entries.filter(e => e.status !== 'active' && e.investment_type === 'monthly')
+
+    let activeHtml = ''
+    if (oneTimeActive.length) {
+      activeHtml += '<div class="fd-table-wrap" style="margin-bottom:12px">' + activeFdTable(oneTimeActive) + '</div>'
+    }
+    for (const scheme of schemes) {
+      const schemeInsts = installments.filter(i => i.parent_id === scheme.id)
+      const totalInvested = schemeInsts.reduce((s, i) => s + (i.amount || 0), 0)
+      activeHtml += schemeCard(scheme, schemeInsts, totalInvested)
+    }
+    if (!activeHtml) activeHtml = '<div class="fd-empty">' + t('No active entries.') + '</div>'
+    keepingDiv.innerHTML = activeHtml
+
+    let closedHtml = ''
+    if (closedOneTime.length) {
+      closedHtml += '<div class="fd-table-wrap" style="margin-bottom:12px">' + closedFdTable(closedOneTime) + '</div>'
+    }
+    for (const scheme of closedSchemes) {
+      const schemeInsts = installments.filter(i => i.parent_id === scheme.id)
+      const totalInvested = schemeInsts.reduce((s, i) => s + (i.amount || 0), 0)
+      closedHtml += closedSchemeCard(scheme, schemeInsts, totalInvested)
+    }
+    if (!closedHtml) closedHtml = '<div class="fd-empty muted">' + t('No closed entries.') + '</div>'
+    recordDiv.innerHTML = closedHtml
   } catch (e) {
-    keepingDiv.innerHTML = '<div class="fd-empty error">' + t('Error loading FD entries') + '</div>'
+    keepingDiv.innerHTML = '<div class="fd-empty error">' + t('Error loading entries') + '</div>'
   }
 }
 
-function activeTable(fds) {
-  return '<table class="fd-table"><thead><tr><th>' + t('FD Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Bank') + '</th><th></th></tr></thead><tbody>' +
+function activeFdTable(fds) {
+  return '<table class="fd-table"><thead><tr><th>' + t('Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Provider') + '</th><th></th></tr></thead><tbody>' +
     fds.map(fd => `<tr>
       <td class="td-amount">${formatCurrency(fd.amount)}</td>
       <td>${formatDate(fd.start_date)}</td>
       <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
-      <td>${fd.interest_rate}%</td>
+      <td>${fd.interest_rate ? fd.interest_rate + '%' : '-'}</td>
       <td class="td-bank">${fd.notes || '-'}</td>
-      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.id})">${t('Close FD')}</button></td>
+      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.id})">${t('Close')}</button></td>
     </tr>`).join('') + '</tbody></table>'
 }
 
-function closedTable(fds) {
-  return '<table class="fd-table"><thead><tr><th>' + t('FD Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Interest') + '</th><th>' + t('Bank') + '</th></tr></thead><tbody>' +
+function schemeCard(scheme, installments, totalInvested) {
+  const instRows = installments.map((inst, i) => `
+    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.08);font-size:0.85rem">
+      <span style="color:#94a3b8">#${i + 1} ${inst.installment_date ? formatDate(inst.installment_date) : ''}</span>
+      <span style="font-weight:500">${formatCurrency(inst.amount)}</span>
+    </div>`).join('')
+  return `<div style="background:rgba(199,210,254,0.04);border:1px solid rgba(199,210,254,0.12);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <span style="font-weight:600;font-size:0.9rem">${escHtml(scheme.notes || 'Unnamed')}</span>
+        <span style="display:inline-block;margin-left:8px;font-size:0.7rem;background:rgba(251,191,36,0.15);color:#fbbf24;padding:2px 8px;border-radius:4px">${t('Monthly Scheme')}</span>
+      </div>
+      <button class="fd-btn-withdraw" onclick="closeFd(${scheme.id})" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">${t('Close Scheme')}</button>
+    </div>
+    <div style="display:flex;gap:16px;font-size:0.8rem;color:#94a3b8;margin-bottom:8px">
+      <span>${formatDate(scheme.start_date)} → ${scheme.maturity_date ? formatDate(scheme.maturity_date) : '-'}</span>
+      <span>${t('Total')}: <strong style="color:#e2e8f0">${formatCurrency(totalInvested)}</strong></span>
+      <span>${installments.length} ${t('installments')}</span>
+    </div>
+    <div style="margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:0.8rem;color:#94a3b8">${t('Installments')}</span>
+        <button class="fd-btn-withdraw" onclick="showInstallmentForm(${scheme.id})" style="background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.2);padding:2px 10px;font-size:0.75rem">+ ${t('Add')}</button>
+      </div>
+      <div id="inst-form-${scheme.id}"></div>
+      ${instRows || '<div style="color:#64748b;font-size:0.8rem">' + t('No installments yet') + '</div>'}
+    </div>
+  </div>`
+}
+
+function closedSchemeCard(scheme, installments, totalInvested) {
+  const instRows = installments.map((inst, i) => `
+    <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.8rem;color:#94a3b8">
+      <span>#${i + 1} ${inst.installment_date ? formatDate(inst.installment_date) : ''}</span>
+      <span>${formatCurrency(inst.amount)}</span>
+    </div>`).join('')
+  return `<div style="background:rgba(148,163,184,0.03);border:1px solid rgba(148,163,184,0.1);border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-weight:600;font-size:0.9rem">${escHtml(scheme.notes || 'Unnamed')}</span>
+      <span style="font-size:0.7rem;background:rgba(148,163,184,0.15);color:#94a3b8;padding:2px 8px;border-radius:4px">${t('Closed Scheme')}</span>
+    </div>
+    <div style="display:flex;gap:16px;font-size:0.8rem;color:#94a3b8">
+      <span>${formatDate(scheme.start_date)} → ${scheme.maturity_date ? formatDate(scheme.maturity_date) : '-'}</span>
+      <span>${t('Invested')}: ${formatCurrency(totalInvested)}</span>
+      <span>${t('Return')}: ${scheme.interest_earned ? formatCurrency(scheme.interest_earned) : '-'}</span>
+    </div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(148,163,184,0.08)">
+      <div style="font-size:0.75rem;color:#64748b;margin-bottom:4px">${installments.length} ${t('installments')}</div>
+      ${instRows}
+    </div>
+  </div>`
+}
+
+function closedFdTable(fds) {
+  return '<table class="fd-table"><thead><tr><th>' + t('Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Return') + '</th><th>' + t('Provider') + '</th></tr></thead><tbody>' +
     fds.map(fd => `<tr>
       <td class="td-amount">${formatCurrency(fd.amount)}</td>
       <td>${formatDate(fd.start_date)}</td>
       <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
-      <td>${fd.interest_rate}%</td>
+      <td>${fd.interest_rate ? fd.interest_rate + '%' : '-'}</td>
       <td class="td-interest">${fd.interest_earned ? formatCurrency(fd.interest_earned) : '-'}</td>
       <td class="td-bank">${fd.notes || '-'}</td>
     </tr>`).join('') + '</tbody></table>'
@@ -1981,29 +2210,39 @@ function closedTable(fds) {
 
 async function handleAddFd() {
   const btn = document.getElementById('fd-add-btn')
+  const isMonthly = document.querySelector('input[name="inv-type"]:checked')?.value === 'monthly'
   const amount = Number(document.getElementById('fd-amount').value.replace(/,/g,''))
   const start_date = toISODate(document.getElementById('fd-start').value)
   const end_date = toISODate(document.getElementById('fd-end').value)
-  const interest_rate = parseFloat(document.getElementById('fd-rate').value)
+  const interest_rate = parseFloat(document.getElementById('fd-rate').value) || 0
   const notes = document.getElementById('fd-bank').value.trim()
-  if (!amount || amount <= 0) { showToast(t('Enter valid FD amount'), 'error'); return }
   if (!start_date) { showToast(t('Enter valid start date'), 'error'); return }
   if (!end_date) { showToast(t('Enter valid maturity date'), 'error'); return }
-  if (!interest_rate || interest_rate <= 0) { showToast(t('Enter valid rate'), 'error'); return }
+  if (!isMonthly) {
+    if (!amount || amount <= 0) { showToast(t('Enter valid amount'), 'error'); return }
+  }
   const sd = new Date(start_date + 'T00:00:00')
   const ed = new Date(end_date + 'T00:00:00')
-  if (ed <= sd) { showToast(t('Maturity must be after start date'), 'error'); return }
-  const term_months = (ed.getFullYear() - sd.getFullYear()) * 12 + (ed.getMonth() - sd.getMonth())
-  if (term_months < 1) { showToast(t('Term too short'), 'error'); return }
-  if (!(await showConfirm('Add FD', `Add FD of ${formatCurrency(amount)} at ${interest_rate}% for ${term_months} months?`))) return
+  if (ed < sd) { showToast(t('Maturity must not be before start date'), 'error'); return }
+  const term_months = Math.max(0, (ed.getFullYear() - sd.getFullYear()) * 12 + (ed.getMonth() - sd.getMonth()))
+  const confirmMsg = isMonthly
+    ? `Create monthly scheme "${notes || 'Unnamed'}" from ${formatDate(start_date)} to ${formatDate(end_date)}?`
+    : `Add ${formatCurrency(amount)} at ${interest_rate || 0}% for ${term_months} mo?`
+  if (!(await showConfirm(isMonthly ? 'Create Scheme' : 'Add Investment', confirmMsg))) return
   setLoading(btn, true)
   try {
     await api('/admin/fd/add', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
-      body: JSON.stringify({amount, start_date, term_months, interest_rate, notes}),
+      body: JSON.stringify({
+        amount: isMonthly ? 0 : amount,
+        start_date, term_months,
+        interest_rate: isMonthly ? 0 : interest_rate,
+        notes,
+        investment_type: isMonthly ? 'monthly' : 'one_time',
+      }),
     })
-    showToast(t('FD added'), 'success')
+    showToast(isMonthly ? t('Scheme created') : t('Investment added'), 'success')
     await renderFdEntries()
     document.getElementById('fd-amount').value = ''
     document.getElementById('fd-bank').value = ''
@@ -2012,30 +2251,87 @@ async function handleAddFd() {
   }
 }
 
+window.showInstallmentForm = function(schemeId) {
+  const container = document.getElementById('inst-form-' + schemeId)
+  if (!container) return
+  if (container.dataset.open === '1') {
+    container.innerHTML = ''
+    delete container.dataset.open
+    return
+  }
+  container.dataset.open = '1'
+  container.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:end;margin-bottom:8px;padding:8px;background:rgba(255,255,255,0.03);border-radius:6px">
+      <div style="flex:1">
+        <label style="font-size:0.7rem;color:#94a3b8;display:block;margin-bottom:2px">${t('Amount')}</label>
+        <div class="input-with-currency" style="margin:0"><span class="currency" style="padding:4px 6px">₹</span><input id="inst-amt-${schemeId}" type="text" style="padding:6px 8px;font-size:0.85rem" /></div>
+      </div>
+      <div style="flex:1">
+        <label style="font-size:0.7rem;color:#94a3b8;display:block;margin-bottom:2px">${t('Date')}</label>
+        <div class="input-group" style="margin:0"><input id="inst-date-${schemeId}" type="text" class="dual-date" style="padding:6px 8px;font-size:0.85rem" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
+      </div>
+      <button class="btn primary" onclick="handleAddInstallment(${schemeId})" style="padding:6px 14px;font-size:0.8rem;white-space:nowrap">${t('Save')}</button>
+      <button class="btn secondary" onclick="showInstallmentForm(${schemeId})" style="padding:6px 10px;font-size:0.8rem">✕</button>
+    </div>`
+  const dateInput = document.getElementById('inst-date-' + schemeId)
+  if (dateInput) dualDateInput(dateInput)
+  const amtInput = document.getElementById('inst-amt-' + schemeId)
+  if (amtInput) indianizeInput(amtInput)
+}
+
+window.handleAddInstallment = async function(schemeId) {
+  const amtInput = document.getElementById('inst-amt-' + schemeId)
+  const dateInput = document.getElementById('inst-date-' + schemeId)
+  const amount = Number(amtInput?.value.replace(/,/g, '')) || 0
+  const installment_date = dateInput ? toISODate(dateInput.value) : ''
+  if (!amount || amount <= 0) { showToast(t('Enter valid amount'), 'error'); return }
+  if (!installment_date) { showToast(t('Select a date'), 'error'); return }
+  try {
+    const res = await fetch('/api/admin/fd/installment', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify({parent_id: schemeId, amount, installment_date, notes: ''}),
+    })
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({error: 'failed'}))
+      showToast(e.error || 'Failed', 'error')
+      return
+    }
+    showToast(t('Installment added'), 'success')
+    await renderFdEntries()
+  } catch (err) {
+    showToast((err && err.message) || 'Failed', 'error')
+  }
+}
+
 window.closeFd = async function(fdId) {
   const existing = document.getElementById('fd-close-overlay')
   if (existing) existing.remove()
   const fdRow = state.fdEntries ? state.fdEntries.find(e => e.id === fdId) : null
-  if (!fdRow) { showToast(t('FD not found'), 'error'); return }
-  const amount = fdRow.amount
+  if (!fdRow) { showToast(t('Entry not found'), 'error'); return }
+  const isScheme = fdRow.investment_type === 'monthly'
+  const installments = isScheme ? state.fdEntries.filter(e => e.parent_id === fdId && e.status === 'active') : []
+  const totalInvested = installments.reduce((s, i) => s + (i.amount || 0), 0)
+  const amount = isScheme ? totalInvested : fdRow.amount
   const termMonths = fdRow.term_months
   const rate = fdRow.interest_rate
   const bank = fdRow.notes || '-'
-  const expectedReturn = amount * (rate / 100) * (termMonths / 12)
+  const expectedReturn = amount * (rate / 100) * (termMonths / 12) || Math.round(amount * 0.05)
 
   const overlay = document.createElement('div')
   overlay.id = 'fd-close-overlay'
   overlay.className = 'modal-overlay'
   overlay.innerHTML = `
     <div class="modal-box" style="max-width:420px">
-      <p style="margin:0 0 12px;font-weight:600">${t('Close FD')}</p>
+      <p style="margin:0 0 12px;font-weight:600">${isScheme ? t('Close Scheme') : t('Close')}</p>
       <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:14px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Bank')}</span><span>${bank}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('FD Amount')}</span><span style="font-weight:600">${formatCurrency(amount)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Term')}</span><span>${termMonths}${t('mo')} @ ${rate}%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Provider')}</span><span>${bank || '-'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${isScheme ? t('Total Invested') : t('Amount')}</span><span style="font-weight:600">${formatCurrency(amount)}</span></div>
+        ${isScheme ? `<div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Installments')}</span><span>${installments.length}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:#94a3b8">${t('Period')}</span><span>${formatDate(fdRow.start_date)} → ${fdRow.maturity_date ? formatDate(fdRow.maturity_date) : '-'}</span></div>
       </div>
       <div style="margin-bottom:14px">
-        <label style="font-size:0.8rem;color:#94a3b8;display:block;margin-bottom:4px">${t('Interest / Return Amount')}</label>
+        <label style="font-size:0.8rem;color:#94a3b8;display:block;margin-bottom:4px">${t('Return Amount')}</label>
         <div class="input-with-currency"><span class="currency">₹</span><input id="fd-return-amount" type="text" value="${Math.round(expectedReturn)}" /></div>
       </div>
       <div class="reject-form-actions">
@@ -2060,7 +2356,7 @@ window.closeFd = async function(fdId) {
         body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
       })
       overlay.remove()
-      showToast(t('FD closed. Interest added to Other Income.'), 'success')
+      showToast(isScheme ? t('Scheme closed. Return added.') : t('Closed. Return added.'), 'success')
       await renderFdEntries()
       renderAdminPanel()
     } finally {
@@ -2118,8 +2414,10 @@ async function handleSubmitPayment(memberId) {
   const btn = document.getElementById('submit-payment-btn-top')
   const shareRaw = document.getElementById('share-amount-input').value.replace(/,/g, '')
   const loanRaw = document.getElementById('loan-amount-input').value.replace(/,/g, '')
+  const interestRaw = document.getElementById('interest-amount-input').value.replace(/,/g, '')
   const shareAmount = Number(shareRaw) || 0
   const loanAmount = Number(loanRaw) || 0
+  const interestAmount = Number(interestRaw) || 0
   const txnDate = document.getElementById('pay-txn-date').value
   const note = document.getElementById('pay-note').value
   const fineRaw = document.getElementById('fine-amount').value.replace(/,/g, '')
@@ -2131,6 +2429,7 @@ async function handleSubmitPayment(memberId) {
   // Confirm with user
   let msg = `Share: ${formatCurrency(shareAmount)}`
   if (loanAmount > 0) msg += `<br>Loan: ${formatCurrency(loanAmount)}`
+  if (interestAmount > 0) msg += `<br>Interest: ${formatCurrency(interestAmount)}`
   if (lateFee > 0) msg += `<br>Fine: ${formatCurrency(lateFee)}`
   if (!(await showConfirm('Submit Payment', msg))) return
   setLoading(btn, true)
@@ -2163,6 +2462,21 @@ async function handleSubmitPayment(memberId) {
       if (!res2.ok) {
         const e = await res2.json().catch(()=>({error:'failed'}))
         showToast(e.error || 'Share submitted; loan request failed', 'warn')
+        renderSubmitView()
+        return
+      }
+    }
+    // if interest amount provided, submit a separate request
+    if (interestAmount && interestAmount > 0) {
+      const fd3 = new FormData()
+      fd3.append('amount', interestAmount)
+      fd3.append('type', 'loan_interest')
+      fd3.append('note', note ? note + ' (Interest)' : 'Interest')
+      fd3.append('txn_date', txnDate)
+      const res3 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd3})
+      if (!res3.ok) {
+        const e = await res3.json().catch(()=>({error:'failed'}))
+        showToast(e.error || 'Loan submitted; interest request failed', 'warn')
         renderSubmitView()
         return
       }

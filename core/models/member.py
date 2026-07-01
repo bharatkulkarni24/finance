@@ -27,6 +27,10 @@ def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0, dob: 
         'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
         (member_id, joined, 25000, 'deposit'),
     )
+    cur.execute(
+        'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
+        (member_id, datetime.utcnow().isoformat(), 'Initial deposit', 'credit', 25000),
+    )
     generate_dues_for_member_internal(cur, member_id, datetime.utcnow().date())
     conn.commit()
     cur.execute('SELECT * FROM members WHERE id=?', (member_id,))

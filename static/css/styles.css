@@ -90,21 +90,27 @@ body {
 
 .logo-text h1 {
   margin: 0;
-  font-size: 1.7rem;
-  letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #f97316, #ef4444);
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 2px 12px rgba(251, 191, 36, 0.15));
 }
 .kn-heading {
-  font-size: 1.7rem;
-  background: linear-gradient(135deg, #2dd4bf, #06b6d4);
+  font-family: 'Noto Sans Kannada', 'Nirmala UI', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #6d28d9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-top: 2px;
-  font-weight: 700;
+  filter: drop-shadow(0 2px 12px rgba(124, 58, 237, 0.15));
+  margin-top: 4px;
 }
 
 .logo-text p,
@@ -663,10 +669,11 @@ body {
 .loan-id { font-weight: 700; font-size: 0.95rem; color: #e2e8f0 }
 .lc-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   margin-bottom: 10px;
 }
+.lc-full { grid-column: 1 / -1 }
 .lc-cell {
   background: rgba(255,255,255,0.02);
   border-radius: 8px;
@@ -677,6 +684,7 @@ body {
 }
 .lc-label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em }
 .lc-value { font-size: 0.9rem; color: #f1f5f9; font-weight: 600 }
+.lc-value-lg { font-size: 1.1rem; font-weight: 700 }
 .lc-progress-row {
   display: flex;
   align-items: center;
@@ -702,6 +710,7 @@ body {
 .lc-close .lc-value { color: #7dd3fc !important }
 .lc-term .lc-value { color: #94a3b8 !important }
 .lc-repaid .lc-value { color: #86efac !important }
+.lc-interest .lc-value { color: #f59e0b !important }
 .lc-outstanding .lc-value { color: #fdba74 !important }
 
 /* Stepper for loan period selector */

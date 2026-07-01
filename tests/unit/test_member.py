@@ -150,6 +150,17 @@ class TestMemberInterface:
         assert len(deposits) >= 1
         assert deposits[0]['amount'] == 25000
 
+    def test_create_adds_initial_transaction(self, setup_db):
+        m = create_member('Txn Check')
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM transactions WHERE member_id=? AND desc='Initial deposit'", (m['id'],))
+        rows = cur.fetchall()
+        conn.close()
+        assert len(rows) == 1
+        assert rows[0]['amount'] == 25000
+        assert rows[0]['debit_credit'] == 'credit'
+
     def test_create_generates_dues(self, setup_db):
         m = create_member('Dues Check')
         full = get_member(m['id'], full=True)
