@@ -1,6 +1,4 @@
-import os
-
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request
 
 from core.config import ADMIN_PIN
 from core.models.payment import list_pending_requests, approve_payment_request, reject_payment_request, admin_direct_entry
@@ -11,19 +9,7 @@ from core.models.transaction import admin_add_funds, add_transaction, get_recent
 admin_bp = Blueprint('admin', __name__)
 
 
-@admin_bp.route('/api/logs', methods=['GET'])
-def get_logs():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
-        return jsonify({'error': 'unauthorized'}), 401
-    logfile = os.path.join('logs', 'server.log')
-    try:
-        with open(logfile, 'r', encoding='utf-8', errors='ignore') as f:
-            lines = f.readlines()[-500:]
-        return jsonify({'lines': lines})
-    except Exception as ex:
-        current_app.logger.error(f"Failed to read logs: {ex}")
-        return jsonify({'error': 'failed to read logs'}), 500
+
 
 
 @admin_bp.route('/api/admin/payment_requests', methods=['GET'])

@@ -3,8 +3,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request, current_app
 from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from core.config import ADMIN_PIN
+from core.database import strip_sensitive
 from core.models.member import get_all_members, create_member, get_member, update_member
 from core.models.payment import add_contribution, create_payment_request, cancel_payment_request, pay_due
 from core.models.transaction import get_member_statement
@@ -17,8 +19,11 @@ members_bp = Blueprint('members', __name__)
 def members():
     if request.method == 'GET':
         ms = get_all_members()
-        return jsonify(ms)
+        return jsonify([strip_sensitive(m) for m in ms])
     data = request.json
+    dep_amt = data.get('deposit_amount')
+    if dep_amt is not None:
+        dep_amt = float(dep_amt)
     m = create_member(
         data.get('name'),
         data.get('phone', ''),
@@ -26,8 +31,11 @@ def members():
         data.get('dob', ''),
         data.get('address', ''),
         data.get('photo_url', ''),
+        deposit_amount=dep_amt,
+        deposit_date=data.get('deposit_date'),
+        password=data.get('password', ''),
     )
-    return jsonify(m), 201
+    return jsonify(strip_sensitive(m)), 201
 
 
 @members_bp.route('/api/members/<int:member_id>', methods=['GET'])
@@ -39,7 +47,7 @@ def get_member_route(member_id):
         if loan['status'] == 'active':
             compute_interest_accrued(loan, datetime.utcnow().date())
     m = get_member(member_id, full=True)
-    return jsonify(m)
+    return jsonify(strip_sensitive(m))
 
 
 @members_bp.route('/api/members/<int:member_id>', methods=['PATCH'])
@@ -67,10 +75,21 @@ def self_update_member(member_id):
     dob = data.get('dob')
     address = data.get('address')
     photo_url = data.get('photo_url')
-    member = update_member(member_id, phone=phone, dob=dob, address=address, photo_url=photo_url)
+    password = data.get('password')
+    current_password = data.get('current_password')
+    password_hash = None
+    if password:
+        member = get_member(member_id)
+        if not member:
+            return jsonify({'error': 'not found'}), 404
+        stored = member.get('password') or ''
+        if stored and not check_password_hash(stored, current_password or ''):
+            return jsonify({'error': 'Current password is incorrect'}), 401
+        password_hash = generate_password_hash(password)
+    member = update_member(member_id, phone=phone, dob=dob, address=address, photo_url=photo_url, password_hash=password_hash)
     if not member:
         return jsonify({'error': 'not found'}), 404
-    return jsonify(member)
+    return jsonify(strip_sensitive(member))
 
 
 @members_bp.route('/api/members/<int:member_id>/upload_photo', methods=['POST'])
@@ -120,6 +139,9 @@ def submit_payment_request(member_id):
         note = request.form.get('note', '')
         txn_date = request.form.get('txn_date') or None
         late_fee = float(request.form.get('late_fee', 0) or 0)
+        share_amount = float(request.form.get('share_amount', 0) or 0)
+        loan_amount = float(request.form.get('loan_amount', 0) or 0)
+        interest_amount = float(request.form.get('interest_amount', 0) or 0)
     else:
         data = request.get_json(silent=True)
         if data is None:
@@ -130,7 +152,10 @@ def submit_payment_request(member_id):
         screenshot = data.get('screenshot', '')
         txn_date = data.get('txn_date') or None
         late_fee = float(data.get('late_fee', 0) or 0)
-    req = create_payment_request(member_id, amount, ptype, note, screenshot, txn_date, late_fee)
+        share_amount = float(data.get('share_amount', 0) or 0)
+        loan_amount = float(data.get('loan_amount', 0) or 0)
+        interest_amount = float(data.get('interest_amount', 0) or 0)
+    req = create_payment_request(member_id, amount, ptype, note, screenshot, txn_date, late_fee, share_amount, loan_amount, interest_amount)
     return jsonify({'status': 'submitted', 'request': req}), 201
 
 

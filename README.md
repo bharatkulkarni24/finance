@@ -12,18 +12,29 @@ python run.py
 
 Open http://localhost:5000
 
-```powershell
-python db_init.py
-```
-
-3. Run the server:
-
-```powershell
-python app.py
-```
-
-4. Open http://localhost:5000 in your browser or on your Android device (use your PC IP address if accessing from phone).
-
 Notes:
-- Admin PIN: `1234` (used in the demo to approve loans)
-- This is an MVP local demo. We can extend to a proper Android APK using Flutter or add sync later.
+- Admin PIN: `1234`
+- First run creates the DB and one admin member: **Govindrao Kulkarni**
+- Create additional members manually via the UI after logging in as admin
+
+## Test
+
+```powershell
+.venv\Scripts\activate
+python -m pytest tests/
+```
+
+## Project structure
+
+```
+core/           # Flask app package
+  routes/       # API endpoint blueprints
+  models/       # Database access layer
+  database.py   # DB init, migrations, seed
+  config.py     # Settings (DB path, admin PIN)
+  __init__.py   # create_app() factory
+run.py          # Entry point
+static/         # CSS, JS, images
+templates/      # HTML templates
+tests/          # Pytest suite
+```

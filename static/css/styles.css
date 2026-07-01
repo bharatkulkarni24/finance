@@ -50,9 +50,101 @@ body {
   animation: fadeInUp 900ms ease both;
 }
 
+/* ── Login mode – tall hero showing full photo ── */
+.topbar.login-mode {
+  display: grid;
+  grid-template-areas: "stack";
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  overflow: hidden;
+}
+.topbar.login-mode > * {
+  grid-area: stack;
+}
+.topbar.login-mode .hero {
+  height: 600px;
+  background-position: center;
+  position: relative;
+}
+.topbar.login-mode .hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 -80px 120px rgba(2,6,23,0.6);
+  pointer-events: none;
+}
+.topbar.login-mode .logo,
+.topbar.login-mode .login-fields,
+.topbar.login-mode .lang-wrap {
+  z-index: 1;
+  pointer-events: none;
+}
+.topbar.login-mode .logo,
+.topbar.login-mode .login-fields,
+.topbar.login-mode .lang-wrap > * {
+  pointer-events: auto;
+}
+.topbar.login-mode .logo {
+  align-self: start;
+  padding: 22px 22px 0;
+}
+.topbar.login-mode .login-fields {
+  align-self: end;
+  padding: 0 22px 22px;
+}
+.topbar.login-mode .lang-wrap {
+  justify-self: end;
+  align-self: start;
+  padding: 22px;
+}
+
+/* ── Login fields (hidden after login) ── */
+.login-fields {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+}
+.topbar.login-mode .login-fields {
+  display: flex;
+}
+.login-fields .input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.login-fields .input-row label {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+}
+.login-fields select,
+.login-fields input {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.15);
+  background: rgba(15,23,42,0.65);
+  backdrop-filter: blur(4px);
+  color: #f8fafc;
+  width: 100%;
+}
+.login-fields #login-button {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  align-self: flex-start;
+}
+
 .topbar .logo {
   position: relative;
   z-index: 3;
+}
+
+.lang-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 @keyframes fadeInUp {
@@ -60,7 +152,6 @@ body {
   to { transform: translateY(0); opacity: 1 }
 }
 
-/* gentle float for cards */
 @keyframes floaty {
   0% { transform: translateY(0px) }
   50% { transform: translateY(-6px) }
@@ -191,6 +282,9 @@ body {
 .input-with-currency { display:flex; align-items:center; gap:8px; }
 .input-with-currency .currency { background: rgba(255,255,255,0.02); padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); color:#e2e8f0 }
 .input-with-currency input { padding:10px 12px; border-radius:12px; border:1px solid rgba(148,163,184,0.08); background: rgba(15,23,42,0.9); color:#f8fafc; flex:1 }
+.input-with-icon { display:flex; align-items:center; gap:8px; position:relative }
+.input-with-icon .input-icon { background: rgba(255,255,255,0.02); padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); color:#e2e8f0; font-size:14px; line-height:1 }
+.input-with-icon input { padding:10px 12px; border-radius:12px; border:1px solid rgba(148,163,184,0.08); background: rgba(15,23,42,0.9); color:#f8fafc; flex:1 }
 
 .btn {
   display: inline-flex;
@@ -206,6 +300,29 @@ body {
 
 .btn:hover {
   transform: translateY(-1px);
+}
+.btn-admin-toggle {
+  background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+.btn-admin-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.btn-admin-toggle:hover::before {
+  transform: translateX(100%);
+}
+.btn-admin-toggle:hover {
+  box-shadow: 0 6px 32px rgba(99, 102, 241, 0.55);
+  transform: translateY(-2px);
 }
 
 .primary {

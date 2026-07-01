@@ -11,7 +11,7 @@
   </head>
   <body>
     <div class="app">
-      <div class="topbar">
+      <div class="topbar login-mode" id="topbar">
         <div class="hero"></div>
         <div class="logo">
           <div class="logo-mark">SLV</div>
@@ -22,16 +22,9 @@
             </h1>
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;">
-          <button id="lang-toggle" class="btn secondary">KN</button>
-        </div>
-      </div>
-
-      <div id="login-screen" class="screen active">
-        <div class="panel">
-          <h2 class="page-title">Login to SLV Finance</h2>
+        <div class="login-fields" id="login-fields">
           <div class="input-row">
-            <label for="member-select">Select Member</label>
+            <label for="member-select" data-i18n="Select Member">Select Member</label>
             <select id="member-select">
               {% if members %}
                 {% for m in members %}
@@ -41,11 +34,17 @@
             </select>
           </div>
           <div class="input-row">
-            <label for="admin-pin">Admin PIN (only for admin)</label>
-            <input id="admin-pin" type="password" placeholder="Enter admin PIN" />
+            <label for="admin-pin" data-i18n="Password / PIN">Password / PIN</label>
+            <div style="position:relative;flex:1">
+              <input id="admin-pin" type="password" placeholder="Enter password" />
+              <span id="pin-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span>
+            </div>
           </div>
-          <button id="login-button" class="btn primary">Login</button>
-          <div id="login-error" class="hidden" style="margin-top:12px;color:#fb7185"></div>
+          <button id="login-button" class="btn primary" data-i18n="Login">Login</button>
+          <div id="login-error" class="hidden" style="color:#fb7185;font-size:0.85rem;text-align:center"></div>
+        </div>
+        <div class="lang-wrap">
+          <button id="lang-toggle" class="btn secondary">KN</button>
         </div>
       </div>
 

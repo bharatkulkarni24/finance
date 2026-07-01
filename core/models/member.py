@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
+from werkzeug.security import generate_password_hash
+
 from core.database import get_conn, row_to_dict
 from core.models.dues import generate_dues_for_member_internal
 
@@ -14,22 +16,30 @@ def get_all_members():
     return [row_to_dict(r) for r in rows]
 
 
-def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0, dob: Optional[str] = '', address: Optional[str] = '', photo_url: Optional[str] = '') -> dict:
+def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
+                  dob: Optional[str] = '', address: Optional[str] = '',
+                  photo_url: Optional[str] = '',
+                  deposit_amount: Optional[float] = None,
+                  deposit_date: Optional[str] = None,
+                  password: Optional[str] = '') -> dict:
     conn = get_conn()
     cur = conn.cursor()
-    joined = datetime.utcnow().date().isoformat()
+    dep_amt = deposit_amount if deposit_amount is not None else 25000
+    joined = (deposit_date or datetime.utcnow().date().isoformat())
+    txn_ts = f"{joined}T09:00:00" if deposit_date else datetime.utcnow().isoformat()
+    pw_hash = generate_password_hash(password) if password else ''
     cur.execute(
-        'INSERT INTO members (name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url) VALUES (?,?,?,?,?,?,?,?)',
-        (name, phone, joined, 25000, is_admin, dob, address, photo_url),
+        'INSERT INTO members (name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url, password) VALUES (?,?,?,?,?,?,?,?,?)',
+        (name, phone, joined, dep_amt, is_admin, dob, address, photo_url, pw_hash),
     )
     member_id = cur.lastrowid
     cur.execute(
         'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-        (member_id, joined, 25000, 'deposit'),
+        (member_id, joined, dep_amt, 'deposit'),
     )
     cur.execute(
         'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-        (member_id, datetime.utcnow().isoformat(), 'Initial deposit', 'credit', 25000),
+        (member_id, txn_ts, 'Initial deposit', 'credit', dep_amt),
     )
     generate_dues_for_member_internal(cur, member_id, datetime.utcnow().date())
     conn.commit()
@@ -74,7 +84,7 @@ def get_member(member_id: int, full: bool = False) -> Optional[dict]:
     return m
 
 
-def update_member(member_id: int, phone: Optional[str] = None, dob: Optional[str] = None, address: Optional[str] = None, photo_url: Optional[str] = None) -> Optional[dict]:
+def update_member(member_id: int, phone: Optional[str] = None, dob: Optional[str] = None, address: Optional[str] = None, photo_url: Optional[str] = None, password_hash: Optional[str] = None) -> Optional[dict]:
     conn = get_conn()
     cur = conn.cursor()
     updates = []
@@ -91,6 +101,9 @@ def update_member(member_id: int, phone: Optional[str] = None, dob: Optional[str
     if photo_url is not None:
         updates.append('photo_url = ?')
         params.append(photo_url)
+    if password_hash is not None:
+        updates.append('password = ?')
+        params.append(password_hash)
     if not updates:
         conn.close()
         return get_member(member_id, full=True)

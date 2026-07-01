@@ -161,6 +161,18 @@ class TestMemberInterface:
         assert rows[0]['amount'] == 25000
         assert rows[0]['debit_credit'] == 'credit'
 
+    def test_create_with_custom_deposit(self, setup_db):
+        m = create_member('Custom Dep', deposit_amount=50000, deposit_date='2026-07-15')
+        assert m['deposit_amount'] == 50000
+        assert m['joined_date'] == '2026-07-15'
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM contributions WHERE member_id=? AND type='deposit'", (m['id'],))
+        row = cur.fetchone()
+        assert row['amount'] == 50000
+        assert row['date'] == '2026-07-15'
+        conn.close()
+
     def test_create_generates_dues(self, setup_db):
         m = create_member('Dues Check')
         full = get_member(m['id'], full=True)

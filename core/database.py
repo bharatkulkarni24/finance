@@ -13,6 +13,10 @@ def get_conn():
 def row_to_dict(row: sqlite3.Row) -> dict:
     return {k: row[k] for k in row.keys()}
 
+def strip_sensitive(m: dict) -> dict:
+    m.pop('password', None)
+    return m
+
 
 def init_db():
     conn = get_conn()
@@ -27,9 +31,14 @@ def init_db():
         is_admin INTEGER DEFAULT 0,
         dob TEXT,
         address TEXT,
-        photo_url TEXT
+        photo_url TEXT,
+        password TEXT DEFAULT ''
     )
     ''')
+    try:
+        cur.execute('ALTER TABLE members ADD COLUMN password TEXT DEFAULT \'\'')
+    except Exception:
+        pass
     cur.execute('''
     CREATE TABLE IF NOT EXISTS contributions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,7 +113,10 @@ def init_db():
         status TEXT DEFAULT 'pending',
         approved_by INTEGER,
         approved_date TEXT,
-        late_fee REAL DEFAULT 0
+        late_fee REAL DEFAULT 0,
+        share_amount REAL DEFAULT 0,
+        loan_amount REAL DEFAULT 0,
+        interest_amount REAL DEFAULT 0
     )
     ''')
 
@@ -168,6 +180,13 @@ def init_db():
             cur.execute("ALTER TABLE payment_requests ADD COLUMN late_fee REAL DEFAULT 0")
         except Exception:
             pass
+    if 'share_amount' not in pr_cols:
+        try:
+            cur.execute("ALTER TABLE payment_requests ADD COLUMN share_amount REAL DEFAULT 0")
+            cur.execute("ALTER TABLE payment_requests ADD COLUMN loan_amount REAL DEFAULT 0")
+            cur.execute("ALTER TABLE payment_requests ADD COLUMN interest_amount REAL DEFAULT 0")
+        except Exception:
+            pass
     cur.execute('PRAGMA table_info(loans)')
     loan_cols = [row['name'] for row in cur.fetchall()]
     if 'reject_reason' not in loan_cols:
@@ -190,21 +209,11 @@ def seed_db():
         return
     initial_members = [
         {'name': 'Govindrao Kulkarni', 'is_admin': 1},
-        {'name': 'Nachiket Bhenki', 'is_admin': 0},
-        {'name': 'Bhimbhatt Bhenki', 'is_admin': 0},
-        {'name': 'Suchiket Bhenki', 'is_admin': 0},
-        {'name': 'Rohan Kulkarni', 'is_admin': 0},
-        {'name': 'Bharat Kulkarni', 'is_admin': 0},
-        {'name': 'Bhargav Kulkarni', 'is_admin': 0},
-        {'name': 'Sangeeta Kulkarni', 'is_admin': 0},
-        {'name': 'Indiresh Joshi', 'is_admin': 0},
-        {'name': 'Kiran Joshi', 'is_admin': 0},
-        {'name': 'Indira Sarnad', 'is_admin': 0},
-        {'name': 'Sanjeev Joshi', 'is_admin': 0},
     ]
     from core.models.dues import generate_dues_for_member_internal
+    from datetime import date as dt_date
     for member in initial_members:
-        joined = datetime.utcnow().date().isoformat()
+        joined = '2025-04-01'
         cur.execute(
             'INSERT INTO members (name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url) VALUES (?,?,?,?,?,?,?,?)',
             (member['name'], '', joined, 25000, member['is_admin'], '', '', ''),
@@ -216,8 +225,8 @@ def seed_db():
         )
         cur.execute(
             'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (member_id, datetime.utcnow().isoformat(), 'Initial deposit', 'credit', 25000),
+            (member_id, '2025-04-01T09:00:00', 'Initial deposit', 'credit', 25000),
         )
-        generate_dues_for_member_internal(cur, member_id, datetime.utcnow().date())
+        generate_dues_for_member_internal(cur, member_id, dt_date(2025, 4, 1))
     conn.commit()
     conn.close()

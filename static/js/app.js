@@ -213,6 +213,20 @@ const I18N = {
     'You have unsaved information in forms.': 'You have unsaved information in forms.',
     'These will not be submitted.': 'These will not be submitted.',
     'Are you sure you want to logout?': 'Are you sure you want to logout?',
+    'Create Account': 'Create Account',
+    'Deposit Amount': 'Deposit Amount',
+    'Deposit Date': 'Deposit Date',
+    'Password': 'Password',
+    'Set member password': 'Set member password',
+    'Change Password': 'Change Password',
+    'Change your password': 'Change your password',
+    'Current password': 'Current password',
+    'New password': 'New password',
+    'Confirm new password': 'Confirm new password',
+    'Password changed': 'Password changed',
+    'Passwords do not match': 'Passwords do not match',
+    'Fill all fields': 'Fill all fields',
+    'Failed to change password': 'Failed to change password',
     'Confirm': 'Confirm',
   },
   kn: {
@@ -381,6 +395,20 @@ const I18N = {
     'You have unsaved information in forms.': 'ಫಾರ್ಮ್‌ಗಳಲ್ಲಿ ಉಳಿಸದ ಮಾಹಿತಿ ಇದೆ.',
     'These will not be submitted.': 'ಇವುಗಳು ಸಲ್ಲಿಕೆಯಾಗುವುದಿಲ್ಲ.',
     'Are you sure you want to logout?': 'ನೀವು ಖಚಿತವಾಗಿ ನಿರ್ಗಮಿಸಲು ಬಯಸುವಿರಾ?',
+    'Create Account': 'ಖಾತೆ ರಚಿಸಿ',
+    'Deposit Amount': 'ಠೇವಣಿ ಮೊತ್ತ',
+    'Deposit Date': 'ಠೇವಣಿ ದಿನಾಂಕ',
+    'Password': 'ಪಾಸ್‌ವರ್ಡ್',
+    'Set member password': 'ಸದಸ್ಯರ ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಸಿ',
+    'Change Password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
+    'Change your password': 'ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
+    'Current password': 'ಪ್ರಸ್ತುತ ಪಾಸ್‌ವರ್ಡ್',
+    'New password': 'ಹೊಸ ಪಾಸ್‌ವರ್ಡ್',
+    'Confirm new password': 'ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ',
+    'Password changed': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಗಿದೆ',
+    'Passwords do not match': 'ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ',
+    'Fill all fields': 'ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ',
+    'Failed to change password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Confirm': 'ಖಚಿತಪಡಿಸಿ',
   }
 }
@@ -408,42 +436,17 @@ document.addEventListener('click', (e) => {
 function translatePage() {
   const els = document.querySelectorAll('[data-i18n]')
   els.forEach(el => el.textContent = t(el.dataset.i18n))
-  // translate login screen
-  const h2 = document.querySelector('#login-screen .page-title')
-  if (h2) h2.textContent = t('Login to SLV Finance')
-  const labels = document.querySelectorAll('#login-screen label')
+  // translate login fields
+  const labels = document.querySelectorAll('.login-fields label')
   if (labels[0]) labels[0].textContent = t('Select Member')
-  if (labels[1]) labels[1].textContent = t('Admin PIN (only for admin)')
+  if (labels[1]) labels[1].textContent = t('Password / PIN')
   const pin = document.getElementById('admin-pin')
-  if (pin) pin.placeholder = t('Enter admin PIN')
+  if (pin) pin.placeholder = t('Enter password')
   const btn = document.getElementById('login-button')
   if (btn) btn.textContent = t('Login')
 }
 
-async function renderAdminLogs() {
-  const div = document.getElementById('admin-logs')
-  if (!div) return
-  div.innerHTML = '<p>Loading logs...</p>'
-  try {
-    const res = await fetch('/api/logs', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-    if (!res.ok) {
-      const e = await res.json().catch(()=>({error:'failed'}))
-      div.innerHTML = `<p style="color:#fca5a5">${e.error||'failed to load logs'}</p>`
-      return
-    }
-    const j = await res.json()
-    const pre = document.createElement('pre')
-    pre.style.maxHeight = '240px'
-    pre.style.overflow = 'auto'
-    pre.textContent = j.lines ? j.lines.join('') : JSON.stringify(j)
-    div.innerHTML = ''
-    div.appendChild(pre)
-  } catch (err) {
-    div.innerHTML = `<p style="color:#fca5a5">${err.message || err}</p>`
-  }
-}
-
-let loginScreen = null
+let topbar = null
 let mainScreen = null
 let menuLinks = null
 let content = null
@@ -453,11 +456,11 @@ let loginButton = null
 let loginError = null
 
 function showScreen(screenId) {
-  loginScreen.classList.add('hidden')
   mainScreen.classList.add('hidden')
   if (screenId === 'login') {
-    loginScreen.classList.remove('hidden')
+    topbar.classList.add('login-mode')
   } else {
+    topbar.classList.remove('login-mode')
     mainScreen.classList.remove('hidden')
   }
 }
@@ -880,15 +883,21 @@ async function renderAdminPanel() {
       <h2 class="page-title">${t('Admin Panel')}</h2>
       <div class="grid-2">
         <div class="panel">
-          <button class="btn primary" id="toggle-add-member" style="width:100%;justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
+          <button class="btn btn-admin-toggle" id="toggle-add-member" style="width:100%;justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
           <div id="add-member-form" style="display:none;margin-top:12px">
             <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
             <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
             <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
-            <button class="btn primary" id="add-member-btn">${t('Add Member')}</button>
+            <div class="input-row" style="display:flex;gap:12px">
+              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" value="25000" /></div></div>
+              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+            </div>
+            <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="new-member-password" type="password" placeholder="${t('Set member password')}" /><span id="new-member-pw-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
+            <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
           </div>
           <hr style="border-color:rgba(148,163,184,0.15);margin:16px 0">
-          <h3 class="section-heading" style="margin-top:0">${t('Direct Entry')}</h3>
+          <button class="btn btn-admin-toggle" id="toggle-direct-entry" style="width:100%;justify-content:center;gap:8px;margin-top:0">${t('Direct Entry')}</button>
+          <div id="direct-entry-form" style="display:none;margin-top:12px">
           <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
           <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
           <div class="input-row" style="display:flex;gap:12px">
@@ -902,6 +911,7 @@ async function renderAdminPanel() {
           <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
           <div class="input-row"><input id="de-note" placeholder="${t('Note (optional)')}" /></div>
           <button class="btn primary" id="de-submit-btn">${t('Submit & Auto-Approve')}</button>
+          </div>
         </div>
         <div class="panel">
           <h3 class="section-heading">${t('Pending Loans')}</h3>
@@ -1022,12 +1032,28 @@ async function renderAdminPanel() {
     const form = document.getElementById('add-member-form')
     form.style.display = form.style.display === 'none' ? 'block' : 'none'
   }
+  document.getElementById('toggle-direct-entry').onclick = () => {
+    const form = document.getElementById('direct-entry-form')
+    form.style.display = form.style.display === 'none' ? 'block' : 'none'
+  }
   const incDate = document.getElementById('income-date')
   if (incDate) createDatePicker(incDate)
   const expDate = document.getElementById('expense-date')
   if (expDate) createDatePicker(expDate)
   const deDate = document.getElementById('de-date')
   if (deDate) createDatePicker(deDate)
+  const nmDate = document.getElementById('new-member-date')
+  if (nmDate) createDatePicker(nmDate)
+  const nmDep = document.getElementById('new-member-deposit')
+  if (nmDep) indianizeInput(nmDep)
+  const nmPwToggle = document.getElementById('new-member-pw-toggle')
+  const nmPwInput = document.getElementById('new-member-password')
+  if (nmPwToggle && nmPwInput) {
+    nmPwToggle.onclick = () => {
+      nmPwInput.type = nmPwInput.type === 'password' ? 'text' : 'password'
+      nmPwToggle.textContent = nmPwInput.type === 'password' ? '👁' : '🙈'
+    }
+  }
   const fdStart = document.getElementById('fd-start')
   if (fdStart) dualDateInput(fdStart)
   const fdEnd = document.getElementById('fd-end')
@@ -1037,7 +1063,6 @@ async function renderAdminPanel() {
   await renderPendingPayments()
   await renderFdEntries()
   await renderIeList()
-  await renderAdminLogs()
 }
 
 
@@ -1128,10 +1153,22 @@ async function renderPendingPayments() {
       const row = document.createElement('div')
       row.className = 'list-item'
       row.style.flexWrap = 'wrap'
+      const isCombined = it.type === 'combined'
+      let details = ''
+      if (isCombined) {
+        const sa = Number(it.share_amount || 0)
+        const la = Number(it.loan_amount || 0)
+        const ia = Number(it.interest_amount || 0)
+        const lf = Number(it.late_fee || 0)
+        if (sa > 0) details += `<span style="color:#67e8f9">Share: ${formatCurrency(sa)}</span> `
+        if (la > 0) details += `<span style="color:#86efac">Loan: ${formatCurrency(la)}</span> `
+        if (ia > 0) details += `<span style="color:#f59e0b">Interest: ${formatCurrency(ia)}</span> `
+        if (lf > 0) details += `<span style="color:#f97316">Fine: ${formatCurrency(lf)}</span> `
+      }
       row.innerHTML = `
         <div>
           <strong>${it.member_name}</strong><br>
-          <small>${it.type} ${formatCurrency(it.amount)} — ${it.note || ''}</small>
+          <small>${isCombined ? details : `${it.type} ${formatCurrency(it.amount)}`}${it.note ? ' — ' + it.note : ''}</small>
         </div>
         <div>${it.screenshot?`<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">${t('📎 Screenshot')}</a>`:''}</div>
         <div id="pay-actions-${idx}">
@@ -1146,7 +1183,10 @@ async function renderPendingPayments() {
           </div>
         </div>`
       row.querySelector('.approve-btn').onclick = async () => {
-        if (!(await showConfirm('Approve Payment', `Approve ${it.type} payment of ${formatCurrency(it.amount)} from ${it.member_name}?`))) return
+        const confirmMsg = isCombined
+          ? `Approve payment from ${it.member_name}?<br><br>${details}`
+          : `Approve ${it.type} payment of ${formatCurrency(it.amount)} from ${it.member_name}?`
+        if (!(await showConfirm('Approve Payment', confirmMsg))) return
         const btn = row.querySelector('.approve-btn')
         setLoading(btn, true)
         try {
@@ -1635,7 +1675,7 @@ async function renderMemberProfile(memberId) {
   const avatarUrl = m.photo_url || ''
   const photoSnippet = `
     <div style="position:relative">
-      <div id="profile-avatar" class="profile-avatar ${avatarUrl ? 'has-photo' : ''} ${own || state.currentUser.is_admin ? 'clickable' : ''}" style="${avatarUrl ? `background-image: url('${avatarUrl}')` : ''}"><span class="avatar-init">${initials(m.name)}</span></div>
+      <div id="profile-avatar" class="profile-avatar ${avatarUrl ? 'has-photo' : ''} ${own ? 'clickable' : ''}" style="${avatarUrl ? `background-image: url('${avatarUrl}')` : ''}"><span class="avatar-init">${initials(m.name)}</span></div>
       <input id="profile-photo-input" type="file" accept="image/*" style="display:none" />
       <div id="avatar-menu" class="avatar-menu hidden">
         <button class="btn" id="avatar-add-btn">Add new profile photo</button>
@@ -1659,7 +1699,7 @@ async function renderMemberProfile(memberId) {
             <p><strong>DOB:</strong> <span class="input-readonly" id="ro-dob">${m.dob ? formatDate(m.dob) : '-'}</span></p>
             <p><strong>Age:</strong> <span class="input-readonly">${calculateAge(m.dob)}</span></p>
             <p><strong>Address:</strong> <span class="input-readonly" id="ro-address">${m.address || '-'}</span></p>
-            ${own || state.currentUser.is_admin ? `<div style="margin-top:6px;"><button class="btn" id="self-edit-btn">Edit Profile</button></div>` : ''}
+            ${own ? `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="self-edit-btn">Edit Profile</button><button class="btn secondary" id="change-pw-btn">Change Password</button></div>` : ''}
           </div>
         </div>
       </div>
@@ -1725,7 +1765,7 @@ async function renderMemberProfile(memberId) {
     const avatarMenu = document.getElementById('avatar-menu')
     const avatarAddBtn = document.getElementById('avatar-add-btn')
     const avatarRemoveBtn = document.getElementById('avatar-remove-btn')
-    if (avatar && photoInput && (own || state.currentUser.is_admin)) {
+    if (avatar && photoInput && own) {
       avatar.addEventListener('click', (ev) => {
         ev.stopPropagation()
         if (avatarMenu) avatarMenu.classList.toggle('hidden')
@@ -1805,6 +1845,51 @@ async function renderMemberProfile(memberId) {
       }
     }
 
+    // Change password flow
+    const pwBtn = document.getElementById('change-pw-btn')
+    if (pwBtn) {
+      pwBtn.onclick = () => {
+        if (document.getElementById('pw-change-form')) return
+        const copy = document.querySelector('.profile-copy')
+        const div = document.createElement('div')
+        div.id = 'pw-change-form'
+        div.style.marginTop = '12px'
+        div.style.padding = '12px'
+        div.style.borderRadius = '10px'
+        div.style.background = 'rgba(255,255,255,0.03)'
+        div.innerHTML = `
+          <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:10px">${t('Change your password')}</p>
+          <div style="margin-bottom:8px"><input id="pw-current" type="password" placeholder="${t('Current password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
+          <div style="margin-bottom:8px"><input id="pw-new" type="password" placeholder="${t('New password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
+          <div style="margin-bottom:12px"><input id="pw-confirm" type="password" placeholder="${t('Confirm new password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
+          <div style="display:flex;gap:8px"><button class="btn primary" id="pw-save-btn">${t('Save')}</button><button class="btn" id="pw-cancel-btn">${t('Cancel')}</button></div>
+        `
+        copy.appendChild(div)
+        document.getElementById('pw-save-btn').onclick = async () => {
+          const cur = document.getElementById('pw-current').value
+          const nw = document.getElementById('pw-new').value
+          const conf = document.getElementById('pw-confirm').value
+          if (!cur || !nw) { showToast(t('Fill all fields'), 'error'); return }
+          if (nw !== conf) { showToast(t('Passwords do not match'), 'error'); return }
+          setLoading(document.getElementById('pw-save-btn'), true)
+          try {
+            await api(`/members/${m.id}/self`, {
+              method: 'PATCH',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({current_password: cur, password: nw}),
+            })
+            showToast(t('Password changed'), 'success')
+            renderMemberProfile(m.id)
+          } catch (err) {
+            showToast(err.error || 'Failed to change password', 'error')
+          } finally {
+            setLoading(document.getElementById('pw-save-btn'), false)
+          }
+        }
+        document.getElementById('pw-cancel-btn').onclick = () => renderMemberProfile(m.id)
+      }
+    }
+
     // Edit flow: transform readonly fields into inputs when user clicks Edit
     if (editBtn) {
       editBtn.onclick = () => {
@@ -1814,10 +1899,19 @@ async function renderMemberProfile(memberId) {
         const addrSpan = copy.querySelector('#ro-address')
         if (!phoneSpan || !dobSpan || !addrSpan) return
         phoneSpan.outerHTML = `<input id="self-phone" class="input-edit" value="${m.phone||''}" />`
-        dobSpan.outerHTML = `<input id="self-dob" class="input-edit" type="text" value="${m.dob||''}" readonly />`
         addrSpan.outerHTML = `<input id="self-address" class="input-edit" value="${m.address||''}" />`
         editBtn.style.display = 'none'
-        createDatePicker(document.getElementById('self-dob'))
+        const dobWrap = document.createElement('span')
+        dobWrap.style.cssText = 'position:relative;display:inline-block'
+        const dobInput = document.createElement('input')
+        dobInput.id = 'self-dob'
+        dobInput.className = 'input-edit'
+        dobInput.type = 'text'
+        dobInput.value = m.dob || ''
+        dobInput.readOnly = true
+        dobWrap.appendChild(dobInput)
+        dobSpan.parentNode.replaceChild(dobWrap, dobSpan)
+        createDatePicker(dobInput)
         const btnWrap = document.createElement('div')
         btnWrap.style.marginTop = '8px'
         btnWrap.innerHTML = `<button class="btn primary" id="self-save-btn">Save</button> <button class="btn" id="self-cancel-btn">Cancel</button>`
@@ -2015,6 +2109,10 @@ async function handleAddMember() {
   const btn = document.getElementById('add-member-btn')
   const name = document.getElementById('new-member-name').value.trim()
   const phone = document.getElementById('new-member-phone').value.trim()
+  const depositRaw = document.getElementById('new-member-deposit').value.replace(/,/g, '')
+  const depositAmount = Number(depositRaw) || 0
+  const depositDate = document.getElementById('new-member-date').value
+  const password = document.getElementById('new-member-password').value
   if (!name) { showToast(t('Enter a name'), 'error'); return }
   if (!(await showConfirm('Add Member', `Add new member "${name}"${phone ? ' ('+phone+')' : ''}?`))) return
   setLoading(btn, true)
@@ -2022,7 +2120,7 @@ async function handleAddMember() {
     await api('/members', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name, phone}),
+      body: JSON.stringify({name, phone, deposit_amount: depositAmount, deposit_date: depositDate, password}),
     })
     await loadMembers()
     renderAdminPanel()
@@ -2424,62 +2522,32 @@ async function handleSubmitPayment(memberId) {
   const lateFee = Number(fineRaw) || 0
   if (!txnDate) { showToast('Select a payment date', 'error'); return }
   if (new Date(txnDate) > new Date()) { showToast('Date cannot be in the future', 'error'); return }
-  // Share amount is mandatory
   if (!shareAmount || shareAmount <= 0) { showToast('Share amount is required', 'error'); return }
-  // Confirm with user
   let msg = `Share: ${formatCurrency(shareAmount)}`
   if (loanAmount > 0) msg += `<br>Loan: ${formatCurrency(loanAmount)}`
   if (interestAmount > 0) msg += `<br>Interest: ${formatCurrency(interestAmount)}`
   if (lateFee > 0) msg += `<br>Fine: ${formatCurrency(lateFee)}`
   if (!(await showConfirm('Submit Payment', msg))) return
   setLoading(btn, true)
-  // submit share payment request
   const screenshotInput = document.getElementById('screenshot-input')
   const screenshotFile = screenshotInput?.files?.[0]
+  const total = shareAmount + loanAmount + interestAmount + lateFee
   try {
-    const fd1 = new FormData()
-    fd1.append('amount', shareAmount)
-    fd1.append('type', 'share')
-    fd1.append('note', note)
-    fd1.append('txn_date', txnDate)
-    if (lateFee > 0) fd1.append('late_fee', lateFee)
-    if (screenshotFile) fd1.append('screenshot', screenshotFile)
-    const res1 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd1})
-    if (!res1.ok) {
-      const e = await res1.json().catch(()=>({error:'failed'}))
-      showToast(e.error || 'Failed to submit share request', 'error')
+    const fd = new FormData()
+    fd.append('amount', total)
+    fd.append('type', 'combined')
+    fd.append('share_amount', shareAmount)
+    fd.append('loan_amount', loanAmount)
+    fd.append('interest_amount', interestAmount)
+    fd.append('late_fee', lateFee)
+    fd.append('note', note)
+    fd.append('txn_date', txnDate)
+    if (screenshotFile) fd.append('screenshot', screenshotFile)
+    const res = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd})
+    if (!res.ok) {
+      const e = await res.json().catch(()=>({error:'failed'}))
+      showToast(e.error || 'Submit failed', 'error')
       return
-    }
-    // if loan amount also provided, submit a separate loan request
-    if (loanAmount && loanAmount > 0) {
-      const fd2 = new FormData()
-      fd2.append('amount', loanAmount)
-      fd2.append('type', 'loan')
-      fd2.append('note', note)
-      fd2.append('txn_date', txnDate)
-      if (lateFee > 0) fd2.append('late_fee', lateFee)
-      const res2 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd2})
-      if (!res2.ok) {
-        const e = await res2.json().catch(()=>({error:'failed'}))
-        showToast(e.error || 'Share submitted; loan request failed', 'warn')
-        renderSubmitView()
-        return
-      }
-    }
-    // if interest amount provided, submit a separate request
-    if (interestAmount && interestAmount > 0) {
-      const fd3 = new FormData()
-      fd3.append('amount', interestAmount)
-      fd3.append('type', 'loan_interest')
-      fd3.append('note', note ? note + ' (Interest)' : 'Interest')
-      fd3.append('txn_date', txnDate)
-      const res3 = await fetch(`/api/members/${memberId}/submit_payment_request`, {method:'POST', body: fd3})
-      if (!res3.ok) {
-        const e = await res3.json().catch(()=>({error:'failed'}))
-        showToast(e.error || 'Loan submitted; interest request failed', 'warn')
-        renderSubmitView()
-        return
-      }
     }
     showToast(t('Submitted for approval'), 'success')
     renderSubmitView()
@@ -2494,7 +2562,7 @@ const ADMIN_PIN = '1234'
 
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    loginScreen = document.getElementById('login-screen')
+    topbar = document.getElementById('topbar')
     mainScreen = document.getElementById('main-screen')
     menuLinks = document.getElementById('menu-links')
     content = document.getElementById('content')
@@ -2505,6 +2573,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginButton) {
       try { loginButton.type='button' } catch(_){}
       loginButton.onclick = handleLogin
+    }
+    const pinToggle = document.getElementById('pin-toggle')
+    if (pinToggle && adminPin) {
+      pinToggle.onclick = () => {
+        const t = adminPin
+        t.type = t.type === 'password' ? 'text' : 'password'
+        pinToggle.textContent = t.type === 'password' ? '👁' : '🙈'
+      }
     }
     // Enter key handling for convenience
     if (adminPin) adminPin.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin() })
