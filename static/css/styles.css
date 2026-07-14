@@ -64,7 +64,7 @@ body {
 }
 .topbar.login-mode .hero {
   height: 600px;
-  background-position: center;
+  background-position: center 25%;
   position: relative;
 }
 .topbar.login-mode .hero::after {
@@ -74,20 +74,57 @@ body {
   box-shadow: inset 0 -80px 120px rgba(2,6,23,0.6);
   pointer-events: none;
 }
-.topbar.login-mode .logo,
-.topbar.login-mode .login-fields,
-.topbar.login-mode .lang-wrap {
+.topbar.login-mode .login-header,
+.topbar.login-mode .login-fields {
   z-index: 1;
   pointer-events: none;
 }
-.topbar.login-mode .logo,
-.topbar.login-mode .login-fields,
-.topbar.login-mode .lang-wrap > * {
+.topbar.login-mode .login-header > *,
+.topbar.login-mode .login-fields > * {
   pointer-events: auto;
 }
-.topbar.login-mode .logo {
+.topbar.login-mode .logo,
+.topbar.login-mode .lang-wrap {
+  display: none;
+}
+
+.topbar.login-mode .login-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   align-self: start;
-  padding: 0;
+  justify-self: stretch;
+  padding: 0 16px;
+}
+
+.login-header {
+  display: none;
+}
+
+.side {
+  width: 80px;
+  height: 80px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.side-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.2));
+}
+.logo .right-side .side-img {
+  width: 93%;
+  height: 93%;
+  object-fit: contain;
+  display: block;
+}
+
+.login-name {
+  flex: 1;
+  text-align: center;
 }
 .topbar.login-mode .login-fields {
   align-self: end;
@@ -100,6 +137,18 @@ body {
   justify-self: end;
   align-self: start;
   padding: 0;
+}
+
+/* ── After login (not login-mode) ── */
+.topbar:not(.login-mode) {
+  padding: 10px 22px;
+  gap: 10px;
+}
+.topbar:not(.login-mode) .hero {
+  display: none;
+}
+.topbar:not(.login-mode) .logo {
+  margin-top: 6px;
 }
 
 /* ── Login fields (hidden after login) ── */
@@ -165,48 +214,52 @@ body {
 
 .logo {
   display: flex;
-  gap: 16px;
   align-items: center;
+  width: 100%;
+}
+.logo .side {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  align-self: center;
+}
+.logo .logo-text {
+  flex: 1;
+  text-align: center;
 }
 
-.logo-mark {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  font-size: 1.6rem;
-  background: linear-gradient(135deg, #7c3aed, #22c55e);
-  color: white;
-  box-shadow: 0 20px 40px rgba(34, 197, 94, 0.24);
-}
-
+.login-name h1,
 .logo-text h1 {
   margin: 0;
   font-size: 1.9rem;
   letter-spacing: -0.02em;
   font-family: 'Playfair Display', Georgia, serif;
   font-weight: 800;
-  background: linear-gradient(135deg, #fff500 0%, #ffaa00 50%, #ff6b00 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-text-stroke: 0.3px rgba(255,255,255,0.18);
-  filter: drop-shadow(0 0 20px rgba(255, 200, 0, 0.35));
+  color: #fbbf24;
+  text-shadow:
+    0 1px 0 #d97706,
+    0 2px 0 #b45309,
+    0 3px 0 #92400e,
+    0 4px 8px rgba(0,0,0,0.4);
+  filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.3));
 }
 .kn-heading {
   font-family: 'Noto Sans Kannada', 'Nirmala UI', sans-serif;
   font-size: 1.9rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  background: linear-gradient(135deg, #f0abfc 0%, #c084fc 50%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-text-stroke: 0.3px rgba(255,255,255,0.18);
-  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.35));
-  margin-top: 4px;
+  color: #fca5a5;
+  text-shadow:
+    0 1px 0 #dc2626,
+    0 2px 0 #b91c1c,
+    0 3px 0 #991b1b,
+    0 4px 8px rgba(0,0,0,0.4);
+  margin-top: 0;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
 }
 
 .logo-text p,
@@ -1112,7 +1165,6 @@ body {
   right: 12px;
   color: #64748b;
   font-weight: 500;
-  pointer-events: none;
 }
 .input-suffix + input { padding-right: 28px }
 
@@ -1440,4 +1492,3 @@ body {
 .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #7c3aed; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
 .btn .spinner { width: 16px; height: 16px; border-width: 2px; vertical-align: middle; margin-right: 6px; }
 .btn.loading { pointer-events: none; opacity: 0.7; }
-
