@@ -79,6 +79,8 @@ const I18N = {
     'Share amount': 'Share amount',
     'Loan principal': 'Loan principal',
     'Loan interest': 'Loan interest',
+    'Interest': 'Interest',
+    'Principal': 'Principal',
     'Fine': 'Fine',
     'Late fee': 'Late fee',
     'Set the full split for this member on this date.': 'Set the full split for this member on this date.',
@@ -87,6 +89,7 @@ const I18N = {
     'Find a wrong entry, fix its amount/date/member, or delete it.': 'Find a wrong entry, fix its amount/date/member, or delete it.',
     'All types': 'All types',
     'Share / Loan': 'Share / Loan',
+    'Total': 'Total',
     'All members': 'All members',
     'Search member or description...': 'Search member or description...',
     'From': 'From',
@@ -122,6 +125,8 @@ const I18N = {
     'Add FD': 'Add FD',
     'Active': 'Active',
     'Record': 'Record',
+    'Show installments': 'Show installments',
+    'Hide installments': 'Hide installments',
     'Income / Expenses': 'Income / Expenses',
     'Income (Gains)': 'Income (Gains)',
     'Expenses': 'Expenses',
@@ -296,6 +301,8 @@ const I18N = {
     'Share amount': 'ಷೇರು ಮೊತ್ತ',
     'Loan principal': 'ಸಾಲದ ಮೂಲಬಂಡವಾಳ',
     'Loan interest': 'ಸಾಲದ ಬಡ್ಡಿ',
+    'Interest': 'ಬಡ್ಡಿ',
+    'Principal': 'ಅಸಲು',
     'Fine': 'ದಂಡ',
     'Late fee': 'ವಿಳಂಬ ಶುಲ್ಕ',
     'Set the full split for this member on this date.': 'ಈ ದಿನಾಂಕದ ಈ ಸದಸ್ಯರ ಸಂಪೂರ್ಣ ವಿಭಾಗವನ್ನು ಹೊಂದಿಸಿ.',
@@ -304,6 +311,7 @@ const I18N = {
     'Find a wrong entry, fix its amount/date/member, or delete it.': 'ತಪ್ಪಾದ ನಮೂದನ್ನು ಹುಡುಕಿ, ಅದರ ಮೊತ್ತ/ದಿನಾಂಕ/ಸದಸ್ಯರನ್ನು ಸರಿಪಡಿಸಿ, ಅಥವಾ ಅಳಿಸಿ.',
     'All types': 'ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು',
     'Share / Loan': 'ಷೇರು / ಸಾಲ',
+    'Total': 'ಒಟ್ಟು',
     'All members': 'ಎಲ್ಲಾ ಸದಸ್ಯರು',
     'Search member or description...': 'ಸದಸ್ಯ ಅಥವಾ ವಿವರಣೆ ಹುಡುಕಿ...',
     'From': 'ಇಂದ',
@@ -339,6 +347,8 @@ const I18N = {
     'Add FD': 'ಎಫ್‌ಡಿ ಸೇರಿಸಿ',
     'Active': 'ಸಕ್ರಿಯ',
     'Record': 'ದಾಖಲೆ',
+    'Show installments': 'ಕಂತುಗಳನ್ನು ತೋರಿಸಿ',
+    'Hide installments': 'ಕಂತುಗಳನ್ನು ಮರೆಮಾಡಿ',
     'Income / Expenses': 'ಆದಾಯ / ಖರ್ಚು',
     'Income (Gains)': 'ಆದಾಯ',
     'Expenses': 'ಖರ್ಚುಗಳು',
@@ -1004,7 +1014,7 @@ async function renderAdminPanel() {
   const html = `
     <div class="panel">
       <h2 class="page-title">${t('Admin Panel')}</h2>
-      <div class="grid-2">
+      <div class="grid-2 grid-stretch">
         <div class="panel">
           <button class="btn btn-admin-toggle" id="toggle-add-member" style="width:100%;justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
           <div id="add-member-form" style="display:none;margin-top:12px">
@@ -1050,7 +1060,7 @@ async function renderAdminPanel() {
           <div class="grid-2" style="gap:16px;margin-bottom:14px">
             <div class="panel" style="margin:0">
               <h4 style="color:#34d399;margin:0 0 8px">${t('Income (Gains)')}</h4>
-              <button class="btn primary" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
+              <button class="btn primary btn-shine" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
               <div id="income-form" style="display:none;margin-top:10px">
                 <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="income-amount" type="text" /></div></div>
                 <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="income-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
@@ -1060,7 +1070,7 @@ async function renderAdminPanel() {
             </div>
             <div class="panel" style="margin:0">
               <h4 style="color:#fca5a5;margin:0 0 8px">${t('Expenses')}</h4>
-              <button class="btn primary" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
+              <button class="btn primary btn-shine" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
               <div id="expense-form" style="display:none;margin-top:10px">
                 <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="expense-amount" type="text" /></div></div>
                 <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="expense-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
@@ -1072,7 +1082,8 @@ async function renderAdminPanel() {
           <div id="ie-list"></div>
         </div>
         <div style="margin-top:22px">
-          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('🔒 Hardlock / Investment')}</h4>
+          <button class="btn btn-admin-toggle" id="fd-toggle-btn" style="width:100%;justify-content:center;gap:8px">${t('🔒 Hardlock / Investment')} <span class="fd-chevron" id="fd-toggle-chevron">▾</span></button>
+          <div id="fd-form-body" style="display:none;margin-top:12px">
           <div class="fd-card-form">
             <div style="display:flex;gap:10px;margin-bottom:12px">
               <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
@@ -1110,15 +1121,16 @@ async function renderAdminPanel() {
             </div>
             <p id="inv-monthly-note" style="display:none;color:#94a3b8;font-size:0.85rem;margin:8px 0 0">${t('Add monthly installments using the + button in Active section.')}</p>
           </div>
+          </div>
           <div class="fd-sections">
-            <div class="fd-section">
-              <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
-              <div id="fd-keeping"></div>
-            </div>
-            <div class="fd-section">
-              <div class="fd-section-head"><span class="fd-section-dot closed"></span> ${t('Record')}</div>
-              <div id="fd-record"></div>
-            </div>
+          <div class="fd-section">
+            <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
+            <div id="fd-keeping"></div>
+          </div>
+          <div class="fd-section">
+            <div class="fd-section-head"><span class="fd-section-dot closed"></span> ${t('Record')}</div>
+            <div id="fd-record"></div>
+          </div>
           </div>
         </div>
       </div>
@@ -1147,6 +1159,14 @@ async function renderAdminPanel() {
   content.innerHTML = html
   document.getElementById('add-member-btn').onclick = handleAddMember
   document.getElementById('fd-add-btn').onclick = handleAddFd
+  const fdToggleBtn = document.getElementById('fd-toggle-btn')
+  if (fdToggleBtn) {
+    fdToggleBtn.onclick = () => {
+      toggleAdminSection('fd-toggle-btn', 'fd-form-body')
+      const ch = document.getElementById('fd-toggle-chevron')
+      if (ch) ch.textContent = fdToggleBtn.classList.contains('active') ? '▴' : '▾'
+    }
+  }
   document.getElementById('toggle-income-form').onclick = () => toggleForm('income')
   document.getElementById('toggle-expense-form').onclick = () => toggleForm('expense')
   document.getElementById('save-income-btn').onclick = () => handleSaveIe('credit')
@@ -1167,14 +1187,8 @@ async function renderAdminPanel() {
   if (deInterest) indianizeInput(deInterest)
   const deBtn = document.getElementById('de-submit-btn')
   if (deBtn) deBtn.onclick = handleDirectEntry
-  document.getElementById('toggle-add-member').onclick = () => {
-    const form = document.getElementById('add-member-form')
-    form.style.display = form.style.display === 'none' ? 'block' : 'none'
-  }
-  document.getElementById('toggle-direct-entry').onclick = () => {
-    const form = document.getElementById('direct-entry-form')
-    form.style.display = form.style.display === 'none' ? 'block' : 'none'
-  }
+  document.getElementById('toggle-add-member').onclick = () => toggleAdminSection('toggle-add-member', 'add-member-form')
+  document.getElementById('toggle-direct-entry').onclick = () => toggleAdminSection('toggle-direct-entry', 'direct-entry-form')
   const incDate = document.getElementById('income-date')
   if (incDate) createDatePicker(incDate)
   const expDate = document.getElementById('expense-date')
@@ -1262,8 +1276,9 @@ function eeRowHtml(e) {
   let amountHtml = `<div class="ee-amount">${e.kind === 'expense' ? '−' : ''}${formatCurrency(e.amount)}</div>`
   if (isSplitKind(e.kind)) {
     const sp = e.split || {}
-    const cell = (label, val) => `<span class="ee-split-cell"><span class="ee-split-label">${label}</span><span class="ee-split-val">${formatCurrency(val || 0)}</span></span>`
-    amountHtml = `<div class="ee-split">${cell(t('Share'), sp.share)}${cell(t('Late fee'), sp.late_fee)}${cell(t('Loan interest'), sp.interest)}${cell(t('Loan principal'), sp.principal)}</div>`
+    const cell = (label, val, cls) => `<span class="ee-split-cell${cls ? ' ' + cls : ''}"><span class="ee-split-label">${label}</span><span class="ee-split-val">${formatCurrency(val || 0)}</span></span>`
+    const total = (sp.share || 0) + (sp.late_fee || 0) + (sp.interest || 0) + (sp.principal || 0)
+    amountHtml = `<div class="ee-split">${cell(t('Share'), sp.share)}${cell(t('Late fee'), sp.late_fee)}${cell(t('Interest'), sp.interest)}${cell(t('Principal'), sp.principal)}${cell(t('Total'), total, 'ee-split-total')}</div>`
   } else if (e.desc) {
     detail = `<div class="ee-sub">${escHtml(e.desc)}</div>`
   }
@@ -1275,11 +1290,11 @@ function eeRowHtml(e) {
       <span class="ee-date">${formatDate(e.date)}</span>
     </div>
     ${amountHtml}
-    ${detail}
     <div class="ee-actions">
       <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem" onclick="eeEdit('${e.id}')">✏️ ${t('Edit')}</button>
       <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem;color:#fca5a5" onclick="eeDelete('${e.id}')">🗑 ${t('Delete')}</button>
     </div>
+    ${detail}
   </div>`
 }
 
@@ -1290,7 +1305,9 @@ function eeEdit(id) {
   if (isSplitKind(e.kind)) {
     const sp = e.split || {}
     const num = (k, fallback) => sp[k] != null ? sp[k] : (fallback || 0)
+    const total = (sp.share || 0) + (sp.late_fee || 0) + (sp.interest || 0) + (sp.principal || 0)
     fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
+      <div class="ee-edit-total">${t('Total')}: <strong id="ee-edit-total-val">${formatCurrency(total)}</strong></div>
       <div class="input-row"><label>${t('Share')}</label><input id="ee-edit-share" type="text" class="admin-input" value="${num('share', e.amount)}" /></div>
       <div class="input-row"><label>${t('Late fee')}</label><input id="ee-edit-latefee" type="text" class="admin-input" value="${num('late_fee', e.fine)}" /></div>
       <div class="input-row"><label>${t('Loan interest')}</label><input id="ee-edit-interest" type="text" class="admin-input" value="${num('interest', e.interest)}" /></div>
@@ -1321,6 +1338,20 @@ function eeEdit(id) {
     const el = document.getElementById(id2)
     if (el) indianizeInput(el)
   })
+  const totalVal = document.getElementById('ee-edit-total-val')
+  if (totalVal) {
+    const recalcTotal = () => {
+      const sum = ['ee-edit-share', 'ee-edit-latefee', 'ee-edit-interest', 'ee-edit-principal'].reduce((acc, id2) => {
+        const el = document.getElementById(id2)
+        return acc + (Number((el && el.value || '').replace(/,/g, '')) || 0)
+      }, 0)
+      totalVal.textContent = formatCurrency(sum)
+    }
+    ;['ee-edit-share', 'ee-edit-latefee', 'ee-edit-interest', 'ee-edit-principal'].forEach(id2 => {
+      const el = document.getElementById(id2)
+      if (el) el.addEventListener('input', recalcTotal)
+    })
+  }
 }
 
 async function eeSave(e, overlay) {
@@ -1387,7 +1418,7 @@ function toggleForm(type) {
   const form = document.getElementById(id)
   const isVisible = form.style.display !== 'none'
   form.style.display = isVisible ? 'none' : 'block'
-  document.getElementById(btn).textContent = isVisible ? t('− Cancel') : (type === 'income' ? t('+ Add Income') : t('+ Add Expense'))
+  document.getElementById(btn).textContent = isVisible ? (type === 'income' ? t('+ Add Income') : t('+ Add Expense')) : t('− Cancel')
 }
 
 window.toggleInvType = function() {
@@ -2499,6 +2530,14 @@ async function handleDirectEntry() {
   }
 }
 
+function toggleAdminSection(btnId, bodyId) {
+  const btn = document.getElementById(btnId)
+  const body = document.getElementById(bodyId)
+  const open = body.style.display !== 'none'
+  body.style.display = open ? 'none' : 'block'
+  btn.classList.toggle('active', !open)
+}
+
 async function renderFdEntries() {
   const keepingDiv = document.getElementById('fd-keeping')
   const recordDiv = document.getElementById('fd-record')
@@ -2570,12 +2609,13 @@ function schemeCard(scheme, installments, totalInvested) {
       </div>
       <button class="fd-btn-withdraw" onclick="closeFd(${scheme.id})" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">${t('Close Scheme')}</button>
     </div>
-    <div style="display:flex;gap:16px;font-size:0.8rem;color:#94a3b8;margin-bottom:8px">
+    <div style="display:flex;gap:12px;font-size:0.8rem;color:#94a3b8;align-items:center;flex-wrap:wrap">
       <span>${formatDate(scheme.start_date)} → ${scheme.maturity_date ? formatDate(scheme.maturity_date) : '-'}</span>
       <span>${t('Total')}: <strong style="color:#e2e8f0">${formatCurrency(totalInvested)}</strong></span>
       <span>${installments.length} ${t('installments')}</span>
+      <button class="fd-scheme-toggle" id="scheme-toggle-${scheme.id}" onclick="toggleScheme(${scheme.id})">${t('Show installments')} <span class="fd-chevron">▾</span></button>
     </div>
-    <div style="margin-top:8px">
+    <div id="scheme-body-${scheme.id}" style="margin-top:8px;display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-size:0.8rem;color:#94a3b8">${t('Installments')}</span>
         <button class="fd-btn-withdraw" onclick="showInstallmentForm(${scheme.id})" style="background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.2);padding:2px 10px;font-size:0.75rem">+ ${t('Add')}</button>
@@ -2584,6 +2624,15 @@ function schemeCard(scheme, installments, totalInvested) {
       ${instRows || '<div style="color:#64748b;font-size:0.8rem">' + t('No installments yet') + '</div>'}
     </div>
   </div>`
+}
+
+function toggleScheme(schemeId) {
+  const body = document.getElementById('scheme-body-' + schemeId)
+  const btn = document.getElementById('scheme-toggle-' + schemeId)
+  const open = body.style.display !== 'none'
+  body.style.display = open ? 'none' : 'block'
+  btn.classList.toggle('open', !open)
+  btn.innerHTML = (open ? t('Show installments') : t('Hide installments')) + ' <span class="fd-chevron">' + (open ? '▸' : '▾') + '</span>'
 }
 
 function closedSchemeCard(scheme, installments, totalInvested) {
@@ -2597,12 +2646,13 @@ function closedSchemeCard(scheme, installments, totalInvested) {
       <span style="font-weight:600;font-size:0.9rem">${escHtml(scheme.notes || 'Unnamed')}</span>
       <span style="font-size:0.7rem;background:rgba(148,163,184,0.15);color:#94a3b8;padding:2px 8px;border-radius:4px">${t('Closed Scheme')}</span>
     </div>
-    <div style="display:flex;gap:16px;font-size:0.8rem;color:#94a3b8">
+    <div style="display:flex;gap:12px;font-size:0.8rem;color:#94a3b8;align-items:center;flex-wrap:wrap">
       <span>${formatDate(scheme.start_date)} → ${scheme.maturity_date ? formatDate(scheme.maturity_date) : '-'}</span>
       <span>${t('Invested')}: ${formatCurrency(totalInvested)}</span>
       <span>${t('Return')}: ${scheme.interest_earned ? formatCurrency(scheme.interest_earned) : '-'}</span>
+      <button class="fd-scheme-toggle" id="scheme-toggle-${scheme.id}" onclick="toggleScheme(${scheme.id})">${t('Show installments')} <span class="fd-chevron">▸</span></button>
     </div>
-    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(148,163,184,0.08)">
+    <div id="scheme-body-${scheme.id}" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(148,163,184,0.08);display:none">
       <div style="font-size:0.75rem;color:#64748b;margin-bottom:4px">${installments.length} ${t('installments')}</div>
       ${instRows}
     </div>
