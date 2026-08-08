@@ -24,6 +24,48 @@ function showToast(msg, type = 'info', timeout = 3500) {
   setTimeout(() => t.remove(), timeout)
 }
 
+// Static map of member English names -> correct Kannada spellings (whole-name translation)
+const KN_NAME_MAP = {
+  'govindrao kulkarni': 'ಗೋವಿಂದರಾವ್ ಕುಲಕರ್ಣಿ',
+  'bharat kulkarni': 'ಭಾರತ್ ಕುಲಕರ್ಣಿ',
+  'bhargav kulkarni': 'ಭಾರ್ಗವ್ ಕುಲಕರ್ಣಿ',
+  'sangeeta kulkarni': 'ಸಂಗೀತಾ ಕುಲಕರ್ಣಿ',
+  'rohan kulkarni': 'ರೋಹನ್ ಕುಲಕರ್ಣಿ',
+  'nachiket bhenki': 'ನಚಿಕೇತ್ ಭೇಂಕಿ',
+  'indiresh joshi': 'ಇಂದಿರೇಶ್ ಜೋಷಿ',
+  'kiran joshi': 'ಕಿರಣ್ ಜೋಷಿ',
+  'suchiket bhenki': 'ಸುಚಿಕೇತ್ ಭೇಂಕಿ',
+  'sanjeev joshi': 'ಸಂಜೀವ್ ಜೋಷಿ',
+  'indira sarnad': 'ಇಂದಿರಾ ಸರನಾಡ್',
+  'bhimbhatt bhenki': 'ಭೀಮ್ಭಟ್ಟ್ ಭೇಂಕಿ',
+}
+
+function kanName(name) {
+  const key = String(name || '').trim().toLowerCase()
+  return KN_NAME_MAP[key] || name
+}
+
+// Welcome overlay shown once right after login
+function showWelcomeOverlay(name) {
+  const existing = document.querySelector('.welcome-overlay')
+  if (existing) existing.remove()
+  const overlay = document.createElement('div')
+  overlay.className = 'welcome-overlay'
+  overlay.innerHTML = `
+    <div class="welcome-card">
+      <div class="welcome-text">
+        <div class="welcome-name">${t('Welcome,')} ${escHtml(name)}</div>
+        <div class="welcome-name kn">ಸ್ವಾಗತ, ${escHtml(kanName(name))}</div>
+      </div>
+      <div class="welcome-gesture">🙏</div>
+    </div>`
+  document.body.appendChild(overlay)
+  setTimeout(() => {
+    overlay.classList.add('hide')
+    setTimeout(() => overlay.remove(), 500)
+  }, 2400)
+}
+
 // Loading spinner helpers
 function setLoading(btn, loading) {
   if (!btn) return
@@ -821,6 +863,7 @@ async function handleLogin() {
     renderMenu()
     renderView()
     showScreen('main')
+    showWelcomeOverlay(user.name)
   } catch (err) {
     loginError.textContent = t(err.error || 'Login failed. Check your name/PIN.')
     loginError.classList.remove('hidden')
@@ -887,10 +930,6 @@ async function renderHome() {
   const defMonth = months.length ? months[months.length - 1] : ''
   const defYear = years.length ? years[years.length - 1] : ''
   const html = `
-    <div class="panel welcome-panel">
-      <h2 class="page-title">${t('Welcome,')} ${state.currentUser.name}</h2>
-    </div>
-
     <div class="panel">
       <h3 class="section-heading">${t('💰 Financial Overview')}</h3>
       <div class="total-box" style="margin-bottom:16px">
@@ -1054,6 +1093,22 @@ async function renderAdminPanel() {
           <div id="pending-payments"></div>
         </div>
       </div>
+      <div class="panel" style="margin-top:18px">
+        <h3 class="section-heading">${t('✏️ Edit / Correct Entries')}</h3>
+        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
+        <div class="ee-filters">
+          <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
+          <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.id}">${escHtml(m.name)}</option>`).join('')}</select>
+          <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
+        </div>
+        <div class="ee-filters" style="margin-top:8px">
+          <label class="ee-date-label">${t('From')}:</label>
+          <input type="date" id="ee-from" class="admin-input" style="flex:1;min-width:0" />
+          <label class="ee-date-label">${t('To')}:</label>
+          <input type="date" id="ee-to" class="admin-input" style="flex:1;min-width:0" />
+        </div>
+        <div id="ee-list" style="margin-top:12px"></div>
+      </div>
       <div class="panel bank-income-box">
         <div style="margin-top:0">
           <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('Income / Expenses')}</h4>
@@ -1134,25 +1189,6 @@ async function renderAdminPanel() {
           </div>
         </div>
       </div>
-      <div class="panel" style="margin-top:18px">
-        <h3 class="section-heading">${t('✏️ Edit / Correct Entries')}</h3>
-        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
-        <div class="ee-filters">
-          <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
-          <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.id}">${escHtml(m.name)}</option>`).join('')}</select>
-          <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
-        </div>
-        <div class="ee-filters" style="margin-top:8px">
-          <label class="ee-date-label">${t('From')}:</label>
-          <input type="date" id="ee-from" class="admin-input" style="flex:1;min-width:0" />
-          <label class="ee-date-label">${t('To')}:</label>
-          <input type="date" id="ee-to" class="admin-input" style="flex:1;min-width:0" />
-        </div>
-        <div id="ee-list" style="margin-top:12px"></div>
-      </div>
-      <div class="panel" style="margin-top:18px">
-        <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">📋 Server Logs</h4>
-        <div id="admin-logs"></div>
       </div>
     </div>
   `
@@ -2923,7 +2959,7 @@ async function handleSubmitPayment(memberId) {
   }
 }
 
-const ADMIN_PIN = '1234'
+const ADMIN_PIN = '5634'
 
 document.addEventListener('DOMContentLoaded', () => {
   try {

@@ -32,7 +32,7 @@ def client():
         yield c
 
 
-ADMIN_PIN = '1234'
+ADMIN_PIN = '5634'
 
 
 def _create_member(client, name='Test Member'):

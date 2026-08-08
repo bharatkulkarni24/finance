@@ -749,8 +749,6 @@ body {
   }
 }
 
-/* Welcome panel - no extra styling needed, just remove the old collective padding */
-.welcome-panel { margin-bottom:18px }
 
 /* Group Info Section */
 .group-info {
@@ -758,7 +756,7 @@ body {
   border-radius: 28px;
   border: 1px solid rgba(148,163,184,0.12);
   box-shadow: 0 30px 60px rgba(8,17,36,0.35);
-  margin-bottom: 18px;
+  margin-bottom: 9px;
   overflow: hidden;
 }
 
@@ -771,12 +769,19 @@ body {
   padding: 0 0 12px;
 }
 
+.group-info .section-heading {
+  padding: 26px 26px 12px;
+  margin-bottom: 0;
+}
+
 .group-info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  padding: 20px 26px 26px;
+  padding: 0 26px 26px;
 }
+
+#content > .panel { margin-bottom: 9px }
 
 .gi-card {
   background: rgba(255,255,255,0.03);
@@ -1209,6 +1214,60 @@ body {
 .toast.success { background: #bbf7d0; color:#06361a }
 .toast.error { background: #fecaca; color:#4b0000 }
 .toast.info { background: #bfdbfe; color:#02244a }
+
+/* Welcome overlay shown once on login */
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  background: rgba(2,6,23,0.55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  animation: welcomeFadeIn 0.45s ease forwards;
+  pointer-events: none;
+}
+.welcome-overlay.hide {
+  animation: welcomeFadeOut 0.5s ease forwards;
+}
+.welcome-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  text-align: left;
+  background: linear-gradient(145deg, rgba(99,102,241,0.16), rgba(139,92,246,0.08));
+  border: 1px solid rgba(139,92,246,0.28);
+  border-radius: 20px;
+  padding: 26px 34px;
+  box-shadow: 0 30px 70px rgba(8,17,36,0.6);
+  transform: scale(0.85);
+  animation: welcomePop 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+.welcome-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.welcome-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.25;
+}
+.welcome-name.kn {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #c7d2fe;
+}
+.welcome-gesture {
+  font-size: 3.6rem;
+  line-height: 1;
+}
+@keyframes welcomeFadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes welcomeFadeOut { from { opacity: 1 } to { opacity: 0 } }
+@keyframes welcomePop { from { transform: scale(0.85); opacity: 0 } to { transform: scale(1); opacity: 1 } }
 
 /* Logout confirmation modal */
 .modal-overlay {
