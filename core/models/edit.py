@@ -3,8 +3,8 @@ from datetime import date as dt_date
 from core.database import get_conn, row_to_dict
 from core.models.loan import compute_interest_accrued
 
-VALID_KINDS = ('share', 'deposit', 'loan_payment', 'income', 'expense', 'late_fee', 'fd')
-SPLIT_KINDS = ('share', 'late_fee', 'loan_payment')
+VALID_KINDS = ('share', 'deposit', 'loan_payment', 'income', 'expense', 'late_fee', 'fd', 'split')
+SPLIT_KINDS = ('share', 'late_fee', 'loan_payment', 'split')
 
 
 def _match_contribution_txn(cur, member_id, amount, ctype):
@@ -37,12 +37,14 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
     out = []
     like = '%' + (q or '') + '%'
 
-    if etype in ('all', 'share', 'deposit'):
+    if etype in ('all', 'share', 'deposit', 'split'):
         sql = ("SELECT c.id, c.member_id, m.name AS member_name, c.date, c.amount, c.type "
                "FROM contributions c LEFT JOIN members m ON m.id=c.member_id "
                "WHERE c.type IN ('share','deposit')")
         params = []
-        if etype in ('share', 'deposit'):
+        if etype == 'split':
+            sql += " AND c.type='share'"
+        elif etype in ('share', 'deposit'):
             sql += ' AND c.type=?'
             params.append(etype)
         if member_id:
@@ -77,7 +79,7 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
                 'payment_id': None,
             })
 
-    if etype in ('all', 'loan_payment'):
+    if etype in ('all', 'loan_payment', 'split'):
         sql = ("SELECT p.id, p.member_id, m.name AS member_name, p.date, p.amount, "
                "p.interest_paid, p.principal_paid, COALESCE(p.late_fee_paid,0) AS late_fee_paid "
                "FROM payments p LEFT JOIN members m ON m.id=p.member_id WHERE 1=1")
@@ -114,12 +116,14 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
                 'payment_id': d['id'],
             })
 
-    if etype in ('all', 'income', 'expense', 'late_fee', 'fd'):
+    if etype in ('all', 'income', 'expense', 'late_fee', 'fd', 'split'):
         sql = ("SELECT t.id, t.member_id, m.name AS member_name, t.timestamp, t.desc, t.debit_credit, t.amount, t.source "
                "FROM transactions t LEFT JOIN members m ON m.id=t.member_id "
                "WHERE (t.source='manual_ie' OR t.desc='Late fee' OR t.desc LIKE 'FD Interest%')")
         params = []
-        if etype == 'income':
+        if etype == 'split':
+            sql += " AND t.desc='Late fee'"
+        elif etype == 'income':
             sql += " AND t.source='manual_ie' AND t.debit_credit='credit'"
         elif etype == 'expense':
             sql += " AND t.source='manual_ie' AND t.debit_credit='debit'"
@@ -171,6 +175,8 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
             })
 
     attach_split(cur, out)
+    if etype in ('all', 'split'):
+        out = _group_split_rows(out)
     conn.close()
     out.sort(key=lambda e: (e['date'] or ''), reverse=True)
     return out
@@ -205,6 +211,38 @@ def attach_split(cur, out):
                 'interest': s.get('interest') or 0,
                 'principal': s.get('principal') or 0,
             }
+
+
+def _group_split_rows(out):
+    """Collapse share/late-fee/loan rows into one 'split' row per (member, date)."""
+    grouped = []
+    seen = set()
+    for e in out:
+        if e['kind'] in ('share', 'late_fee', 'loan_payment'):
+            key = (e['member_id'], e['date'])
+            if key in seen:
+                continue
+            seen.add(key)
+            sp = e.get('split') or {}
+            total = (sp.get('share') or 0) + (sp.get('late_fee') or 0) + (sp.get('interest') or 0) + (sp.get('principal') or 0)
+            grouped.append({
+                'id': 's{}'.format(e['member_id'] if e['member_id'] is not None else '0') + '-' + e['date'],
+                'kind': 'split',
+                'member_id': e['member_id'],
+                'member_name': e['member_name'],
+                'date': e['date'],
+                'amount': round(total, 2),
+                'principal': None,
+                'interest': None,
+                'fine': None,
+                'contribution_id': None,
+                'transaction_id': None,
+                'payment_id': None,
+                'split': sp,
+            })
+        else:
+            grouped.append(e)
+    return grouped
 
 
 def resplit(member_id, date, share, late_fee, loan_interest, loan_principal):
@@ -394,6 +432,29 @@ def delete_entry(data):
         tid = data.get('transaction_id')
         if tid:
             cur.execute('DELETE FROM transactions WHERE id=?', (int(tid),))
+        conn.commit()
+        conn.close()
+        return {'status': 'ok'}
+
+    if kind == 'split':
+        member_id = int(data.get('member_id'))
+        date = (data.get('date') or '')[:10]
+        for r in cur.execute("SELECT id, amount FROM contributions WHERE member_id=? AND date=? AND type='share'", (member_id, date)):
+            tid = _match_contribution_txn(cur, member_id, r['amount'], 'share')
+            cur.execute('DELETE FROM contributions WHERE id=?', (r['id'],))
+            if tid:
+                cur.execute('DELETE FROM transactions WHERE id=?', (tid,))
+        for r in cur.execute("SELECT id, amount, loan_id, principal_paid FROM payments WHERE member_id=? AND date=?", (member_id, date)):
+            if r['loan_id'] and r['principal_paid']:
+                cur.execute('SELECT outstanding FROM loans WHERE id=?', (r['loan_id'],))
+                lrow = cur.fetchone()
+                if lrow:
+                    cur.execute('UPDATE loans SET outstanding=? WHERE id=?', (round((lrow['outstanding'] or 0) + r['principal_paid'], 2), r['loan_id']))
+            cur.execute('DELETE FROM payments WHERE id=?', (r['id'],))
+            tid = _match_payment_txn(cur, member_id, r['amount'])
+            if tid:
+                cur.execute('DELETE FROM transactions WHERE id=?', (tid,))
+        cur.execute("DELETE FROM transactions WHERE member_id=? AND substr(timestamp,1,10)=? AND desc='Late fee'", (member_id, date))
         conn.commit()
         conn.close()
         return {'status': 'ok'}

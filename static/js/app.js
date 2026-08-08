@@ -86,6 +86,7 @@ const I18N = {
     '✏️ Edit / Correct Entries': '✏️ Edit / Correct Entries',
     'Find a wrong entry, fix its amount/date/member, or delete it.': 'Find a wrong entry, fix its amount/date/member, or delete it.',
     'All types': 'All types',
+    'Share / Loan': 'Share / Loan',
     'All members': 'All members',
     'Search member or description...': 'Search member or description...',
     'From': 'From',
@@ -302,6 +303,7 @@ const I18N = {
     '✏️ Edit / Correct Entries': '✏️ ನಮೂದುಗಳನ್ನು ಸರಿಪಡಿಸಿ',
     'Find a wrong entry, fix its amount/date/member, or delete it.': 'ತಪ್ಪಾದ ನಮೂದನ್ನು ಹುಡುಕಿ, ಅದರ ಮೊತ್ತ/ದಿನಾಂಕ/ಸದಸ್ಯರನ್ನು ಸರಿಪಡಿಸಿ, ಅಥವಾ ಅಳಿಸಿ.',
     'All types': 'ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು',
+    'Share / Loan': 'ಷೇರು / ಸಾಲ',
     'All members': 'ಎಲ್ಲಾ ಸದಸ್ಯರು',
     'Search member or description...': 'ಸದಸ್ಯ ಅಥವಾ ವಿವರಣೆ ಹುಡುಕಿ...',
     'From': 'ಇಂದ',
@@ -996,9 +998,8 @@ async function renderAdminPanel() {
   const pendingLoans = state.members
     .flatMap(member => member.id ? [member] : [])
   const eeTypeOptions = [
-    ['all', t('All types')], ['share', t('Share')], ['deposit', t('Deposit')],
-    ['loan_payment', t('Loan Payment')], ['income', t('Income')],
-    ['expense', t('Expense')], ['late_fee', t('Late Fee')], ['fd', t('Hardlock / Investment')],
+    ['all', t('All types')], ['split', t('Share / Loan')], ['deposit', t('Deposit')],
+    ['income', t('Income')], ['expense', t('Expense')], ['fd', t('Hardlock / Investment')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   const html = `
     <div class="panel">
@@ -1220,8 +1221,12 @@ async function renderAdminPanel() {
 
 let eeEntries = []
 
+const SPLIT_KINDS = ['share', 'late_fee', 'loan_payment', 'split']
+function isSplitKind(kind) { return SPLIT_KINDS.includes(kind) }
+
 function eeKindLabel(kind) {
-  const map = {share: 'Share', deposit: 'Deposit', loan_payment: 'Loan Payment', income: 'Income', expense: 'Expense', late_fee: 'Late Fee', fd: 'Hardlock / Investment'}
+  if (isSplitKind(kind)) return t('Share / Loan')
+  const map = {deposit: 'Deposit', income: 'Income', expense: 'Expense', fd: 'Hardlock / Investment'}
   return t(map[kind] || kind)
 }
 
@@ -1254,19 +1259,22 @@ async function eeLoad() {
 
 function eeRowHtml(e) {
   let detail = ''
-  if (e.kind === 'loan_payment') {
-    detail = `<div class="ee-sub">${t('Loan principal')}: ${formatCurrency(e.principal)} · ${t('Loan interest')}: ${formatCurrency(e.interest)} · ${t('Fine')}: ${formatCurrency(e.fine)}</div>`
+  let amountHtml = `<div class="ee-amount">${e.kind === 'expense' ? '−' : ''}${formatCurrency(e.amount)}</div>`
+  if (isSplitKind(e.kind)) {
+    const sp = e.split || {}
+    const cell = (label, val) => `<span class="ee-split-cell"><span class="ee-split-label">${label}</span><span class="ee-split-val">${formatCurrency(val || 0)}</span></span>`
+    amountHtml = `<div class="ee-split">${cell(t('Share'), sp.share)}${cell(t('Late fee'), sp.late_fee)}${cell(t('Loan interest'), sp.interest)}${cell(t('Loan principal'), sp.principal)}</div>`
   } else if (e.desc) {
     detail = `<div class="ee-sub">${escHtml(e.desc)}</div>`
   }
-  const badge = e.kind === 'expense' || (e.debit_credit === 'debit') ? 'ee-badge-expense' : 'ee-badge-' + e.kind
+  const badge = isSplitKind(e.kind) ? 'ee-badge-split' : (e.kind === 'expense' || (e.debit_credit === 'debit') ? 'ee-badge-expense' : 'ee-badge-' + e.kind)
   return `<div class="ee-row">
     <div class="ee-main">
       <span class="ee-badge ${badge}">${eeKindLabel(e.kind)}</span>
       <strong>${escHtml(e.member_name)}</strong>
       <span class="ee-date">${formatDate(e.date)}</span>
     </div>
-    <div class="ee-amount">${e.kind === 'expense' ? '−' : ''}${formatCurrency(e.amount)}</div>
+    ${amountHtml}
     ${detail}
     <div class="ee-actions">
       <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem" onclick="eeEdit('${e.id}')">✏️ ${t('Edit')}</button>
@@ -1279,7 +1287,7 @@ function eeEdit(id) {
   const e = eeEntries.find(x => x.id === id)
   if (!e) return
   let fields
-  if (e.kind === 'share' || e.kind === 'late_fee' || e.kind === 'loan_payment') {
+  if (isSplitKind(e.kind)) {
     const sp = e.split || {}
     const num = (k, fallback) => sp[k] != null ? sp[k] : (fallback || 0)
     fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
@@ -1296,7 +1304,7 @@ function eeEdit(id) {
   overlay.id = 'ee-modal'
   overlay.innerHTML = `<div class="modal-box">
     <h3 style="margin:0 0 12px">${t('Edit')}: ${eeKindLabel(e.kind)} — ${escHtml(e.member_name)}</h3>
-    ${e.kind === 'share' || e.kind === 'late_fee' || e.kind === 'loan_payment' ? `<p style="color:#94a3b8;font-size:0.8rem;margin:0 0 10px">${t('Set the full split for this member on this date.')}</p>` : ''}
+    ${isSplitKind(e.kind) ? `<p style="color:#94a3b8;font-size:0.8rem;margin:0 0 10px">${t('Set the full split for this member on this date.')}</p>` : ''}
     ${fields}
     <div class="reject-form-actions" style="margin-top:14px">
       <button class="btn primary" id="ee-save-btn">${t('Save')}</button>
@@ -1324,7 +1332,7 @@ async function eeSave(e, overlay) {
     transaction_id: e.transaction_id,
     payment_id: e.payment_id,
   }
-  if (e.kind === 'share' || e.kind === 'late_fee' || e.kind === 'loan_payment') {
+  if (isSplitKind(e.kind)) {
     const num = id2 => Number(document.getElementById(id2).value.replace(/,/g, '')) || 0
     payload.share = num('ee-edit-share')
     payload.late_fee = num('ee-edit-latefee')
@@ -1353,15 +1361,18 @@ async function eeDelete(id) {
   if (!e) return
   if (!(await showConfirm(t('Delete Entry'), t('Delete this entry permanently?') + ' ' + eeKindLabel(e.kind) + ' — ' + formatCurrency(e.amount)))) return
   try {
+    const payload = e.kind === 'split'
+      ? {kind: 'split', member_id: e.member_id, date: e.date}
+      : {
+          kind: e.kind,
+          contribution_id: e.contribution_id,
+          transaction_id: e.transaction_id,
+          payment_id: e.payment_id,
+        }
     await api('/admin/entries/delete', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
-      body: JSON.stringify({
-        kind: e.kind,
-        contribution_id: e.contribution_id,
-        transaction_id: e.transaction_id,
-        payment_id: e.payment_id,
-      }),
+      body: JSON.stringify(payload),
     })
     showToast(t('Entry deleted'), 'success')
     eeLoad()

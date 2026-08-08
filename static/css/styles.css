@@ -932,6 +932,32 @@ body {
 .ee-badge-expense { background: rgba(239,68,68,0.15); color: #fca5a5 }
 .ee-badge-late_fee { background: rgba(244,63,94,0.15); color: #fda4af }
 .ee-badge-fd { background: rgba(251,146,60,0.15); color: #fdba74 }
+.ee-badge-split { background: rgba(52,211,153,0.15); color: #6ee7b7 }
+.ee-split {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  gap: 6px 16px;
+  flex-basis: 100%;
+  margin-top: -2px;
+}
+.ee-split-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ee-split-label {
+  font-size: 0.68rem;
+  color: #64748b;
+}
+.ee-split-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 480px) {
+  .ee-split { grid-template-columns: repeat(2, max-content); }
+}
 .ee-amount {
   font-weight: 700;
   font-size: 0.95rem;
