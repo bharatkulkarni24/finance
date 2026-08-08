@@ -170,11 +170,13 @@ def admin_entries():
     etype = request.args.get('type', 'all')
     member_id = request.args.get('member_id') or None
     q = request.args.get('q', '')
+    date_from = request.args.get('date_from') or None
+    date_to = request.args.get('date_to') or None
     try:
         limit = int(request.args.get('limit', 200))
     except ValueError:
         limit = 200
-    return jsonify(list_entries(etype=etype, member_id=member_id, q=q, limit=limit))
+    return jsonify(list_entries(etype=etype, member_id=member_id, q=q, date_from=date_from, date_to=date_to, limit=limit))
 
 
 @admin_bp.route('/api/admin/entries/edit', methods=['POST'])

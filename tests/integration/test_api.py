@@ -251,6 +251,63 @@ class TestAPIEditEntries:
         data = resp.get_json()
         assert data and all(e['kind'] == 'share' for e in data)
 
+    def test_list_entries_date_filter(self, client):
+        mid = _create_member(client)
+        client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
+        client.post('/api/admin/approve_request/1', headers={'X-ADMIN-PIN': ADMIN_PIN})
+        share = next(e for e in client.get('/api/admin/entries', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+                     if e['kind'] == 'share')
+        today = share['date']
+        data = client.get(f'/api/admin/entries?date_from={today}&date_to={today}',
+                          headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+        assert any(e['id'] == share['id'] for e in data)
+        data = client.get('/api/admin/entries?date_from=2000-01-01&date_to=2000-01-01',
+                          headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+        assert not any(e['id'] == share['id'] for e in data)
+
+    def test_resplit_full_split(self, client):
+        mid = _create_member(client)
+        client.post(f'/api/members/{mid}/apply_loan', json={'amount': 10000, 'term_months': 12})
+        client.post('/api/admin/approve_loan/1', headers={'X-ADMIN-PIN': ADMIN_PIN})
+        client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
+        client.post('/api/admin/approve_request/1', headers={'X-ADMIN-PIN': ADMIN_PIN})
+        share = next(e for e in client.get('/api/admin/entries', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+                     if e['kind'] == 'share')
+        resp = client.post('/api/admin/entries/edit', headers={'X-ADMIN-PIN': ADMIN_PIN},
+                           json={'kind': 'share', 'member_id': mid, 'date': share['date'],
+                                 'share': 500, 'late_fee': 100, 'interest': 50, 'principal': 1000})
+        assert resp.status_code == 200
+        data = client.get('/api/admin/entries', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+        split = next(e for e in data if e['kind'] == 'share' and e['member_id'] == mid)
+        assert split['split']['share'] == 500
+        assert split['split']['late_fee'] == 100
+        assert split['split']['interest'] == 50
+        assert split['split']['principal'] == 1000
+        assert any(e['kind'] == 'late_fee' and e['amount'] == 100 for e in data)
+        lp = next(e for e in data if e['kind'] == 'loan_payment' and e['member_id'] == mid)
+        assert lp['principal'] == 1000
+        assert lp['interest'] == 50
+
+    def test_income_filter_excludes_late_fee_and_fd(self, client):
+        mid = _create_member(client)
+        client.post(f'/api/members/{mid}/submit_payment_request',
+                    json={'amount': 500, 'type': 'share', 'late_fee': 50})
+        client.post('/api/admin/approve_request/1', headers={'X-ADMIN-PIN': ADMIN_PIN})
+        resp = client.post('/api/admin/fd/add', headers={'X-ADMIN-PIN': ADMIN_PIN},
+                           json={'amount': 10000, 'start_date': '2026-01-01', 'term_months': 12,
+                                 'interest_rate': 8.5, 'notes': 'Test FD'})
+        fd_id = resp.get_json()['id']
+        resp = client.post(f'/api/admin/fd/close/{fd_id}', headers={'X-ADMIN-PIN': ADMIN_PIN},
+                           json={'end_date': '2026-12-01', 'interest_earned': 850})
+        assert resp.status_code == 200
+        fd_data = client.get('/api/admin/entries?type=fd', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+        assert any(e['kind'] == 'fd' and e['amount'] == 850 for e in fd_data)
+        lf_data = client.get('/api/admin/entries?type=late_fee', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+        assert any(e['kind'] == 'late_fee' for e in lf_data)
+        income = client.get('/api/admin/entries?type=income', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
+        assert not any(e['kind'] == 'late_fee' for e in income)
+        assert not any(e['kind'] == 'fd' for e in income)
+
     def test_edit_share_entry(self, client):
         mid = _create_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
@@ -258,9 +315,8 @@ class TestAPIEditEntries:
         data = client.get('/api/admin/entries', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
         share = next(e for e in data if e['kind'] == 'share')
         resp = client.post('/api/admin/entries/edit', headers={'X-ADMIN-PIN': ADMIN_PIN},
-                           json={'kind': 'share', 'contribution_id': share['contribution_id'],
-                                 'transaction_id': share['transaction_id'], 'member_id': mid,
-                                 'date': '2026-08-05', 'amount': 600})
+                           json={'kind': 'share', 'member_id': mid, 'date': share['date'],
+                                 'share': 600, 'late_fee': 0, 'interest': 0, 'principal': 0})
         assert resp.status_code == 200
         resp = client.get(f'/api/members/{mid}', headers={'X-ADMIN-PIN': ADMIN_PIN})
         contrib = next(c for c in resp.get_json()['contributions'] if c['id'] == share['contribution_id'])
@@ -276,9 +332,8 @@ class TestAPIEditEntries:
         data = client.get('/api/admin/entries', headers={'X-ADMIN-PIN': ADMIN_PIN}).get_json()
         lp = next(e for e in data if e['kind'] == 'loan_payment' and e['principal'] > 0)
         resp = client.post('/api/admin/entries/edit', headers={'X-ADMIN-PIN': ADMIN_PIN},
-                           json={'kind': 'loan_payment', 'payment_id': lp['payment_id'],
-                                 'transaction_id': lp['transaction_id'], 'member_id': mid,
-                                 'date': '2026-08-05', 'principal': 1500, 'interest': 100, 'fine': 0})
+                           json={'kind': 'loan_payment', 'member_id': mid, 'date': lp['date'],
+                                 'share': 0, 'late_fee': 0, 'interest': 100, 'principal': 1500})
         assert resp.status_code == 200
         resp = client.get(f'/api/members/{mid}', headers={'X-ADMIN-PIN': ADMIN_PIN})
         loan = resp.get_json()['loans'][0]

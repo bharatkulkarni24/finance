@@ -80,14 +80,19 @@ const I18N = {
     'Loan principal': 'Loan principal',
     'Loan interest': 'Loan interest',
     'Fine': 'Fine',
+    'Late fee': 'Late fee',
+    'Set the full split for this member on this date.': 'Set the full split for this member on this date.',
     'No data for this period': 'No data for this period',
     '✏️ Edit / Correct Entries': '✏️ Edit / Correct Entries',
     'Find a wrong entry, fix its amount/date/member, or delete it.': 'Find a wrong entry, fix its amount/date/member, or delete it.',
     'All types': 'All types',
     'All members': 'All members',
     'Search member or description...': 'Search member or description...',
+    'From': 'From',
+    'To': 'To',
     'None': 'None',
     'No entries found.': 'No entries found.',
+    'Select a type or member, or search, to show entries.': 'Select a type or member, or search, to show entries.',
     'Edit': 'Edit',
     'Delete': 'Delete',
     'Delete Entry': 'Delete Entry',
@@ -128,6 +133,7 @@ const I18N = {
     'Save': 'Save',
     'Income': 'Income',
     'Expense': 'Expense',
+    'Hardlock / Investment': 'Hardlock / Investment',
     'Date & Time': 'Date & Time',
     'Type': 'Type',
     'Member': 'Member',
@@ -290,14 +296,19 @@ const I18N = {
     'Loan principal': 'ಸಾಲದ ಮೂಲಬಂಡವಾಳ',
     'Loan interest': 'ಸಾಲದ ಬಡ್ಡಿ',
     'Fine': 'ದಂಡ',
+    'Late fee': 'ವಿಳಂಬ ಶುಲ್ಕ',
+    'Set the full split for this member on this date.': 'ಈ ದಿನಾಂಕದ ಈ ಸದಸ್ಯರ ಸಂಪೂರ್ಣ ವಿಭಾಗವನ್ನು ಹೊಂದಿಸಿ.',
     'No data for this period': 'ಈ ಅವಧಿಗೆ ಯಾವುದೇ ದತ್ತಾಂಶವಿಲ್ಲ',
     '✏️ Edit / Correct Entries': '✏️ ನಮೂದುಗಳನ್ನು ಸರಿಪಡಿಸಿ',
     'Find a wrong entry, fix its amount/date/member, or delete it.': 'ತಪ್ಪಾದ ನಮೂದನ್ನು ಹುಡುಕಿ, ಅದರ ಮೊತ್ತ/ದಿನಾಂಕ/ಸದಸ್ಯರನ್ನು ಸರಿಪಡಿಸಿ, ಅಥವಾ ಅಳಿಸಿ.',
     'All types': 'ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು',
     'All members': 'ಎಲ್ಲಾ ಸದಸ್ಯರು',
     'Search member or description...': 'ಸದಸ್ಯ ಅಥವಾ ವಿವರಣೆ ಹುಡುಕಿ...',
+    'From': 'ಇಂದ',
+    'To': 'ವರೆಗೆ',
     'None': 'ಯಾವುದೂ ಇಲ್ಲ',
     'No entries found.': 'ಯಾವುದೇ ನಮೂದುಗಳು ಕಂಡುಬಂದಿಲ್ಲ.',
+    'Select a type or member, or search, to show entries.': 'ನಮೂದುಗಳನ್ನು ತೋರಿಸಲು ಪ್ರಕಾರ ಅಥವಾ ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆಮಾಡಿ, ಅಥವಾ ಹುಡುಕಿ.',
     'Edit': 'ಸರಿಪಡಿಸಿ',
     'Delete': 'ಅಳಿಸಿ',
     'Delete Entry': 'ನಮೂದನ್ನು ಅಳಿಸಿ',
@@ -338,6 +349,7 @@ const I18N = {
     'Save': 'ಉಳಿಸಿ',
     'Income': 'ಆದಾಯ',
     'Expense': 'ಖರ್ಚು',
+    'Hardlock / Investment': 'ಹಾರ್ಡ್‌ಲಾಕ್ / ಹೂಡಿಕೆ',
     'Date & Time': 'ದಿನಾಂಕ ಮತ್ತು ಸಮಯ',
     'Type': 'ಪ್ರಕಾರ',
     'Member': 'ಸದಸ್ಯ',
@@ -986,7 +998,7 @@ async function renderAdminPanel() {
   const eeTypeOptions = [
     ['all', t('All types')], ['share', t('Share')], ['deposit', t('Deposit')],
     ['loan_payment', t('Loan Payment')], ['income', t('Income')],
-    ['expense', t('Expense')], ['late_fee', t('Late Fee')],
+    ['expense', t('Expense')], ['late_fee', t('Late Fee')], ['fd', t('Hardlock / Investment')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   const html = `
     <div class="panel">
@@ -1117,7 +1129,13 @@ async function renderAdminPanel() {
           <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.id}">${escHtml(m.name)}</option>`).join('')}</select>
           <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
         </div>
-        <div id="ee-list" style="margin-top:12px">${loadingHtml()}</div>
+        <div class="ee-filters" style="margin-top:8px">
+          <label class="ee-date-label">${t('From')}:</label>
+          <input type="date" id="ee-from" class="admin-input" style="flex:1;min-width:0" />
+          <label class="ee-date-label">${t('To')}:</label>
+          <input type="date" id="ee-to" class="admin-input" style="flex:1;min-width:0" />
+        </div>
+        <div id="ee-list" style="margin-top:12px"></div>
       </div>
       <div class="panel" style="margin-top:18px">
         <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">📋 Server Logs</h4>
@@ -1181,9 +1199,13 @@ async function renderAdminPanel() {
   const eeType = document.getElementById('ee-type')
   const eeMember = document.getElementById('ee-member')
   const eeQ = document.getElementById('ee-q')
-  if (eeType && eeMember && eeQ) {
+  const eeFrom = document.getElementById('ee-from')
+  const eeTo = document.getElementById('ee-to')
+  if (eeType && eeMember && eeQ && eeFrom && eeTo) {
     eeType.onchange = eeLoad
     eeMember.onchange = eeLoad
+    eeFrom.onchange = eeLoad
+    eeTo.onchange = eeLoad
     let eeDebounce
     eeQ.oninput = () => { clearTimeout(eeDebounce); eeDebounce = setTimeout(eeLoad, 400) }
     eeLoad()
@@ -1199,7 +1221,7 @@ async function renderAdminPanel() {
 let eeEntries = []
 
 function eeKindLabel(kind) {
-  const map = {share: 'Share', deposit: 'Deposit', loan_payment: 'Loan Payment', income: 'Income', expense: 'Expense', late_fee: 'Late Fee'}
+  const map = {share: 'Share', deposit: 'Deposit', loan_payment: 'Loan Payment', income: 'Income', expense: 'Expense', late_fee: 'Late Fee', fd: 'Hardlock / Investment'}
   return t(map[kind] || kind)
 }
 
@@ -1209,8 +1231,17 @@ async function eeLoad() {
   const type = document.getElementById('ee-type').value
   const member = document.getElementById('ee-member').value
   const q = document.getElementById('ee-q').value.trim()
+  const from = document.getElementById('ee-from').value
+  const to = document.getElementById('ee-to').value
+  if (!type || (type === 'all' && !member && !q && !from && !to)) {
+    eeEntries = []
+    list.innerHTML = '<p style="color:#64748b;text-align:center;padding:16px">' + t('Select a type or member, or search, to show entries.') + '</p>'
+    return
+  }
   list.innerHTML = loadingHtml()
-  const url = '/admin/entries?type=' + encodeURIComponent(type) + (member ? '&member_id=' + encodeURIComponent(member) : '') + (q ? '&q=' + encodeURIComponent(q) : '')
+  let url = '/admin/entries?type=' + encodeURIComponent(type) + (member ? '&member_id=' + encodeURIComponent(member) : '') + (q ? '&q=' + encodeURIComponent(q) : '')
+  if (from) url += '&date_from=' + encodeURIComponent(from)
+  if (to) url += '&date_to=' + encodeURIComponent(to)
   try {
     eeEntries = await api(url, {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
   } catch (err) {
@@ -1247,28 +1278,25 @@ function eeRowHtml(e) {
 function eeEdit(id) {
   const e = eeEntries.find(x => x.id === id)
   if (!e) return
-  const memberOpts = state.members.map(m => `<option value="${m.id}" ${m.id === e.member_id ? 'selected' : ''}>${escHtml(m.name)}</option>`).join('')
   let fields
-  if (e.kind === 'loan_payment') {
-    fields = `<div class="input-row"><label>${t('Member')}</label><select id="ee-edit-member" class="admin-input">${memberOpts}</select></div>
-      <div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
-      <div class="input-row"><label>${t('Loan principal')}</label><input id="ee-edit-principal" type="text" class="admin-input" value="${e.principal}" /></div>
-      <div class="input-row"><label>${t('Loan interest')}</label><input id="ee-edit-interest" type="text" class="admin-input" value="${e.interest}" /></div>
-      <div class="input-row"><label>${t('Fine')}</label><input id="ee-edit-fine" type="text" class="admin-input" value="${e.fine}" /></div>`
-  } else if (e.kind === 'share' || e.kind === 'deposit') {
-    fields = `<div class="input-row"><label>${t('Member')}</label><select id="ee-edit-member" class="admin-input">${memberOpts}</select></div>
-      <div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
-      <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text" class="admin-input" value="${e.amount}" /></div>`
+  if (e.kind === 'share' || e.kind === 'late_fee' || e.kind === 'loan_payment') {
+    const sp = e.split || {}
+    const num = (k, fallback) => sp[k] != null ? sp[k] : (fallback || 0)
+    fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
+      <div class="input-row"><label>${t('Share')}</label><input id="ee-edit-share" type="text" class="admin-input" value="${num('share', e.amount)}" /></div>
+      <div class="input-row"><label>${t('Late fee')}</label><input id="ee-edit-latefee" type="text" class="admin-input" value="${num('late_fee', e.fine)}" /></div>
+      <div class="input-row"><label>${t('Loan interest')}</label><input id="ee-edit-interest" type="text" class="admin-input" value="${num('interest', e.interest)}" /></div>
+      <div class="input-row"><label>${t('Loan principal')}</label><input id="ee-edit-principal" type="text" class="admin-input" value="${num('principal', e.principal)}" /></div>`
   } else {
-    fields = `<div class="input-row"><label>${t('Member')}</label><select id="ee-edit-member" class="admin-input"><option value="">${t('None')}</option>${memberOpts}</select></div>
-      <div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
+    fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
       <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text" class="admin-input" value="${e.amount}" /></div>`
   }
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
   overlay.id = 'ee-modal'
   overlay.innerHTML = `<div class="modal-box">
-    <h3 style="margin:0 0 12px">${t('Edit')}: ${eeKindLabel(e.kind)}</h3>
+    <h3 style="margin:0 0 12px">${t('Edit')}: ${eeKindLabel(e.kind)} — ${escHtml(e.member_name)}</h3>
+    ${e.kind === 'share' || e.kind === 'late_fee' || e.kind === 'loan_payment' ? `<p style="color:#94a3b8;font-size:0.8rem;margin:0 0 10px">${t('Set the full split for this member on this date.')}</p>` : ''}
     ${fields}
     <div class="reject-form-actions" style="margin-top:14px">
       <button class="btn primary" id="ee-save-btn">${t('Save')}</button>
@@ -1281,7 +1309,7 @@ function eeEdit(id) {
   document.getElementById('ee-cancel-btn').onclick = () => overlay.remove()
   const dateInput = document.getElementById('ee-edit-date')
   if (dateInput) createDatePicker(dateInput)
-  ;['ee-edit-amount', 'ee-edit-principal', 'ee-edit-interest', 'ee-edit-fine'].forEach(id2 => {
+  ;['ee-edit-amount', 'ee-edit-share', 'ee-edit-latefee', 'ee-edit-principal', 'ee-edit-interest'].forEach(id2 => {
     const el = document.getElementById(id2)
     if (el) indianizeInput(el)
   })
@@ -1290,16 +1318,18 @@ function eeEdit(id) {
 async function eeSave(e, overlay) {
   const payload = {
     kind: e.kind,
-    member_id: document.getElementById('ee-edit-member').value,
+    member_id: e.member_id,
     date: document.getElementById('ee-edit-date').value,
     contribution_id: e.contribution_id,
     transaction_id: e.transaction_id,
     payment_id: e.payment_id,
   }
-  if (e.kind === 'loan_payment') {
-    payload.principal = Number(document.getElementById('ee-edit-principal').value.replace(/,/g, '')) || 0
-    payload.interest = Number(document.getElementById('ee-edit-interest').value.replace(/,/g, '')) || 0
-    payload.fine = Number(document.getElementById('ee-edit-fine').value.replace(/,/g, '')) || 0
+  if (e.kind === 'share' || e.kind === 'late_fee' || e.kind === 'loan_payment') {
+    const num = id2 => Number(document.getElementById(id2).value.replace(/,/g, '')) || 0
+    payload.share = num('ee-edit-share')
+    payload.late_fee = num('ee-edit-latefee')
+    payload.interest = num('ee-edit-interest')
+    payload.principal = num('ee-edit-principal')
   } else {
     payload.amount = Number(document.getElementById('ee-edit-amount').value.replace(/,/g, '')) || 0
   }

@@ -9,6 +9,13 @@
   box-sizing: border-box;
 }
 
+/* Native dropdown lists (selects) follow the dark theme */
+select { color-scheme: dark; }
+select option {
+  background: #1e1b2e;
+  color: #e2e8f0;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
@@ -54,6 +61,7 @@ body {
 .topbar.login-mode {
   display: grid;
   grid-template-areas: "stack";
+  grid-template-columns: minmax(0, 1fr);
   padding: 22px;
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.12);
@@ -103,21 +111,21 @@ body {
 
 .side {
   width: 80px;
-  height: 80px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 .side-img {
-  width: 100%;
-  height: 100%;
+  width: 80px;
+  height: 132px;
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 0 12px rgba(255,255,255,0.2));
 }
 .logo .right-side .side-img {
-  width: 93%;
-  height: 93%;
+  width: 80px;
+  height: 132px;
   object-fit: contain;
   display: block;
 }
@@ -125,6 +133,7 @@ body {
 .login-name {
   flex: 1;
   text-align: center;
+  min-width: 0;
 }
 .topbar.login-mode .login-fields {
   align-self: end;
@@ -146,9 +155,6 @@ body {
 }
 .topbar:not(.login-mode) .hero {
   display: none;
-}
-.topbar:not(.login-mode) .logo {
-  margin-top: 6px;
 }
 
 /* ── Login fields (hidden after login) ── */
@@ -219,9 +225,7 @@ body {
 }
 .logo .side {
   width: 80px;
-  height: 80px;
   flex-shrink: 0;
-  align-self: center;
 }
 .logo .logo-text {
   flex: 1;
@@ -885,6 +889,13 @@ body {
 .ee-filters .admin-input {
   width: auto;
 }
+.ee-date-label {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  align-self: center;
+}
+.ee-date-label:first-child { margin-left: 2px }
 .ee-row {
   display: flex;
   flex-wrap: wrap;
@@ -920,6 +931,7 @@ body {
 .ee-badge-income { background: rgba(34,211,238,0.15); color: #67e8f9 }
 .ee-badge-expense { background: rgba(239,68,68,0.15); color: #fca5a5 }
 .ee-badge-late_fee { background: rgba(244,63,94,0.15); color: #fda4af }
+.ee-badge-fd { background: rgba(251,146,60,0.15); color: #fdba74 }
 .ee-amount {
   font-weight: 700;
   font-size: 0.95rem;
