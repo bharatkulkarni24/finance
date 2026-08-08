@@ -111,6 +111,47 @@ def get_admin_stats():
     }
 
 
+def get_period_summary():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("SELECT substr(date,1,7) m, SUM(amount) s FROM contributions WHERE type='share' AND date IS NOT NULL GROUP BY m")
+    share_by_month = {r['m']: r['s'] for r in cur.fetchall()}
+    cur.execute("SELECT substr(date,1,7) m, SUM(principal_paid) s FROM payments WHERE date IS NOT NULL GROUP BY m")
+    principal_by_month = {r['m']: r['s'] for r in cur.fetchall()}
+    cur.execute("SELECT substr(date,1,7) m, SUM(interest_paid) s FROM payments WHERE date IS NOT NULL GROUP BY m")
+    interest_by_month = {r['m']: r['s'] for r in cur.fetchall()}
+    cur.execute("SELECT substr(date,1,7) m, SUM(COALESCE(late_fee_paid,0)) s FROM payments WHERE date IS NOT NULL GROUP BY m")
+    fine_pay_by_month = {r['m']: r['s'] for r in cur.fetchall()}
+    cur.execute("SELECT substr(timestamp,1,7) m, SUM(amount) s FROM transactions WHERE desc='Late fee' AND timestamp IS NOT NULL GROUP BY m")
+    fine_txn_by_month = {r['m']: r['s'] for r in cur.fetchall()}
+    conn.close()
+
+    months = sorted(set(share_by_month) | set(principal_by_month) | set(interest_by_month) | set(fine_pay_by_month) | set(fine_txn_by_month))
+    yearly_keys = sorted({m[:4] for m in months})
+
+    monthly = {}
+    for m in months:
+        monthly[m] = {
+            'share': round(share_by_month.get(m, 0.0) or 0.0, 2),
+            'principal': round(principal_by_month.get(m, 0.0) or 0.0, 2),
+            'interest': round(interest_by_month.get(m, 0.0) or 0.0, 2),
+            'fine': round((fine_pay_by_month.get(m, 0.0) or 0.0) + (fine_txn_by_month.get(m, 0.0) or 0.0), 2),
+        }
+
+    yearly = {}
+    for y in yearly_keys:
+        vals = [monthly[m] for m in months if m[:4] == y]
+        yearly[y] = {
+            'share': round(sum(v['share'] for v in vals), 2),
+            'principal': round(sum(v['principal'] for v in vals), 2),
+            'interest': round(sum(v['interest'] for v in vals), 2),
+            'fine': round(sum(v['fine'] for v in vals), 2),
+        }
+
+    return {'months': months, 'years': yearly_keys, 'monthly': monthly, 'yearly': yearly}
+
+
 def get_passbook_entries():
     conn = get_conn()
     cur = conn.cursor()

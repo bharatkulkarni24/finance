@@ -73,6 +73,32 @@ const I18N = {
     'One-time Deposit': 'One-time Deposit',
     'Tenure': 'Tenure',
     'Loan Interest': 'Loan Interest',
+    '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
+    'Monthly': 'Monthly',
+    'Yearly': 'Yearly',
+    'Share amount': 'Share amount',
+    'Loan principal': 'Loan principal',
+    'Loan interest': 'Loan interest',
+    'Fine': 'Fine',
+    'No data for this period': 'No data for this period',
+    '✏️ Edit / Correct Entries': '✏️ Edit / Correct Entries',
+    'Find a wrong entry, fix its amount/date/member, or delete it.': 'Find a wrong entry, fix its amount/date/member, or delete it.',
+    'All types': 'All types',
+    'All members': 'All members',
+    'Search member or description...': 'Search member or description...',
+    'None': 'None',
+    'No entries found.': 'No entries found.',
+    'Edit': 'Edit',
+    'Delete': 'Delete',
+    'Delete Entry': 'Delete Entry',
+    'Delete this entry permanently?': 'Delete this entry permanently?',
+    'Entry updated': 'Entry updated',
+    'Entry deleted': 'Entry deleted',
+    'Edit failed': 'Edit failed',
+    'Delete failed': 'Delete failed',
+    'Share': 'Share',
+    'Deposit': 'Deposit',
+    'Late Fee': 'Late Fee',
     'Add New Member': 'Add New Member',
     'After adding, the member can fill in their details.': 'After adding, the member can fill in their details.',
     'Member name': 'Member name',
@@ -257,6 +283,32 @@ const I18N = {
     'One-time Deposit': 'ಒಂದು ಬಾರಿ ಠೇವಣಿ',
     'Tenure': 'ಅವಧಿ',
     'Loan Interest': 'ಸಾಲದ ಬಡ್ಡಿ',
+    '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
+    'Monthly': 'ಮಾಸಿಕ',
+    'Yearly': 'ವಾರ್ಷಿಕ',
+    'Share amount': 'ಷೇರು ಮೊತ್ತ',
+    'Loan principal': 'ಸಾಲದ ಮೂಲಬಂಡವಾಳ',
+    'Loan interest': 'ಸಾಲದ ಬಡ್ಡಿ',
+    'Fine': 'ದಂಡ',
+    'No data for this period': 'ಈ ಅವಧಿಗೆ ಯಾವುದೇ ದತ್ತಾಂಶವಿಲ್ಲ',
+    '✏️ Edit / Correct Entries': '✏️ ನಮೂದುಗಳನ್ನು ಸರಿಪಡಿಸಿ',
+    'Find a wrong entry, fix its amount/date/member, or delete it.': 'ತಪ್ಪಾದ ನಮೂದನ್ನು ಹುಡುಕಿ, ಅದರ ಮೊತ್ತ/ದಿನಾಂಕ/ಸದಸ್ಯರನ್ನು ಸರಿಪಡಿಸಿ, ಅಥವಾ ಅಳಿಸಿ.',
+    'All types': 'ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು',
+    'All members': 'ಎಲ್ಲಾ ಸದಸ್ಯರು',
+    'Search member or description...': 'ಸದಸ್ಯ ಅಥವಾ ವಿವರಣೆ ಹುಡುಕಿ...',
+    'None': 'ಯಾವುದೂ ಇಲ್ಲ',
+    'No entries found.': 'ಯಾವುದೇ ನಮೂದುಗಳು ಕಂಡುಬಂದಿಲ್ಲ.',
+    'Edit': 'ಸರಿಪಡಿಸಿ',
+    'Delete': 'ಅಳಿಸಿ',
+    'Delete Entry': 'ನಮೂದನ್ನು ಅಳಿಸಿ',
+    'Delete this entry permanently?': 'ಈ ನಮೂದನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸುವುದೇ?',
+    'Entry updated': 'ನಮೂದು ನವೀಕರಿಸಲಾಗಿದೆ',
+    'Entry deleted': 'ನಮೂದು ಅಳಿಸಲಾಗಿದೆ',
+    'Edit failed': 'ಸರಿಪಡಿಸಲು ವಿಫಲವಾಗಿದೆ',
+    'Delete failed': 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ',
+    'Share': 'ಷೇರು',
+    'Deposit': 'ಠೇವಣಿ',
+    'Late Fee': 'ದಂಡ ಶುಲ್ಕ',
     'Add New Member': 'ಹೊಸ ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
     'After adding, the member can fill in their details.': 'ಸೇರಿಸಿದ ನಂತರ, ಸದಸ್ಯರು ತಮ್ಮ ವಿವರಗಳನ್ನು ತುಂಬಬಹುದು.',
     'Member name': 'ಸದಸ್ಯರ ಹೆಸರು',
@@ -801,8 +853,15 @@ function renderView() {
   return renderHome()
 }
 
+let summaryData = null
+
 async function renderHome() {
   const stats = await api('/admin/stats', {headers: {'X-ADMIN-PIN': ADMIN_PIN}}).catch(()=>null)
+  summaryData = await api('/admin/period_summary', {headers: {'X-ADMIN-PIN': ADMIN_PIN}}).catch(()=>null)
+  const months = (summaryData && summaryData.months) || []
+  const years = (summaryData && summaryData.years) || []
+  const defMonth = months.length ? months[months.length - 1] : ''
+  const defYear = years.length ? years[years.length - 1] : ''
   const html = `
     <div class="panel welcome-panel">
       <h2 class="page-title">${t('Welcome,')} ${state.currentUser.name}</h2>
@@ -828,6 +887,26 @@ async function renderHome() {
         <div class="stat-card loan-given"><strong>${stats?formatCurrency(stats.total_lent):'-'}</strong><span>${t('Loans Disbursed')}</span></div>
         <div class="stat-card hardlocked"><strong>${stats?formatCurrency(stats.hardlocked_fd):'-'}</strong><span>${t('Hardlock / FD')}</span></div>
         <div class="stat-card available"><strong>${stats?formatCurrency(stats.available_to_lend):'-'}</strong><span>${t('Available to Lend')}</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 class="section-heading">${t('📊 Monthly & Yearly Summary')}</h3>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-card-head">
+            <span class="summary-card-title">${t('Monthly')}</span>
+            <select id="sum-month" class="summary-select" onchange="updateMonthlySummary(this.value)">${months.length ? months.map(m => `<option value="${m}" ${m===defMonth?'selected':''}>${monthLabel(m)}</option>`).join('') : '<option value="">-</option>'}</select>
+          </div>
+          <div class="summary-rows" id="sum-month-rows">${summaryData ? summaryRows(summaryData.monthly[defMonth]) : loadingHtml()}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-head">
+            <span class="summary-card-title">${t('Yearly')}</span>
+            <select id="sum-year" class="summary-select" onchange="updateYearlySummary(this.value)">${years.length ? years.map(y => `<option value="${y}" ${y===defYear?'selected':''}>${y}</option>`).join('') : '<option value="">-</option>'}</select>
+          </div>
+          <div class="summary-rows" id="sum-year-rows">${summaryData ? summaryRows(summaryData.yearly[defYear]) : loadingHtml()}</div>
+        </div>
       </div>
     </div>
 
@@ -870,6 +949,32 @@ async function renderHome() {
   content.innerHTML = html
 }
 
+function monthLabel(m) {
+  if (!m) return ''
+  const parts = m.split('-')
+  const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const idx = parseInt(parts[1], 10) - 1
+  return (idx >= 0 && idx < 12 ? names[idx] : m) + ' ' + parts[0]
+}
+
+function summaryRows(d) {
+  d = d || {}
+  const items = [
+    ['Share amount', d.share],
+    ['Loan principal', d.principal],
+    ['Loan interest', d.interest],
+    ['Fine', d.fine],
+  ]
+  if (!items.some(([, v]) => Number(v) > 0)) return '<div class="summary-empty">' + t('No data for this period') + '</div>'
+  return items.map(([label, val]) =>
+    `<div class="summary-row"><span>${t(label)}</span><strong>${formatCurrency(val)}</strong></div>`
+  ).join('')
+}
+
+function updateMonthlySummary(m) { document.getElementById('sum-month-rows').innerHTML = summaryRows(summaryData && summaryData.monthly[m]) }
+
+function updateYearlySummary(y) { document.getElementById('sum-year-rows').innerHTML = summaryRows(summaryData && summaryData.yearly[y]) }
+
 function setView(view) {
   state.activeView = view
   renderView()
@@ -878,6 +983,11 @@ function setView(view) {
 async function renderAdminPanel() {
   const pendingLoans = state.members
     .flatMap(member => member.id ? [member] : [])
+  const eeTypeOptions = [
+    ['all', t('All types')], ['share', t('Share')], ['deposit', t('Deposit')],
+    ['loan_payment', t('Loan Payment')], ['income', t('Income')],
+    ['expense', t('Expense')], ['late_fee', t('Late Fee')],
+  ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   const html = `
     <div class="panel">
       <h2 class="page-title">${t('Admin Panel')}</h2>
@@ -1000,6 +1110,16 @@ async function renderAdminPanel() {
         </div>
       </div>
       <div class="panel" style="margin-top:18px">
+        <h3 class="section-heading">${t('✏️ Edit / Correct Entries')}</h3>
+        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
+        <div class="ee-filters">
+          <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
+          <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.id}">${escHtml(m.name)}</option>`).join('')}</select>
+          <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
+        </div>
+        <div id="ee-list" style="margin-top:12px">${loadingHtml()}</div>
+      </div>
+      <div class="panel" style="margin-top:18px">
         <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">📋 Server Logs</h4>
         <div id="admin-logs"></div>
       </div>
@@ -1058,6 +1178,16 @@ async function renderAdminPanel() {
   if (fdStart) dualDateInput(fdStart)
   const fdEnd = document.getElementById('fd-end')
   if (fdEnd) dualDateInput(fdEnd)
+  const eeType = document.getElementById('ee-type')
+  const eeMember = document.getElementById('ee-member')
+  const eeQ = document.getElementById('ee-q')
+  if (eeType && eeMember && eeQ) {
+    eeType.onchange = eeLoad
+    eeMember.onchange = eeLoad
+    let eeDebounce
+    eeQ.oninput = () => { clearTimeout(eeDebounce); eeDebounce = setTimeout(eeLoad, 400) }
+    eeLoad()
+  }
   window.toggleInvType()
   await renderPendingLoans()
   await renderPendingPayments()
@@ -1065,6 +1195,150 @@ async function renderAdminPanel() {
   await renderIeList()
 }
 
+
+let eeEntries = []
+
+function eeKindLabel(kind) {
+  const map = {share: 'Share', deposit: 'Deposit', loan_payment: 'Loan Payment', income: 'Income', expense: 'Expense', late_fee: 'Late Fee'}
+  return t(map[kind] || kind)
+}
+
+async function eeLoad() {
+  const list = document.getElementById('ee-list')
+  if (!list) return
+  const type = document.getElementById('ee-type').value
+  const member = document.getElementById('ee-member').value
+  const q = document.getElementById('ee-q').value.trim()
+  list.innerHTML = loadingHtml()
+  const url = '/admin/entries?type=' + encodeURIComponent(type) + (member ? '&member_id=' + encodeURIComponent(member) : '') + (q ? '&q=' + encodeURIComponent(q) : '')
+  try {
+    eeEntries = await api(url, {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+  } catch (err) {
+    list.innerHTML = '<p style="color:#fca5a5;text-align:center;padding:16px">' + t('Error loading') + '</p>'
+    return
+  }
+  if (!eeEntries.length) { list.innerHTML = '<p style="color:#64748b;text-align:center;padding:16px">' + t('No entries found.') + '</p>'; return }
+  list.innerHTML = eeEntries.map(eeRowHtml).join('')
+}
+
+function eeRowHtml(e) {
+  let detail = ''
+  if (e.kind === 'loan_payment') {
+    detail = `<div class="ee-sub">${t('Loan principal')}: ${formatCurrency(e.principal)} · ${t('Loan interest')}: ${formatCurrency(e.interest)} · ${t('Fine')}: ${formatCurrency(e.fine)}</div>`
+  } else if (e.desc) {
+    detail = `<div class="ee-sub">${escHtml(e.desc)}</div>`
+  }
+  const badge = e.kind === 'expense' || (e.debit_credit === 'debit') ? 'ee-badge-expense' : 'ee-badge-' + e.kind
+  return `<div class="ee-row">
+    <div class="ee-main">
+      <span class="ee-badge ${badge}">${eeKindLabel(e.kind)}</span>
+      <strong>${escHtml(e.member_name)}</strong>
+      <span class="ee-date">${formatDate(e.date)}</span>
+    </div>
+    <div class="ee-amount">${e.kind === 'expense' ? '−' : ''}${formatCurrency(e.amount)}</div>
+    ${detail}
+    <div class="ee-actions">
+      <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem" onclick="eeEdit('${e.id}')">✏️ ${t('Edit')}</button>
+      <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem;color:#fca5a5" onclick="eeDelete('${e.id}')">🗑 ${t('Delete')}</button>
+    </div>
+  </div>`
+}
+
+function eeEdit(id) {
+  const e = eeEntries.find(x => x.id === id)
+  if (!e) return
+  const memberOpts = state.members.map(m => `<option value="${m.id}" ${m.id === e.member_id ? 'selected' : ''}>${escHtml(m.name)}</option>`).join('')
+  let fields
+  if (e.kind === 'loan_payment') {
+    fields = `<div class="input-row"><label>${t('Member')}</label><select id="ee-edit-member" class="admin-input">${memberOpts}</select></div>
+      <div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
+      <div class="input-row"><label>${t('Loan principal')}</label><input id="ee-edit-principal" type="text" class="admin-input" value="${e.principal}" /></div>
+      <div class="input-row"><label>${t('Loan interest')}</label><input id="ee-edit-interest" type="text" class="admin-input" value="${e.interest}" /></div>
+      <div class="input-row"><label>${t('Fine')}</label><input id="ee-edit-fine" type="text" class="admin-input" value="${e.fine}" /></div>`
+  } else if (e.kind === 'share' || e.kind === 'deposit') {
+    fields = `<div class="input-row"><label>${t('Member')}</label><select id="ee-edit-member" class="admin-input">${memberOpts}</select></div>
+      <div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
+      <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text" class="admin-input" value="${e.amount}" /></div>`
+  } else {
+    fields = `<div class="input-row"><label>${t('Member')}</label><select id="ee-edit-member" class="admin-input"><option value="">${t('None')}</option>${memberOpts}</select></div>
+      <div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
+      <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text" class="admin-input" value="${e.amount}" /></div>`
+  }
+  const overlay = document.createElement('div')
+  overlay.className = 'modal-overlay'
+  overlay.id = 'ee-modal'
+  overlay.innerHTML = `<div class="modal-box">
+    <h3 style="margin:0 0 12px">${t('Edit')}: ${eeKindLabel(e.kind)}</h3>
+    ${fields}
+    <div class="reject-form-actions" style="margin-top:14px">
+      <button class="btn primary" id="ee-save-btn">${t('Save')}</button>
+      <button class="btn secondary" id="ee-cancel-btn">${t('Cancel')}</button>
+    </div>
+  </div>`
+  document.body.appendChild(overlay)
+  overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove() })
+  document.getElementById('ee-save-btn').onclick = () => eeSave(e, overlay)
+  document.getElementById('ee-cancel-btn').onclick = () => overlay.remove()
+  const dateInput = document.getElementById('ee-edit-date')
+  if (dateInput) createDatePicker(dateInput)
+  ;['ee-edit-amount', 'ee-edit-principal', 'ee-edit-interest', 'ee-edit-fine'].forEach(id2 => {
+    const el = document.getElementById(id2)
+    if (el) indianizeInput(el)
+  })
+}
+
+async function eeSave(e, overlay) {
+  const payload = {
+    kind: e.kind,
+    member_id: document.getElementById('ee-edit-member').value,
+    date: document.getElementById('ee-edit-date').value,
+    contribution_id: e.contribution_id,
+    transaction_id: e.transaction_id,
+    payment_id: e.payment_id,
+  }
+  if (e.kind === 'loan_payment') {
+    payload.principal = Number(document.getElementById('ee-edit-principal').value.replace(/,/g, '')) || 0
+    payload.interest = Number(document.getElementById('ee-edit-interest').value.replace(/,/g, '')) || 0
+    payload.fine = Number(document.getElementById('ee-edit-fine').value.replace(/,/g, '')) || 0
+  } else {
+    payload.amount = Number(document.getElementById('ee-edit-amount').value.replace(/,/g, '')) || 0
+  }
+  try {
+    const res = await api('/admin/entries/edit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify(payload),
+    })
+    if (res.error) throw new Error(res.error)
+    showToast(t('Entry updated'), 'success')
+    overlay.remove()
+    eeLoad()
+  } catch (err) {
+    showToast(t('Edit failed'), 'error')
+  }
+}
+
+async function eeDelete(id) {
+  const e = eeEntries.find(x => x.id === id)
+  if (!e) return
+  if (!(await showConfirm(t('Delete Entry'), t('Delete this entry permanently?') + ' ' + eeKindLabel(e.kind) + ' — ' + formatCurrency(e.amount)))) return
+  try {
+    await api('/admin/entries/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      body: JSON.stringify({
+        kind: e.kind,
+        contribution_id: e.contribution_id,
+        transaction_id: e.transaction_id,
+        payment_id: e.payment_id,
+      }),
+    })
+    showToast(t('Entry deleted'), 'success')
+    eeLoad()
+  } catch (err) {
+    showToast(t('Delete failed'), 'error')
+  }
+}
 
 function toggleForm(type) {
   const id = type === 'income' ? 'income-form' : 'expense-form'

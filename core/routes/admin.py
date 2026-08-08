@@ -4,7 +4,8 @@ from core.config import ADMIN_PIN
 from core.models.payment import list_pending_requests, approve_payment_request, reject_payment_request, admin_direct_entry
 from core.models.loan import list_pending_loans, get_loan, approve_loan, reject_loan
 from core.models.fd import add_fd, add_fd_installment, close_fd, get_fd_entries
-from core.models.transaction import admin_add_funds, add_transaction, get_recent_transactions, get_admin_stats, get_passbook_entries
+from core.models.transaction import admin_add_funds, add_transaction, get_recent_transactions, get_admin_stats, get_passbook_entries, get_period_summary
+from core.models.edit import list_entries, edit_entry, delete_entry
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -151,6 +152,47 @@ def admin_transactions():
 @admin_bp.route('/api/admin/passbook', methods=['GET'])
 def admin_passbook():
     return jsonify(get_passbook_entries())
+
+
+@admin_bp.route('/api/admin/period_summary', methods=['GET'])
+def admin_period_summary():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    return jsonify(get_period_summary())
+
+
+@admin_bp.route('/api/admin/entries', methods=['GET'])
+def admin_entries():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    etype = request.args.get('type', 'all')
+    member_id = request.args.get('member_id') or None
+    q = request.args.get('q', '')
+    try:
+        limit = int(request.args.get('limit', 200))
+    except ValueError:
+        limit = 200
+    return jsonify(list_entries(etype=etype, member_id=member_id, q=q, limit=limit))
+
+
+@admin_bp.route('/api/admin/entries/edit', methods=['POST'])
+def admin_entries_edit():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    return jsonify(edit_entry(data))
+
+
+@admin_bp.route('/api/admin/entries/delete', methods=['POST'])
+def admin_entries_delete():
+    pin = request.headers.get('X-ADMIN-PIN', '')
+    if pin != ADMIN_PIN:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    return jsonify(delete_entry(data))
 
 
 @admin_bp.route('/api/admin/stats', methods=['GET'])

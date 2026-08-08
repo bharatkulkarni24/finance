@@ -806,6 +806,135 @@ body {
   .group-info-grid { grid-template-columns: repeat(2, 1fr) }
 }
 
+/* Monthly & Yearly Summary */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+.summary-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.08);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.summary-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.summary-card-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.summary-select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(148,163,184,0.15);
+  color: #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  max-width: 150px;
+}
+.summary-select option { background: #1e1b2e; color: #e2e8f0 }
+.summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.06);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+.summary-row strong { color: #f8fafc; font-variant-numeric: tabular-nums }
+.summary-empty {
+  padding: 16px 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+@media (max-width: 640px) {
+  .summary-grid { grid-template-columns: 1fr }
+}
+
+/* Edit / Correct Entries */
+.ee-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.ee-filters .admin-input {
+  width: auto;
+}
+.ee-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.08);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.ee-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.ee-main strong { color: #f8fafc; font-size: 0.92rem }
+.ee-date { color: #64748b; font-size: 0.8rem; white-space: nowrap }
+.ee-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: rgba(148,163,184,0.15);
+  color: #cbd5e1;
+}
+.ee-badge-share { background: rgba(52,211,153,0.15); color: #6ee7b7 }
+.ee-badge-deposit { background: rgba(167,139,250,0.15); color: #c4b5fd }
+.ee-badge-loan_payment { background: rgba(251,191,36,0.15); color: #fcd34d }
+.ee-badge-income { background: rgba(34,211,238,0.15); color: #67e8f9 }
+.ee-badge-expense { background: rgba(239,68,68,0.15); color: #fca5a5 }
+.ee-badge-late_fee { background: rgba(244,63,94,0.15); color: #fda4af }
+.ee-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ee-sub {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: -2px;
+}
+.ee-actions { display: flex; gap: 6px; margin-left: auto }
+
 /* Scrollable table container */
 .table-scroll {
   max-height: 320px;
