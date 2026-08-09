@@ -20,6 +20,7 @@ def create_app():
     app.secret_key = core.config.SECRET_KEY
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
     os.makedirs('logs', exist_ok=True)

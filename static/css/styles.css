@@ -1746,6 +1746,7 @@ body {
   border-radius: 14px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
   margin-top: 6px;
+  overflow: visible;
 }
 .flatpickr-calendar.arrowTop:before,
 .flatpickr-calendar.arrowTop:after { border-bottom-color: rgba(148,163,184,0.25) }
@@ -1785,14 +1786,106 @@ body {
 .flatpickr-current-month input.cur-year,
 .flatpickr-current-month input.cur-year:focus { color: #e2e8f0 }
 .flatpickr-weekday { color: #94a3b8; font-weight: 600 }
-.flatpickr-months .flatpickr-prev-month:hover svg,
-.flatpickr-months .flatpickr-next-month:hover svg { fill: #a78bfa }
+.flatpickr-months { display: flex }
+.flatpickr-month { overflow: visible }
+.flatpickr-current-month {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 34px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  transform: none;
+}
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month,
+.flatpickr-months .flatpickr-prev-year,
+.flatpickr-months .flatpickr-next-year {
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 34px;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+  font-size: 15px;
+  color: #94a3b8;
+  fill: #94a3b8;
+}
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover { color: #e2e8f0; fill: #e2e8f0 }
+.flatpickr-months .flatpickr-prev-year,
+.flatpickr-months .flatpickr-next-year { color: #a78bfa; fill: #a78bfa }
+.flatpickr-months .flatpickr-prev-year { margin-left: 12px }
+.flatpickr-months .flatpickr-prev-year:hover,
+.flatpickr-months .flatpickr-next-year:hover { color: #c4b5fd; fill: #c4b5fd }
+.flatpickr-current-month .flatpickr-nav-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 300;
+  line-height: 1;
+  outline: none;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.flatpickr-current-month .flatpickr-nav-btn:hover { background: rgba(255,255,255,0.04) }
+.flatpickr-nav-pop {
+  position: fixed;
+  z-index: 999999;
+  display: none;
+  margin: 0;
+  padding: 4px;
+  background: #1e1b2e;
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.flatpickr-nav-pop.month-pop { width: 136px; max-height: 288px }
+.flatpickr-nav-pop.year-pop { width: 112px; max-height: 144px }
+.flatpickr-nav-pop.open { display: block }
+.flatpickr-nav-opt {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  height: 24px;
+  line-height: 24px;
+  padding: 0 6px;
+  text-align: center;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.flatpickr-nav-opt:hover { background: rgba(124,58,237,0.25); color: #e9d5ff }
+.flatpickr-nav-opt.selected { background: rgba(124,58,237,0.18); color: #a78bfa; font-weight: 600 }
+.flatpickr-nav-pop::-webkit-scrollbar { width: 8px }
+.flatpickr-nav-pop::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.35); border-radius: 4px }
 .flatpickr-months .flatpickr-prev-month svg,
 .flatpickr-months .flatpickr-next-month svg { fill: #94a3b8 }
-.flatpickr-current-month .flatpickr-monthDropdown-months,
-.flatpickr-current-month .flatpickr-monthDropdown-months:hover { background: transparent; color: #e2e8f0 }
-.flatpickr-current-month .flatpickr-monthDropdown-months option { background: #1e1b2e; color: #e2e8f0 }
-.flatpickr-current-month input.cur-year { background: transparent }
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg { fill: #e2e8f0 }
 .flatpickr-weekdays { background: transparent }
 .flatpickr-day.flatpickr-disabled.today { border-color: rgba(71,85,105,0.4); color: #475569 }
 .numInputWrapper:hover { background: transparent }

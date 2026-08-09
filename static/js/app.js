@@ -685,6 +685,11 @@ function dualDateInput(input) {
   createDatePicker(input, {dateFormat: 'd/m/Y', allowInput: true})
 }
 
+let navListListenerAttached = false
+function closeNavLists() {
+  document.querySelectorAll('.flatpickr-nav-pop.open').forEach(pop => pop.classList.remove('open'))
+}
+
 function createDatePicker(input, opts = {}) {
   if (typeof flatpickr === 'undefined') return
   let wrapper = input.parentElement
@@ -713,6 +718,119 @@ function createDatePicker(input, opts = {}) {
     dateFormat: 'Y-m-d',
     appendTo: document.body,
     onChange: (sel, dateStr) => input.dispatchEvent(new Event('change', {bubbles: true})),
+    onClose: (sel, dateStr, fp) => { if (fp._closeNav) fp._closeNav() },
+    onReady: (sel, dateStr, fp) => {
+      const currentMonthEl = fp.calendarContainer.querySelector('.flatpickr-current-month')
+      if (!currentMonthEl || currentMonthEl.querySelector('.flatpickr-prev-year')) return
+      const prevMonth = fp.calendarContainer.querySelector('.flatpickr-prev-month')
+      const nextMonth = fp.calendarContainer.querySelector('.flatpickr-next-month')
+      const monthSelect = currentMonthEl.querySelector('.flatpickr-monthDropdown-months')
+      const yearWrap = currentMonthEl.querySelector('.numInputWrapper')
+      if (!prevMonth || !nextMonth || !monthSelect || !yearWrap) return
+      const makeDropdown = (popClass, options, onPick) => {
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'flatpickr-nav-btn'
+        const pop = document.createElement('div')
+        pop.className = 'flatpickr-nav-pop ' + popClass
+        document.body.appendChild(pop)
+        const setSelected = (value) => {
+          const opt = pop.querySelector('[data-value="' + value + '"]')
+          if (!opt) return
+          const prev = pop.querySelector('.selected')
+          if (prev) prev.classList.remove('selected')
+          opt.classList.add('selected')
+          btn.textContent = opt.textContent
+        }
+        options.forEach(item => {
+          const opt = document.createElement('button')
+          opt.type = 'button'
+          opt.className = 'flatpickr-nav-opt'
+          opt.dataset.value = item.value
+          opt.textContent = item.label
+          if (item.selected) opt.classList.add('selected')
+          opt.addEventListener('click', () => {
+            onPick(item.value)
+            close()
+          })
+          pop.appendChild(opt)
+        })
+        const open = () => {
+          closeNavLists()
+          const rect = btn.getBoundingClientRect()
+          pop.style.left = rect.left + 'px'
+          pop.style.top = (rect.bottom + 4) + 'px'
+          pop.style.bottom = 'auto'
+          pop.classList.add('open')
+          const h = pop.offsetHeight
+          if (rect.bottom + 4 + h > window.innerHeight - 8) {
+            pop.style.top = 'auto'
+            pop.style.bottom = (window.innerHeight - rect.top + 4) + 'px'
+          }
+          const cur = pop.querySelector('.selected')
+          if (cur) pop.scrollTop = cur.offsetTop - pop.clientHeight / 2 + cur.clientHeight / 2
+        }
+        const close = () => pop.classList.remove('open')
+        btn.addEventListener('click', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          if (pop.classList.contains('open')) close()
+          else open()
+        })
+        return { btn, setSelected, close }
+      }
+      if (!navListListenerAttached) {
+        document.addEventListener('mousedown', (e) => {
+          const t = e.target
+          if (t && t.closest && !t.closest('.flatpickr-nav-btn') && !t.closest('.flatpickr-nav-pop')) closeNavLists()
+        })
+        navListListenerAttached = true
+      }
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+      const monthOptions = []
+      for (let m = 0; m < 12; m++) {
+        monthOptions.push({ value: m, label: monthNames[m], selected: m === fp.currentMonth })
+      }
+      const endY = new Date().getFullYear() + 20
+      const yearOptions = []
+      for (let y = 1900; y <= endY; y++) {
+        yearOptions.push({ value: y, label: y, selected: y === fp.currentYear })
+      }
+      const monthNav = makeDropdown('month-pop', monthOptions, (m) => fp.changeMonth(m - fp.currentMonth))
+      const yearNav = makeDropdown('year-pop', yearOptions, (y) => fp.changeYear(y))
+      monthNav.setSelected(fp.currentMonth)
+      yearNav.setSelected(fp.currentYear)
+      fp._syncNav = () => {
+        monthNav.setSelected(fp.currentMonth)
+        yearNav.setSelected(fp.currentYear)
+      }
+      fp._closeNav = () => { monthNav.close(); yearNav.close() }
+      const addBtn = (cls, arrow, delta) => {
+        const b = document.createElement('span')
+        b.className = cls
+        b.setAttribute('tabindex', '-1')
+        b.setAttribute('aria-label', delta < 0 ? 'Previous year' : 'Next year')
+        b.textContent = arrow
+        b.addEventListener('click', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          fp.changeYear(fp.currentYear + delta)
+        })
+        return b
+      }
+      const prevYear = addBtn('flatpickr-prev-year', '«', -1)
+      const nextYear = addBtn('flatpickr-next-year', '»', 1)
+      currentMonthEl.appendChild(prevMonth)
+      currentMonthEl.appendChild(monthNav.btn)
+      currentMonthEl.appendChild(nextMonth)
+      currentMonthEl.appendChild(prevYear)
+      currentMonthEl.appendChild(yearNav.btn)
+      currentMonthEl.appendChild(nextYear)
+      monthSelect.remove()
+      yearWrap.remove()
+    },
+    onMonthChange: (m, d, fp) => { if (fp._syncNav) fp._syncNav() },
+    onYearChange: (y, d, fp) => { if (fp._syncNav) fp._syncNav() },
   }
   if (input.dataset.max) cfg.maxDate = input.dataset.max
   Object.assign(cfg, opts)
