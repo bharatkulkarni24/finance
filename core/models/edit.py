@@ -3,7 +3,7 @@ from datetime import date as dt_date, datetime
 from core.database import get_conn, row_to_dict
 from core.models.loan import compute_interest_accrued
 
-VALID_KINDS = ('share', 'deposit', 'loan_payment', 'income', 'expense', 'late_fee', 'fd', 'split')
+VALID_KINDS = ('share', 'loan_payment', 'income', 'expense', 'late_fee', 'fd', 'split')
 SPLIT_KINDS = ('share', 'late_fee', 'loan_payment', 'split')
 GROUP_KINDS = ('share', 'late_fee', 'loan_payment', 'split')
 DEPOSIT_FILTER = 'share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0'
@@ -382,7 +382,7 @@ def edit_entry(data):
     date = (data.get('date') or '')[:10] or None
     changed_by = data.get('changed_by')
 
-    if kind in ('share', 'deposit', 'loan_payment', 'late_fee'):
+    if kind in ('share', 'loan_payment', 'late_fee'):
         pay_id = data.get('payment_id')
         if not pay_id:
             conn.close()
@@ -408,10 +408,6 @@ def edit_entry(data):
             cur.execute('UPDATE member_ledger SET member_id=?, pay_date=?, total_amount=?, share_amount=?, loan_principal=0, loan_interest=0, late_fee=0, modified_at=? WHERE pay_id=?',
                         (member_id, _as_datetime(date), amount, amount, now, int(pay_id)))
             new = {'share_amount': amount, 'late_fee': 0, 'loan_interest': 0, 'loan_principal': 0, 'total_amount': amount}
-        elif kind == 'deposit':
-            cur.execute('UPDATE member_ledger SET member_id=?, pay_date=?, total_amount=?, share_amount=0, modified_at=? WHERE pay_id=?',
-                        (member_id, _as_datetime(date), amount, now, int(pay_id)))
-            new = {'share_amount': 0, 'late_fee': 0, 'loan_interest': 0, 'loan_principal': 0, 'total_amount': amount}
         elif kind == 'late_fee':
             cur.execute('UPDATE member_ledger SET member_id=?, pay_date=?, total_amount=?, late_fee=?, modified_at=? WHERE pay_id=?',
                         (member_id, _as_datetime(date), amount, amount, now, int(pay_id)))
@@ -458,7 +454,7 @@ def delete_entry(data):
         conn.close()
         return {'status': 'ok'}
 
-    if kind in ('share', 'deposit', 'loan_payment', 'late_fee'):
+    if kind in ('share', 'loan_payment', 'late_fee'):
         pay_id = int(data.get('payment_id'))
         cur.execute('SELECT * FROM member_ledger WHERE pay_id=?', (pay_id,))
         row = cur.fetchone()

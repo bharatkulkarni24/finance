@@ -112,15 +112,15 @@ class TestDuesBoundary:
 # ─── Zombies: Interface ───────────────────────────────────────────────────────
 
 class TestDuesInterface:
-    def test_create_member_has_deposit_payment(self, setup_db):
+    def test_create_member_stores_deposit_on_member(self, setup_db):
         m = create_member('Test')
+        assert m['deposit_amount'] == 25000
         full = get_member(m['member_id'], full=True)
-        deposit = next(
-            (p for p in full['payments']
-             if not p['share_amount'] and not p['loan_principal'] and not p['loan_interest'] and not p['late_fee']),
-            None,
-        )
-        assert deposit is not None and deposit['total_amount'] == 25000
+        deposits = [
+            p for p in full['payments']
+            if not p['share_amount'] and not p['loan_principal'] and not p['loan_interest'] and not p['late_fee']
+        ]
+        assert len(deposits) == 0
 
     def test_approved_share_counts_in_stats(self, setup_db):
         m = create_member('Test')

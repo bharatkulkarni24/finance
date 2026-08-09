@@ -141,12 +141,12 @@ class TestMemberBoundary:
 # ─── Zombies: Interface ───────────────────────────────────────────────────────
 
 class TestMemberInterface:
-    def test_create_adds_initial_deposit_payment(self, setup_db):
+    def test_create_stores_deposit_on_member_only(self, setup_db):
         m = create_member('Initial Deposit')
+        assert m['deposit_amount'] == 25000
         full = get_member(m['member_id'], full=True)
         deposits = [p for p in full['payments'] if not p['share_amount'] and not p['loan_principal'] and not p['loan_interest'] and not p['late_fee']]
-        assert len(deposits) >= 1
-        assert deposits[0]['total_amount'] == 25000
+        assert len(deposits) == 0
 
     def test_create_with_custom_deposit(self, setup_db):
         m = create_member('Custom Dep', deposit_amount=50000, deposit_date='2026-07-15')
@@ -154,10 +154,8 @@ class TestMemberInterface:
         assert m['joined_date'] == '2026-07-15'
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM member_ledger WHERE member_id=? AND share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0", (m['member_id'],))
-        row = cur.fetchone()
-        assert row['total_amount'] == 50000
-        assert row['pay_date'][:10] == '2026-07-15'
+        cur.execute("SELECT COUNT(*) c FROM member_ledger WHERE member_id=? AND share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0", (m['member_id'],))
+        assert cur.fetchone()['c'] == 0
         conn.close()
 
     def test_update_then_get_reflects_changes(self, setup_db):

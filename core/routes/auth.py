@@ -1,8 +1,8 @@
-from flask import Blueprint, jsonify, request, render_template, current_app
+from flask import Blueprint, jsonify, request, render_template, current_app, session
 from werkzeug.security import check_password_hash
 
 from core.database import strip_sensitive
-from core.models.member import get_all_members, find_member_by_name
+from core.models.member import get_all_members, find_member_by_name, get_member
 from core.session import create_admin_session
 
 auth_bp = Blueprint('auth', __name__)
@@ -35,7 +35,30 @@ def login():
     result = strip_sensitive(member)
     if member['is_admin']:
         result['token'] = create_admin_session(member['member_id'])
+    session['member_id'] = member['member_id']
+    session.permanent = True
     return jsonify(result)
+
+
+@auth_bp.route('/api/me', methods=['GET'])
+def me():
+    member_id = session.get('member_id')
+    if not member_id:
+        return jsonify({'error': 'not logged in'}), 401
+    member = get_member(member_id)
+    if not member:
+        session.clear()
+        return jsonify({'error': 'not logged in'}), 401
+    result = strip_sensitive(member)
+    if member['is_admin']:
+        result['token'] = create_admin_session(member['member_id'])
+    return jsonify(result)
+
+
+@auth_bp.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'status': 'ok'})
 
 
 @auth_bp.route('/api/client_error', methods=['POST'])

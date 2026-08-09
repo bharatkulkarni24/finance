@@ -140,6 +140,13 @@ def init_db():
     )
     ''')
 
+    # Migration: initial deposits live on members.deposit_amount, not member_ledger.
+    # Remove legacy deposit rows (rows with no split amounts) so they are not
+    # counted twice.
+    cur.execute(
+        'DELETE FROM member_ledger WHERE share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0'
+    )
+
     conn.commit()
     conn.close()
 
@@ -161,10 +168,6 @@ def seed_db():
         cur.execute(
             'INSERT INTO members (member_id, name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url) VALUES (?,?,?,?,?,?,?,?,?)',
             (member['member_id'], member['name'], '', joined, 25000, member['is_admin'], '', '', ''),
-        )
-        cur.execute(
-            'INSERT INTO member_ledger (member_id, pay_date, total_amount, created_at, modified_at) VALUES (?,?,?,?,?)',
-            (member['member_id'], joined + 'T12:00:00', 25000, joined + 'T12:00:00', joined + 'T12:00:00'),
         )
     conn.commit()
     conn.close()

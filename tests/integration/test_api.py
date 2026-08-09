@@ -108,6 +108,35 @@ class TestAPISimple:
         assert 'token' not in data
 
 
+class TestAPISession:
+    def test_me_returns_logged_in_user(self, client):
+        _set_password(ADMIN_NAME, ADMIN_PASSWORD)
+        client.post('/api/login', json={'name': ADMIN_NAME, 'pin': ADMIN_PASSWORD})
+        resp = client.get('/api/me')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['name'] == ADMIN_NAME
+        assert data.get('token')
+
+    def test_me_unauthorized_when_not_logged_in(self, client):
+        resp = client.get('/api/me')
+        assert resp.status_code == 401
+
+    def test_logout_clears_session(self, client):
+        _set_password(ADMIN_NAME, ADMIN_PASSWORD)
+        client.post('/api/login', json={'name': ADMIN_NAME, 'pin': ADMIN_PASSWORD})
+        assert client.get('/api/me').status_code == 200
+        client.post('/api/logout')
+        assert client.get('/api/me').status_code == 401
+
+    def test_session_survives_refresh(self, client):
+        _set_password(ADMIN_NAME, ADMIN_PASSWORD)
+        client.post('/api/login', json={'name': ADMIN_NAME, 'pin': ADMIN_PASSWORD})
+        fresh = client.get('/api/me')
+        assert fresh.status_code == 200
+        assert fresh.get_json()['name'] == ADMIN_NAME
+
+
 # ─── Zombies: Zero ────────────────────────────────────────────────────────────
 
 class TestAPIZero:

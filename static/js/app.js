@@ -682,99 +682,42 @@ function toISODate(val) {
 
 function dualDateInput(input) {
   smartDateInput(input)
-  const wrapper = input.parentElement
-  wrapper.style.position = 'relative'
-  const icon = document.createElement('span')
-  icon.className = 'cal-icon'
-  icon.innerHTML = '📅'
-  icon.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;opacity:0.6'
-  const hiddenInput = document.createElement('input')
-  hiddenInput.type = 'text'
-  hiddenInput.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:0;height:0'
-  wrapper.appendChild(icon)
-  wrapper.appendChild(hiddenInput)
-  createDatePicker(hiddenInput)
-  const dpWrap = hiddenInput.closest('.dp-wrap')
-  if (dpWrap) {
-    const extraIcon = dpWrap.querySelector('.cal-icon')
-    if (extraIcon) extraIcon.remove()
-  }
-  icon.onclick = (e) => {
-    e.stopPropagation()
-    const parsed = parseSmartDate(input.value)
-    if (parsed) hiddenInput.value = parsed.toISOString().slice(0, 10)
-    hiddenInput.focus()
-  }
-  hiddenInput.addEventListener('change', () => {
-    if (hiddenInput.value) {
-      const d = new Date(hiddenInput.value + 'T00:00:00')
-      const dd = String(d.getDate()).padStart(2, '0')
-      const mm = String(d.getMonth() + 1).padStart(2, '0')
-      const yyyy = d.getFullYear()
-      input.value = `${dd}/${mm}/${yyyy}`
-    }
-  })
+  createDatePicker(input, {dateFormat: 'd/m/Y', allowInput: true})
 }
 
-function createDatePicker(input) {
-  input.autocomplete = 'off'
+function createDatePicker(input, opts = {}) {
+  if (typeof flatpickr === 'undefined') return
   let wrapper = input.parentElement
   if (!wrapper.classList.contains('dp-wrap')) {
     wrapper = document.createElement('div')
     wrapper.className = 'dp-wrap'
+    wrapper.style.cssText = 'position:relative;display:block'
     input.parentNode.insertBefore(wrapper, input)
     wrapper.appendChild(input)
   }
-  const icon = document.createElement('span')
-  icon.className = 'cal-icon'
-  icon.textContent = '📅'
-  icon.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:14px;opacity:0.6'
-  wrapper.appendChild(icon)
-  function openPicker() {
-    closeAllPickers()
-    const picker = document.createElement('div')
-    picker.className = 'date-picker-dropdown'
-    let year, month, selVal
-    if (input.value) { const d = new Date(input.value + 'T00:00:00'); year = d.getFullYear(); month = d.getMonth(); selVal = input.value }
-    else { const d = new Date(); year = d.getFullYear(); month = d.getMonth(); selVal = '' }
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-    picker.innerHTML = `<div class="dp-header"><button class="dp-nav" data-a="dp">\u00AB\u00AB</button><button class="dp-nav" data-a="yp">\u2039</button><span class="dp-title"><select class="dp-month-select">${months.map((m,i) => `<option value="${i}">${m}</option>`).join('')}</select>        <select class="dp-year-select">${Array.from({length:new Date().getFullYear()+20-1899},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')}</select></span><button class="dp-nav" data-a="yn">\u203A</button><button class="dp-nav" data-a="dn">\u00BB\u00BB</button></div><div class="dp-days-header">${['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<span>${d}</span>`).join('')}</div><div class="dp-days-grid"></div>`
-    function renderDays() {
-      const grid = picker.querySelector('.dp-days-grid')
-      const firstDay = new Date(year, month, 1).getDay()
-      const daysInMonth = new Date(year, month + 1, 0).getDate()
-      const today = new Date()
-      let html = ''
-      for (let i = 0; i < firstDay; i++) html += '<span></span>'
-      for (let d = 1; d <= daysInMonth; d++) {
-        const val = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-        const max = input.dataset.max
-        const disabled = max && val > max
-        const sel = selVal === val
-        const tod = d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
-        html += `<span class="dp-day${sel?' selected':''}${tod?' today':''}${disabled?' dp-disabled':''}" data-val="${val}">${d}</span>`
-      }
-      grid.innerHTML = html
-      grid.querySelectorAll('.dp-day:not(.dp-disabled)').forEach(el => {
-        el.onclick = () => { selVal = el.dataset.val; input.value = selVal; input.dispatchEvent(new Event('change', {bubbles: true})); picker.remove() }
-      })
-      picker.querySelector('.dp-month-select').value = month
-      const ys = picker.querySelector('.dp-year-select')
-      ys.innerHTML = Array.from({length:new Date().getFullYear()+20-1899},(_,i)=>1900+i).map(y => `<option value="${y}">${y}</option>`).join('')
-      ys.value = year
-    }
-    picker.querySelector('.dp-month-select').onchange = e => { month = parseInt(e.target.value); renderDays() }
-    picker.querySelector('.dp-year-select').onchange = e => { year = parseInt(e.target.value); renderDays() }
-    picker.querySelectorAll('.dp-nav').forEach(btn => {
-      btn.onclick = e => { e.stopPropagation(); const a = btn.dataset.a; if (a==='yp') year--; else if (a==='yn') year++; else if (a==='dp') year-=10; else if (a==='dn') year+=10; renderDays() }
-    })
-    renderDays()
-    wrapper.appendChild(picker)
+  if (!input.hasAttribute('data-input')) input.setAttribute('data-input', '')
+  if (input.style.flex) wrapper.style.flex = input.style.flex
+  if (input.style.minWidth) wrapper.style.minWidth = input.style.minWidth
+  let icon = wrapper.querySelector('.cal-icon[data-open]')
+  if (!icon) {
+    icon = document.createElement('span')
+    icon.className = 'cal-icon'
+    icon.textContent = '📅'
+    icon.setAttribute('data-open', '')
+    wrapper.appendChild(icon)
   }
-  input.addEventListener('focus', openPicker)
-  icon.addEventListener('click', e => { e.stopPropagation(); openPicker() })
+  const cfg = {
+    wrap: true,
+    disableMobile: true,
+    allowInput: false,
+    dateFormat: 'Y-m-d',
+    appendTo: document.body,
+    onChange: (sel, dateStr) => input.dispatchEvent(new Event('change', {bubbles: true})),
+  }
+  if (input.dataset.max) cfg.maxDate = input.dataset.max
+  Object.assign(cfg, opts)
+  return flatpickr(wrapper, cfg)
 }
-function closeAllPickers() { document.querySelectorAll('.date-picker-dropdown').forEach(el => el.remove()) }
 
 // Custom confirmation overlay
 function showConfirm(title, msg) {
@@ -821,6 +764,7 @@ function renderMenu() {
     a.onclick = (e) => {
       e.preventDefault()
       state.activeView = item.id
+      persistActiveView()
       renderView()
     }
     menuLinks.appendChild(a)
@@ -844,6 +788,18 @@ async function loadMembers() {
 
 async function init() {
   await loadMembers()
+  try {
+    const user = await api('/me')
+    if (user && user.member_id) {
+      state.currentUser = user
+      state.adminToken = user.token || ''
+      state.activeView = readActiveView() || 'home'
+      renderMenu()
+      renderView()
+      showScreen('main')
+      return
+    }
+  } catch (e) {}
   showScreen('login')
 }
 
@@ -862,6 +818,7 @@ async function handleLogin() {
     state.currentUser = user
     state.adminToken = user.token || ''
     state.activeView = 'home'
+    persistActiveView()
     renderMenu()
     renderView()
     showScreen('main')
@@ -875,10 +832,12 @@ async function handleLogin() {
 }
 
 function logout() {
+  api('/logout', {method: 'POST'}).catch(() => {})
   state.currentUser = null
   state.adminToken = ''
   adminPin.value = ''
   state.activeView = 'home'
+  try { localStorage.removeItem('slv_last_view') } catch (e) {}
   showScreen('login')
 }
 
@@ -1041,8 +1000,17 @@ function updateMonthlySummary(m) { document.getElementById('sum-month-rows').inn
 
 function updateYearlySummary(y) { document.getElementById('sum-year-rows').innerHTML = summaryRows(summaryData && summaryData.yearly[y]) }
 
+function readActiveView() {
+  try { return localStorage.getItem('slv_last_view') } catch (e) { return null }
+}
+
+function persistActiveView() {
+  try { localStorage.setItem('slv_last_view', state.activeView) } catch (e) {}
+}
+
 function setView(view) {
   state.activeView = view
+  persistActiveView()
   renderView()
 }
 
@@ -1050,7 +1018,7 @@ async function renderAdminPanel() {
   const pendingLoans = state.members
     .flatMap(member => member.member_id ? [member] : [])
   const eeTypeOptions = [
-    ['all', t('All types')], ['split', t('Share / Loan')], ['deposit', t('Deposit')],
+    ['all', t('All types')], ['split', t('Share / Loan')],
     ['income', t('Income')], ['expense', t('Expense')], ['fd', t('Hardlock / Investment')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   const html = `
@@ -1089,14 +1057,9 @@ async function renderAdminPanel() {
           </div>
         </div>
         <div class="panel">
-          <h3 class="section-heading">${t('Submitted Requests')}</h3>
+          <h3 class="section-heading">${t('Pending Requests')}</h3>
           <p style="color:#94a3b8;font-size:0.85rem">${t('Approve or reject member requests after review.')}</p>
           <div id="submitted-requests"></div>
-        </div>
-        <div class="panel" style="margin-top:18px">
-          <h3 class="section-heading">${t('Rejected Requests')}</h3>
-          <p style="color:#94a3b8;font-size:0.85rem">${t('All rejected requests with the reason, for reference.')}</p>
-          <div id="rejected-requests"></div>
         </div>
       </div>
       <div class="panel" style="margin-top:18px">
@@ -1109,9 +1072,9 @@ async function renderAdminPanel() {
         </div>
         <div class="ee-filters" style="margin-top:8px">
           <label class="ee-date-label">${t('From')}:</label>
-          <input type="date" id="ee-from" class="admin-input" style="flex:1;min-width:0" />
+          <input type="text" id="ee-from" class="admin-input" style="flex:1;min-width:0" readonly />
           <label class="ee-date-label">${t('To')}:</label>
-          <input type="date" id="ee-to" class="admin-input" style="flex:1;min-width:0" />
+          <input type="text" id="ee-to" class="admin-input" style="flex:1;min-width:0" readonly />
         </div>
         <div id="ee-list" style="margin-top:12px"></div>
       </div>
@@ -1258,6 +1221,8 @@ async function renderAdminPanel() {
   const eeQ = document.getElementById('ee-q')
   const eeFrom = document.getElementById('ee-from')
   const eeTo = document.getElementById('ee-to')
+  if (eeFrom) createDatePicker(eeFrom)
+  if (eeTo) createDatePicker(eeTo)
   if (eeType && eeMember && eeQ && eeFrom && eeTo) {
     eeType.onchange = eeLoad
     eeMember.onchange = eeLoad
@@ -1269,7 +1234,6 @@ async function renderAdminPanel() {
   }
   window.toggleInvType()
   await renderSubmittedRequests()
-  await renderRejectedRequests()
   await renderFdEntries()
   await renderIeList()
 }
@@ -1514,7 +1478,7 @@ async function handleSaveIe(type) {
     await api('/admin/income-expense/add', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
-      body: JSON.stringify({type, amount, description, entry_date}),
+      body: JSON.stringify({type, amount, description: desc, entry_date}),
     })
     showToast(type === 'credit' ? 'Income recorded' : 'Expense recorded', 'success')
     document.getElementById(`${prefix}-amount`).value = ''
@@ -1547,8 +1511,8 @@ async function renderSubmittedRequests() {
       row.style.flexWrap = 'wrap'
       row.id = 'req-row-' + idx
       const typeBadge = isLoan
-        ? '<span class="badge" style="background:rgba(139,92,246,0.15);color:#c4b5fd">' + t('Loan Request') + ' · ' + (it.req_no || '') + '</span>'
-        : '<span class="badge" style="background:rgba(59,130,246,0.15);color:#93c5fd">' + t('Payment') + ' · ' + (it.req_no || '') + '</span>'
+        ? '<span class="badge" style="background:rgba(139,92,246,0.15);color:#c4b5fd">' + t('Loan Request') + '</span>'
+        : '<span class="badge" style="background:rgba(59,130,246,0.15);color:#93c5fd">' + t('Payment') + '</span>'
       let subHtml
       if (isLoan) {
         subHtml = `${t('Loan')} ${formatCurrency(it.loan_principal || 0)} ${t('for')} ${it.loan_term_months || 0} ${t('mo')}`
@@ -1557,6 +1521,7 @@ async function renderSubmittedRequests() {
         const la = Number(it.loan_payment || 0)
         const ia = Number(it.interest_amount || 0)
         const lf = Number(it.late_fee || 0)
+        const total = sa + la + ia + lf
         const isCombined = sa > 0 && (la > 0 || ia > 0 || lf > 0)
         let details = ''
         if (isCombined) {
@@ -1564,6 +1529,7 @@ async function renderSubmittedRequests() {
           if (la > 0) details += `<span style="color:#86efac">Loan: ${formatCurrency(la)}</span> `
           if (ia > 0) details += `<span style="color:#f59e0b">Interest: ${formatCurrency(ia)}</span> `
           if (lf > 0) details += `<span style="color:#f97316">Fine: ${formatCurrency(lf)}</span> `
+          details += `<span style="color:#ffffff;font-weight:600">· Total: ${formatCurrency(total)}</span>`
         }
         const typeLabel = sa > 0 ? t('Share') : (la > 0 ? t('Loan') : (ia > 0 ? t('Loan Interest') : t('Payment')))
         subHtml = isCombined ? details : `${typeLabel} ${formatCurrency(it.total_amount)}`
@@ -1600,7 +1566,6 @@ async function renderSubmittedRequests() {
           if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Approve failed') }
           showToast(isLoan ? t('Loan approved') : t('Payment approved'), 'success')
           await renderSubmittedRequests()
-          await renderRejectedRequests()
         } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
       }
       row.querySelector('.reject-btn').onclick = () => {
@@ -1622,43 +1587,11 @@ async function renderSubmittedRequests() {
           if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Reject failed') }
           showToast(isLoan ? t('Loan rejected') : t('Payment rejected'), 'info')
           await renderSubmittedRequests()
-          await renderRejectedRequests()
         } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
       }
       list.appendChild(row)
     })
     div.appendChild(list)
-  } catch (e) {
-    div.innerHTML = '<p style="color:#ef4444">' + t('Error loading') + ': ' + (e.error || e) + '</p>'
-  }
-}
-
-async function renderRejectedRequests() {
-  const div = document.getElementById('rejected-requests')
-  if (!div) return
-  div.innerHTML = loadingHtml()
-  try {
-    const items = await api('/admin/rejected_requests', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
-    if (!items || items.length === 0) {
-      div.innerHTML = '<p style="color:#64748b">' + t('No rejected requests yet.') + '</p>'
-      return
-    }
-    div.innerHTML = '<div class="table-scroll"><table class="table"><thead><tr>' +
-      '<th>' + t('Req No') + '</th><th>' + t('Member') + '</th><th>' + t('Type') + '</th><th>' + t('Amount') + '</th><th>' + t('Rejected on') + '</th><th>' + t('Reason') + '</th><th>' + t('Rejected by') + '</th></tr></thead><tbody>' +
-      items.map(it => {
-        const isLoan = it.item_type === 'loan'
-        const amount = isLoan ? formatCurrency(it.loan_principal || 0) : formatCurrency(it.total_amount || 0)
-        const type = isLoan ? t('Loan Request') : t('Payment')
-        return `<tr>
-          <td style="font-family:monospace">${escHtml(it.req_no || '')}</td>
-          <td>${escHtml(it.member_name || '-')}</td>
-          <td>${type}</td>
-          <td>${amount}</td>
-          <td>${it.rejected_date ? formatDateTime(it.rejected_date) : '-'}</td>
-          <td style="color:#fca5a5">${escHtml(it.reject_reason || '-')}</td>
-          <td>${escHtml(it.rejected_by_name || '-')}</td>
-        </tr>`
-      }).join('') + '</tbody></table></div>'
   } catch (e) {
     div.innerHTML = '<p style="color:#ef4444">' + t('Error loading') + ': ' + (e.error || e) + '</p>'
   }
@@ -1770,12 +1703,21 @@ function pbToggleFilter(col) {
   }
 
   panel.innerHTML = sortRow + filterHtml
-  panel.style.cssText = 'z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5)'
+  panel.style.cssText = 'z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5);overflow-y:auto;scrollbar-width:thin;max-height:' + (window.innerHeight - 16) + 'px'
   document.body.appendChild(panel)
   const r = th.getBoundingClientRect()
   panel.style.position = 'fixed'
   panel.style.left = Math.max(4, Math.min(r.left + r.width/2 - 135, window.innerWidth - 278)) + 'px'
   panel.style.top = (r.bottom + 4) + 'px'
+  const pr = panel.getBoundingClientRect()
+  if (pr.bottom > window.innerHeight - 8) {
+    const upSpace = r.top - 8
+    if (upSpace >= 200) {
+      panel.style.top = Math.max(8, r.top - Math.min(pr.height, upSpace) - 4) + 'px'
+    } else {
+      panel.style.top = Math.max(8, window.innerHeight - Math.min(pr.height, window.innerHeight - 16) - 8) + 'px'
+    }
+  }
   ;['pb-amt-min', 'pb-amt-max', 'pb-amt-exact'].forEach(id => {
     const el = document.getElementById(id)
     if (el) indianizeInput(el)
@@ -1800,7 +1742,7 @@ function pbCloseFilter() {
 }
 
 function pbCloseOutside(e) {
-  if (!e.target.closest('#pb-filter-panel') && !e.target.closest('.pb-sortable')) pbCloseFilter()
+  if (!e.target.closest('#pb-filter-panel') && !e.target.closest('.pb-sortable') && !e.target.closest('.flatpickr-calendar')) pbCloseFilter()
 }
 
 function pbClearColFilter(col) {
@@ -2314,6 +2256,12 @@ async function renderSubmitView() {
               <div class="input-with-currency"><span class="currency">₹</span><input id="interest-amount-input" type="text" placeholder="0" /></div>
             </div>
           </div>
+          <div class="input-row" style="margin-top:4px;">
+            <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-weight:600">Total Amount</span>
+              <strong id="submit-total-amount" style="font-size:1.1rem;color:#34d399">₹0</strong>
+            </div>
+          </div>
           <div class="input-row small-row">
             <label style="flex-basis:100%">Payment Date</label>
             <input id="pay-txn-date" type="text" value="${today}" data-max="${today}" readonly />
@@ -2366,6 +2314,19 @@ async function renderSubmitView() {
     const el = document.getElementById(id)
     if (el) indianizeInput(el)
   })
+  const submitTotalEl = document.getElementById('submit-total-amount')
+  const updateSubmitTotal = () => {
+    const sum = ['share-amount-input', 'fine-amount', 'loan-amount-input', 'interest-amount-input'].reduce((acc, id) => {
+      const el = document.getElementById(id)
+      return acc + (Number((el ? el.value : '').replace(/,/g, '')) || 0)
+    }, 0)
+    if (submitTotalEl) submitTotalEl.textContent = formatCurrency(sum)
+  }
+  ;['share-amount-input', 'fine-amount', 'loan-amount-input', 'interest-amount-input'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.addEventListener('input', updateSubmitTotal)
+  })
+  updateSubmitTotal()
   const payDate = document.getElementById('pay-txn-date')
   if (payDate) createDatePicker(payDate)
 
@@ -2949,7 +2910,6 @@ document.addEventListener('DOMContentLoaded', () => {
     translatePage()
     // Click outside avatar menu to close (delegated, added once)
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dp-wrap')) closeAllPickers()
       const menu = document.getElementById('avatar-menu')
       if (menu && !menu.contains(e.target) && !e.target.closest('#profile-avatar')) {
         menu.classList.add('hidden')

@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from typing import Optional
 
 from werkzeug.security import generate_password_hash
@@ -32,11 +32,6 @@ def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
         (name, phone, joined, dep_amt, is_admin, dob, address, photo_url, pw_hash),
     )
     member_id = cur.lastrowid
-    now = datetime.utcnow().isoformat()
-    cur.execute(
-        'INSERT INTO member_ledger (member_id, pay_date, total_amount, created_at, modified_at) VALUES (?,?,?,?,?)',
-        (member_id, joined + 'T12:00:00', dep_amt, now, now),
-    )
     conn.commit()
     cur.execute('SELECT * FROM members WHERE member_id=?', (member_id,))
     row = cur.fetchone()

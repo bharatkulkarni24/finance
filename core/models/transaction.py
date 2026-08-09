@@ -48,6 +48,10 @@ def get_member_statement(member_id: int) -> str:
     conn = get_conn()
     cur = conn.cursor()
     out = 'type,date,amount,details\n'
+    cur.execute('SELECT joined_date, deposit_amount FROM members WHERE member_id=?', (member_id,))
+    m = cur.fetchone()
+    if m and m['deposit_amount']:
+        out += f"deposit,{m['joined_date']},{m['deposit_amount']},initial deposit\n"
     cur.execute('SELECT * FROM member_ledger WHERE member_id=? ORDER BY pay_date', (member_id,))
     for p in cur.fetchall():
         r = row_to_dict(p)
@@ -60,7 +64,7 @@ def get_member_statement(member_id: int) -> str:
 def get_admin_stats():
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT SUM(total_amount) FROM member_ledger WHERE share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0")
+    cur.execute("SELECT COALESCE(SUM(deposit_amount),0) FROM members")
     deposits_total = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(share_amount) FROM member_ledger")
     shares_total = cur.fetchone()[0] or 0.0
@@ -154,6 +158,9 @@ def get_passbook_entries():
     cur = conn.cursor()
     cur.execute("""
     SELECT ts, category, member_name, amount, debit_credit FROM (
+        SELECT m.joined_date || 'T12:00:00' as ts, 'Deposit' as category, m.name as member_name, m.deposit_amount as amount, 'credit' as debit_credit
+        FROM members m WHERE m.deposit_amount > 0
+        UNION ALL
         SELECT p.pay_date as ts,
             CASE
                 WHEN p.share_amount = 0 AND p.loan_principal = 0 AND p.loan_interest = 0 AND p.late_fee = 0 THEN 'Deposit'

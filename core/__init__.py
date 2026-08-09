@@ -4,8 +4,10 @@ import logging
 import traceback
 from logging.handlers import RotatingFileHandler
 import os
+from datetime import timedelta
 
 from core.database import init_db, seed_db
+import core.config
 
 
 def create_app():
@@ -15,6 +17,10 @@ def create_app():
         template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates'),
     )
     CORS(app)
+    app.secret_key = core.config.SECRET_KEY
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
     os.makedirs('logs', exist_ok=True)
     if not any(isinstance(h, RotatingFileHandler) for h in app.logger.handlers):
