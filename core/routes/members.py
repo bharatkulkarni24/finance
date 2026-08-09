@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, date
 
 from flask import Blueprint, jsonify, request, current_app
 from werkzeug.utils import secure_filename
@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from core.config import ADMIN_PIN
 from core.database import strip_sensitive
 from core.models.member import get_all_members, create_member, get_member, update_member
-from core.models.payment import add_contribution, create_payment_request, cancel_payment_request, pay_due
+from core.models.payment import add_contribution, create_payment_request, cancel_payment_request
 from core.models.transaction import get_member_statement
 from core.models.loan import compute_interest_accrued
 
@@ -45,7 +45,7 @@ def get_member_route(member_id):
         return jsonify({'error': 'not found'}), 404
     for loan in m.get('loans', []):
         if loan['status'] == 'active':
-            compute_interest_accrued(loan, datetime.utcnow().date())
+            compute_interest_accrued(loan, date.today())
     m = get_member(member_id, full=True)
     return jsonify(strip_sensitive(m))
 
@@ -115,7 +115,7 @@ def upload_member_photo(member_id):
 def contribute(member_id):
     data = request.json
     amount = float(data.get('amount', 0))
-    when = datetime.utcnow().date()
+    when = date.today()
     add_contribution(member_id, when, amount, 'share')
     return jsonify({'status': 'ok'})
 
@@ -165,15 +165,6 @@ def cancel_request(member_id, req_id):
     if not res:
         return jsonify({'error': 'not found or cannot cancel'}), 404
     return jsonify({'status': 'cancelled', 'request': res})
-
-
-@members_bp.route('/api/members/<int:member_id>/pay_due', methods=['POST'])
-def pay_due_route(member_id):
-    data = request.json
-    due_id = int(data.get('due_id'))
-    amount = float(data.get('amount'))
-    due = pay_due(member_id, due_id, amount)
-    return jsonify({'status': 'ok', 'due': due})
 
 
 @members_bp.route('/api/members/<int:member_id>/statement', methods=['GET'])

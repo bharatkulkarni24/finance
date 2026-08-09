@@ -25,7 +25,7 @@ def pay_due(member_id: int, due_id: int, amount: float):
     cur.execute('UPDATE dues SET paid=1 WHERE id=? AND member_id=?', (due_id, member_id))
     cur.execute(
         'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-        (member_id, datetime.utcnow().date().isoformat(), amount, 'share'),
+        (member_id, date.today().isoformat(), amount, 'share'),
     )
     cur.execute(
         'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',

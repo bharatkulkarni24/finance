@@ -208,7 +208,7 @@ class TestLoanInterface:
         loan = create_loan(member_id=1, amount=10000, term_months=12)
         approve_loan(loan['id'])
         loan_dict = get_loan(loan['id'])
-        compute_interest_accrued(loan_dict, date(2026, 8, 1))
+        compute_interest_accrued(loan_dict, date.today() + timedelta(days=35))
         refreshed = get_loan(loan['id'])
         assert refreshed['outstanding'] > 10000
 

@@ -792,13 +792,6 @@ function initials(name) {
   return name.split(' ').map(w => w[0] || '').join('').slice(0, 2).toUpperCase()
 }
 
-function monthsBetweenInclusive(start) {
-  if (!start) return 0
-  const s = new Date(start)
-  const now = new Date()
-  return (now.getFullYear() - s.getFullYear()) * 12 + (now.getMonth() - s.getMonth()) + 1
-}
-
 function renderMenu() {
   menuLinks.innerHTML = ''
   const items = [
@@ -1722,16 +1715,6 @@ async function loadPbData() {
   } catch (e) {
     document.getElementById('pb-list').innerHTML = '<p style="color:#ef4444">Error loading passbook</p>'
   }
-}
-
-function pbClearFilter(key) {
-  delete pbFilters[key]
-  applyPbFilters()
-}
-
-function pbClearAllFilters() {
-  pbFilters = {}
-  applyPbFilters()
 }
 
 function pbSortIcon(col) {

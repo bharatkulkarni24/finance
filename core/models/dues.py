@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 
 from core.database import get_conn, row_to_dict
 
@@ -36,7 +36,7 @@ def get_dues(member_id: int):
 
 def calculate_due_amount(member_id: int, as_of: date = None):
     if as_of is None:
-        as_of = datetime.utcnow().date()
+        as_of = date.today()
     dues = get_dues(member_id)
     total_due = 0.0
     total_late = 0.0

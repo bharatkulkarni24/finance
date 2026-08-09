@@ -21,7 +21,7 @@ class Loan:
 def create_loan(member_id: int, amount: float, term_months: int = 12) -> dict:
     conn = get_conn()
     cur = conn.cursor()
-    today = datetime.utcnow().date().isoformat()
+    today = date.today().isoformat()
     cur.execute(
         'INSERT INTO loans (member_id, principal, outstanding, rate_monthly, term_months, status, disbursed_date, last_accrual_date) VALUES (?,?,?,?,?,?,?,?)',
         (member_id, amount, amount, 0.01, term_months, 'applied', None, today),
@@ -46,7 +46,7 @@ def get_loan(loan_id: int) -> Optional[dict]:
 def approve_loan(loan_id: int):
     conn = get_conn()
     cur = conn.cursor()
-    today = datetime.utcnow().date().isoformat()
+    today = date.today().isoformat()
     cur.execute(
         'UPDATE loans SET status=?, disbursed_date=?, last_accrual_date=? WHERE id=?',
         ('active', today, today, loan_id),
@@ -130,7 +130,7 @@ def apply_payment_to_loan(loan: dict, amount: float) -> dict:
     cur.execute('UPDATE loans SET outstanding=? WHERE id=?', (new_out, loan['id']))
     cur.execute(
         'INSERT INTO payments (member_id, loan_id, date, amount, interest_paid, principal_paid, late_fee_paid) VALUES (?,?,?,?,?,?,?)',
-        (loan['member_id'], loan['id'], datetime.utcnow().date().isoformat(), amount, 0.0, to_apply, 0.0),
+        (loan['member_id'], loan['id'], date.today().isoformat(), amount, 0.0, to_apply, 0.0),
     )
     pay_id = cur.lastrowid
     conn.commit()

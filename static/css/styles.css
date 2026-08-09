@@ -473,15 +473,10 @@ body {
   color: #ecfccb;
 }
 
-.card-grid,
 .stats-grid,
 .grid-2 {
   display: grid;
   gap: 18px;
-}
-
-.card-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .stats-grid {
@@ -503,7 +498,6 @@ body {
 .list-card,
 .list-item,
 .stat-card,
-.table-wrapper,
 .profile-card,
 .profile-avatar,
 .profile-copy {
@@ -546,8 +540,6 @@ body {
 .avatar-menu.hidden { display:none }
 .avatar-menu .btn { width:100%; text-align:left; padding:8px 10px; border-radius:8px; background: transparent; color:#e2e8f0; border:1px solid rgba(255,255,255,0.03) }
 .avatar-menu .btn:hover { background: rgba(124,58,237,0.08) }
-.photo-preview-small { width:48px; height:48px; border-radius:6px; background-size:cover; background-position:center; }
-
 /* Modern profile card */
 .profile-card { display:flex; gap:18px; align-items:center; padding:18px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; }
 .profile-copy h2 { margin:0 0 8px 0; font-size:1.4rem }
@@ -729,7 +721,6 @@ body {
 }
 
 @media (max-width: 960px) {
-  .card-grid,
   .stats-grid,
   .grid-2 {
     grid-template-columns: 1fr;

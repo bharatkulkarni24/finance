@@ -5,7 +5,6 @@ import traceback
 from logging.handlers import RotatingFileHandler
 import os
 
-from core.config import ADMIN_PIN
 from core.database import init_db, seed_db
 
 
@@ -18,12 +17,13 @@ def create_app():
     CORS(app)
 
     os.makedirs('logs', exist_ok=True)
-    logfile = os.path.join('logs', 'server.log')
-    handler = RotatingFileHandler(logfile, maxBytes=5000000, backupCount=2)
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
+    if not any(isinstance(h, RotatingFileHandler) for h in app.logger.handlers):
+        logfile = os.path.join('logs', 'server.log')
+        handler = RotatingFileHandler(logfile, maxBytes=5000000, backupCount=2)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.INFO)
+        app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
 
     @app.before_request

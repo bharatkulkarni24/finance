@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from werkzeug.security import generate_password_hash
@@ -25,7 +25,7 @@ def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
     conn = get_conn()
     cur = conn.cursor()
     dep_amt = deposit_amount if deposit_amount is not None else 25000
-    joined = (deposit_date or datetime.utcnow().date().isoformat())
+    joined = (deposit_date or date.today().isoformat())
     txn_ts = f"{joined}T09:00:00" if deposit_date else datetime.utcnow().isoformat()
     pw_hash = generate_password_hash(password) if password else ''
     cur.execute(
@@ -41,7 +41,7 @@ def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
         'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
         (member_id, txn_ts, 'Initial deposit', 'credit', dep_amt),
     )
-    generate_dues_for_member_internal(cur, member_id, datetime.utcnow().date())
+    generate_dues_for_member_internal(cur, member_id, date.today())
     conn.commit()
     cur.execute('SELECT * FROM members WHERE id=?', (member_id,))
     row = cur.fetchone()
