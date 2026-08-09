@@ -4,7 +4,7 @@ from typing import Optional
 from werkzeug.security import generate_password_hash
 
 from core.database import get_conn, row_to_dict
-from core.models.dues import generate_dues_for_member_internal
+from core.models.requests import list_member_requests
 
 
 def get_all_members():
@@ -26,24 +26,19 @@ def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
     cur = conn.cursor()
     dep_amt = deposit_amount if deposit_amount is not None else 25000
     joined = (deposit_date or date.today().isoformat())
-    txn_ts = f"{joined}T09:00:00" if deposit_date else datetime.utcnow().isoformat()
     pw_hash = generate_password_hash(password) if password else ''
     cur.execute(
         'INSERT INTO members (name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url, password) VALUES (?,?,?,?,?,?,?,?,?)',
         (name, phone, joined, dep_amt, is_admin, dob, address, photo_url, pw_hash),
     )
     member_id = cur.lastrowid
+    now = datetime.utcnow().isoformat()
     cur.execute(
-        'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-        (member_id, joined, dep_amt, 'deposit'),
+        'INSERT INTO member_ledger (member_id, pay_date, total_amount, created_at, modified_at) VALUES (?,?,?,?,?)',
+        (member_id, joined + 'T12:00:00', dep_amt, now, now),
     )
-    cur.execute(
-        'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-        (member_id, txn_ts, 'Initial deposit', 'credit', dep_amt),
-    )
-    generate_dues_for_member_internal(cur, member_id, date.today())
     conn.commit()
-    cur.execute('SELECT * FROM members WHERE id=?', (member_id,))
+    cur.execute('SELECT * FROM members WHERE member_id=?', (member_id,))
     row = cur.fetchone()
     conn.close()
     return row_to_dict(row)
@@ -61,25 +56,18 @@ def find_member_by_name(name: str) -> Optional[dict]:
 def get_member(member_id: int, full: bool = False) -> Optional[dict]:
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute('SELECT * FROM members WHERE id=?', (member_id,))
+    cur.execute('SELECT * FROM members WHERE member_id=?', (member_id,))
     row = cur.fetchone()
     if not row:
         conn.close()
         return None
     m = row_to_dict(row)
     if full:
-        cur.execute('SELECT * FROM contributions WHERE member_id=? ORDER BY date', (member_id,))
-        m['contributions'] = [row_to_dict(r) for r in cur.fetchall()][::-1]
         cur.execute('SELECT * FROM loans WHERE member_id=?', (member_id,))
         m['loans'] = [row_to_dict(r) for r in cur.fetchall()]
-        cur.execute('SELECT * FROM payments WHERE member_id=? ORDER BY date', (member_id,))
+        cur.execute('SELECT * FROM member_ledger WHERE member_id=? ORDER BY pay_date', (member_id,))
         m['payments'] = [row_to_dict(r) for r in cur.fetchall()][::-1]
-        cur.execute('SELECT * FROM dues WHERE member_id=? ORDER BY due_date', (member_id,))
-        m['dues'] = [row_to_dict(r) for r in cur.fetchall()][::-1]
-        cur.execute('SELECT * FROM payment_requests WHERE member_id=? ORDER BY date_submitted DESC', (member_id,))
-        m['payment_requests'] = [row_to_dict(r) for r in cur.fetchall()]
-        cur.execute("SELECT * FROM transactions WHERE member_id=? AND desc='Late fee' ORDER BY timestamp", (member_id,))
-        m['late_fees'] = [row_to_dict(r) for r in cur.fetchall()]
+        m['requests'] = list_member_requests(member_id)
     conn.close()
     return m
 
@@ -108,7 +96,7 @@ def update_member(member_id: int, phone: Optional[str] = None, dob: Optional[str
         conn.close()
         return get_member(member_id, full=True)
     params.append(member_id)
-    cur.execute(f'UPDATE members SET {", ".join(updates)} WHERE id=?', params)
+    cur.execute(f'UPDATE members SET {", ".join(updates)} WHERE member_id=?', params)
     conn.commit()
     conn.close()
     return get_member(member_id, full=True)

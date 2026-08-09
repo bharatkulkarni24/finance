@@ -1,5 +1,7 @@
 const api = async (path, opts = {}) => {
-  const res = await fetch('/api' + path, opts)
+  const headers = Object.assign({}, opts.headers || {})
+  if (state.adminToken) headers['X-ADMIN-TOKEN'] = state.adminToken
+  const res = await fetch('/api' + path, Object.assign({}, opts, {headers}))
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw err
@@ -94,9 +96,11 @@ const I18N = {
     'Admin Panel': 'Admin Panel',
     'Login to SLV Finance': 'Login to SLV Finance',
     'Select Member': 'Select Member',
-    'Admin PIN (only for admin)': 'Admin PIN (only for admin)',
-    'Enter admin PIN': 'Enter admin PIN',
+    'Password': 'Password',
     'Login': 'Login',
+    'Enter password': 'Enter password',
+    'Password is needed': 'Password is needed',
+    'Incorrect password': 'Incorrect password',
     '💰 Financial Overview': '💰 Financial Overview',
     'Total Collected': 'Total Collected',
     'Sum of all collection sources below (net of expenses).': 'Sum of all collection sources below (net of expenses).',
@@ -155,9 +159,7 @@ const I18N = {
     'Member name': 'Member name',
     'Phone (optional)': 'Phone (optional)',
     'Add Member': 'Add Member',
-    'Pending Loans': 'Pending Loans',
     'Approve loans from members after review.': 'Approve loans from members after review.',
-    'Pending Payments': 'Pending Payments',
     '🏦 FD Management': '🏦 FD Management',
     'FD Amount': 'FD Amount',
     'Start Date': 'Start Date',
@@ -167,6 +169,7 @@ const I18N = {
     'Add FD': 'Add FD',
     'Active': 'Active',
     'Record': 'Record',
+    'FD No.': 'FD No.',
     'Show installments': 'Show installments',
     'Hide installments': 'Hide installments',
     'Income / Expenses': 'Income / Expenses',
@@ -224,7 +227,7 @@ const I18N = {
     'e.g. SBI': 'e.g. SBI',
     'e.g. Donation from X': 'e.g. Donation from X',
     'e.g. Meeting snacks': 'e.g. Meeting snacks',
-    'Login failed. Check your name/PIN.': 'Login failed. Check your name/PIN.',
+    'Login failed. Check your name/password.': 'Login failed. Check your name/password.',
     'Dashboard': 'Dashboard',
     'My Profile': 'My Profile',
     'All Members': 'All Members',
@@ -240,14 +243,16 @@ const I18N = {
     'Upload failed': 'Upload failed',
     'Cancel': 'Cancel',
     'Confirm cancel?': 'Confirm cancel?',
-    'Pending approval': 'Pending approval',
     'Approved and active': 'Approved and active',
     'Rejected': 'Rejected',
     'Loan Application': 'Loan Application',
     'Approved on ': 'Approved on ',
-    'Pending': 'Pending',
+    'Submitted': 'Submitted',
     'Share Payment': 'Share Payment',
     'Loan Payment': 'Loan Payment',
+    'Combined Payment': 'Combined Payment',
+    'Approved': 'Approved',
+    'Cancelled': 'Cancelled',
     'No history yet': 'No history yet',
     'Status': 'Status',
     'Comments': 'Comments',
@@ -259,9 +264,11 @@ const I18N = {
     'Enter a reason': 'Enter a reason',
     'Reason for rejection...': 'Reason for rejection...',
     'Confirm Reject': 'Confirm Reject',
-    'No pending payments': 'No pending payments',
     '📎 Screenshot': '📎 Screenshot',
     'Error loading': 'Error loading',
+    'Deleted': 'Deleted',
+    'Edited': 'Edited',
+    'No changes recorded yet.': 'No changes recorded yet.',
     'FD not found': 'FD not found',
     'FD closed. Interest added to Other Income.': 'FD closed. Interest added to Other Income.',
     'Enter valid FD amount': 'Enter valid FD amount',
@@ -274,8 +281,6 @@ const I18N = {
     'Income recorded': 'Income recorded',
     'Expense recorded': 'Expense recorded',
     'Enter a valid amount': 'Enter a valid amount',
-    "Error loading pending loans": "Error loading pending loans",
-    'No pending loans at the moment.': 'No pending loans at the moment.',
     'Loan': 'Loan',
     'for': 'for',
     'mo': 'mo',
@@ -316,9 +321,11 @@ const I18N = {
     'Admin Panel': 'ಆಡಳಿತ ಫಲಕ',
     'Login to SLV Finance': 'ಎಸ್‌ಎಲ್‌ವಿ ಫೈನಾನ್ಸ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ',
     'Select Member': 'ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
-    'Admin PIN (only for admin)': 'ಆಡಳಿತಗಾರರ PIN (ಆಡಳಿತಗಾರರಿಗೆ ಮಾತ್ರ)',
-    'Enter admin PIN': 'ಆಡಳಿತಗಾರರ PIN ನಮೂದಿಸಿ',
+    'Password': 'ಪಾಸ್ವರ್ಡ್',
     'Login': 'ಲಾಗಿನ್',
+    'Enter password': 'ಪಾಸ್ವರ್ಡ್ ನಮೂದಿಸಿ',
+    'Password is needed': 'ಪಾಸ್ವರ್ಡ್ ಅಗತ್ಯವಿದೆ',
+    'Incorrect password': 'ತಪ್ಪು ಪಾಸ್ವರ್ಡ್',
     '💰 Financial Overview': '💰 ಹಣಕಾಸಿನ ಮಾಹಿತಿ',
     'Total Collected': 'ಒಟ್ಟು ಸಂಗ್ರಹ',
     'Sum of all collection sources below (net of expenses).': 'ಕೆಳಗಿನ ಎಲ್ಲಾ ಸಂಗ್ರಹ ಮೂಲಗಳ ಮೊತ್ತ (ಖರ್ಚು ಕಳೆದು).',
@@ -377,9 +384,7 @@ const I18N = {
     'Member name': 'ಸದಸ್ಯರ ಹೆಸರು',
     'Phone (optional)': 'ಫೋನ್ (ಐಚ್ಛಿಕ)',
     'Add Member': 'ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
-    'Pending Loans': 'ಬಾಕಿ ಸಾಲಗಳು',
     'Approve loans from members after review.': 'ಸದಸ್ಯರ ಸಾಲಗಳನ್ನು ಪರಿಶೀಲಿಸಿ ಅನುಮೋದಿಸಿ.',
-    'Pending Payments': 'ಬಾಕಿ ಪಾವತಿಗಳು',
     '🏦 FD Management': '🏦 ಎಫ್‌ಡಿ ನಿರ್ವಹಣೆ',
     'FD Amount': 'ಎಫ್‌ಡಿ ಮೊತ್ತ',
     'Start Date': 'ಪ್ರಾರಂಭ ದಿನಾಂಕ',
@@ -389,6 +394,7 @@ const I18N = {
     'Add FD': 'ಎಫ್‌ಡಿ ಸೇರಿಸಿ',
     'Active': 'ಸಕ್ರಿಯ',
     'Record': 'ದಾಖಲೆ',
+    'FD No.': 'ಎಫ್‌ಡಿ ಸಂಖ್ಯೆ',
     'Show installments': 'ಕಂತುಗಳನ್ನು ತೋರಿಸಿ',
     'Hide installments': 'ಕಂತುಗಳನ್ನು ಮರೆಮಾಡಿ',
     'Income / Expenses': 'ಆದಾಯ / ಖರ್ಚು',
@@ -444,7 +450,7 @@ const I18N = {
     'e.g. SBI': 'ಉದಾ: ಎಸ್‌ಬಿಐ',
     'e.g. Donation from X': 'ಉದಾ: X ರಿಂದ ದೇಣಿಗೆ',
     'e.g. Meeting snacks': 'ಉದಾ: ಸಭೆ ತಿಂಡಿ',
-    'Login failed. Check your name/PIN.': 'ಲಾಗಿನ್ ವಿಫಲ. ನಿಮ್ಮ ಹೆಸರು/PIN ಪರಿಶೀಲಿಸಿ.',
+    'Login failed. Check your name/password.': 'ಲಾಗಿನ್ ವಿಫಲ. ನಿಮ್ಮ ಹೆಸರು/ಪಾಸ್ವರ್ಡ್ ಪರಿಶೀಲಿಸಿ.',
     'Dashboard': 'ಮುಖಪುಟ',
     'My Profile': 'ನನ್ನ ಪ್ರೊಫೈಲ್',
     'All Members': 'ಎಲ್ಲಾ ಸದಸ್ಯರು',
@@ -460,14 +466,16 @@ const I18N = {
     'Upload failed': 'ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ',
     'Cancel': 'ರದ್ದುಮಾಡಿ',
     'Confirm cancel?': 'ರದ್ದುಗೊಳಿಸುವುದೇ?',
-    'Pending approval': 'ಅನುಮೋದನೆ ಬಾಕಿ',
     'Approved and active': 'ಅನುಮೋದಿಸಲಾಗಿದೆ',
     'Rejected': 'ತಿರಸ್ಕರಿಸಲಾಗಿದೆ',
     'Loan Application': 'ಸಾಲದ ಅರ್ಜಿ',
     'Approved on ': 'ಅನುಮೋದಿಸಿದ ದಿನ ',
-    'Pending': 'ಬಾಕಿ',
+    'Submitted': 'ಸಲ್ಲಿಸಲಾಗಿದೆ',
     'Share Payment': 'ಷೇರು ಪಾವತಿ',
     'Loan Payment': 'ಸಾಲ ಪಾವತಿ',
+    'Combined Payment': 'ಸಂಯೋಜಿತ ಪಾವತಿ',
+    'Approved': 'ಅನುಮೋದಿಸಲಾಗಿದೆ',
+    'Cancelled': 'ರದ್ದಾಗಿದೆ',
     'No history yet': 'ಇನ್ನೂ ಇತಿಹಾಸವಿಲ್ಲ',
     'Status': 'ಸ್ಥಿತಿ',
     'Comments': 'ಟಿಪ್ಪಣಿ',
@@ -479,9 +487,11 @@ const I18N = {
     'Enter a reason': 'ಕಾರಣ ನಮೂದಿಸಿ',
     'Reason for rejection...': 'ತಿರಸ್ಕರಿಸಲು ಕಾರಣ...',
     'Confirm Reject': 'ತಿರಸ್ಕರಿಸುವುದನ್ನು ಖಚಿತಪಡಿಸಿ',
-    'No pending payments': 'ಬಾಕಿ ಪಾವತಿಗಳಿಲ್ಲ',
-    '📎 Screenshot': '📎 ಸ್ಕ್ರೀನ್‌ಶಾಟ್',
+    '📎 Screenshot': '📎 ಸ್ಕ್ರೀನ್ಶಾಟ್',
     'Error loading': 'ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+    'Deleted': 'ಅಳಿಸಲಾಗಿದೆ',
+    'Edited': 'ಸಂಪಾದಿಸಲಾಗಿದೆ',
+    'No changes recorded yet.': 'ಇನ್ನೂ ಬದಲಾವಣೆಗಳಿಲ್ಲ.',
     'FD not found': 'ಎಫ್‌ಡಿ ಕಂಡುಬಂದಿಲ್ಲ',
     'FD closed. Interest added to Other Income.': 'ಎಫ್‌ಡಿ ಮುಚ್ಚಲಾಗಿದೆ. ಬಡ್ಡಿಯನ್ನು ಇತರೆ ಆದಾಯಕ್ಕೆ ಸೇರಿಸಲಾಗಿದೆ.',
     'Enter valid FD amount': 'ಸರಿಯಾದ ಎಫ್‌ಡಿ ಮೊತ್ತ ನಮೂದಿಸಿ',
@@ -494,8 +504,6 @@ const I18N = {
     'Income recorded': 'ಆದಾಯ ದಾಖಲಿಸಲಾಗಿದೆ',
     'Expense recorded': 'ಖರ್ಚು ದಾಖಲಿಸಲಾಗಿದೆ',
     'Enter a valid amount': 'ಸರಿಯಾದ ಮೊತ್ತ ನಮೂದಿಸಿ',
-    "Error loading pending loans": "ಬಾಕಿ ಸಾಲಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ",
-    'No pending loans at the moment.': 'ಈಗ ಬಾಕಿ ಸಾಲಗಳಿಲ್ಲ.',
     'Loan': 'ಸಾಲ',
     'for': 'ಗೆ',
     'mo': 'ತಿಂಗಳು',
@@ -557,7 +565,7 @@ function translatePage() {
   // translate login fields
   const labels = document.querySelectorAll('.login-fields label')
   if (labels[0]) labels[0].textContent = t('Select Member')
-  if (labels[1]) labels[1].textContent = t('Password / PIN')
+  if (labels[1]) labels[1].textContent = t('Password')
   const pin = document.getElementById('admin-pin')
   if (pin) pin.placeholder = t('Enter password')
   const btn = document.getElementById('login-button')
@@ -852,13 +860,14 @@ async function handleLogin() {
       body: JSON.stringify({name, pin}),
     })
     state.currentUser = user
+    state.adminToken = user.token || ''
     state.activeView = 'home'
     renderMenu()
     renderView()
     showScreen('main')
     showWelcomeOverlay(user.name)
   } catch (err) {
-    loginError.textContent = t(err.error || 'Login failed. Check your name/PIN.')
+    loginError.textContent = t(err.error || 'Login failed. Check your name/password.')
     loginError.classList.remove('hidden')
   } finally {
     setLoading(btn, false)
@@ -867,6 +876,7 @@ async function handleLogin() {
 
 function logout() {
   state.currentUser = null
+  state.adminToken = ''
   adminPin.value = ''
   state.activeView = 'home'
   showScreen('login')
@@ -905,7 +915,7 @@ function renderView() {
   renderMenu()
   const view = state.activeView
   if (view === 'admin-panel') return renderAdminPanel()
-  if (view === 'my-profile') return renderMemberProfile(state.currentUser.id)
+  if (view === 'my-profile') return renderMemberProfile(state.currentUser.member_id)
   if (view === 'submit') return renderSubmitView()
   if (view === 'my-history') return renderAllHistory()
   if (view === 'all-members') return renderAllMembers()
@@ -916,8 +926,8 @@ function renderView() {
 let summaryData = null
 
 async function renderHome() {
-  const stats = await api('/admin/stats', {headers: {'X-ADMIN-PIN': ADMIN_PIN}}).catch(()=>null)
-  summaryData = await api('/admin/period_summary', {headers: {'X-ADMIN-PIN': ADMIN_PIN}}).catch(()=>null)
+  const stats = await api('/admin/stats', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}}).catch(()=>null)
+  summaryData = await api('/admin/period_summary', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}}).catch(()=>null)
   const months = (summaryData && summaryData.months) || []
   const years = (summaryData && summaryData.years) || []
   const defMonth = months.length ? months[months.length - 1] : ''
@@ -1038,7 +1048,7 @@ function setView(view) {
 
 async function renderAdminPanel() {
   const pendingLoans = state.members
-    .flatMap(member => member.id ? [member] : [])
+    .flatMap(member => member.member_id ? [member] : [])
   const eeTypeOptions = [
     ['all', t('All types')], ['split', t('Share / Loan')], ['deposit', t('Deposit')],
     ['income', t('Income')], ['expense', t('Expense')], ['fd', t('Hardlock / Investment')],
@@ -1064,7 +1074,7 @@ async function renderAdminPanel() {
           <button class="btn btn-admin-toggle" id="toggle-direct-entry" style="width:100%;justify-content:center;gap:8px;margin-top:0">${t('Direct Entry')}</button>
           <div id="direct-entry-form" style="display:none;margin-top:12px">
           <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
-          <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}</select></div>
+          <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
           <div class="input-row" style="display:flex;gap:12px">
             <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Share Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
             <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
@@ -1079,11 +1089,14 @@ async function renderAdminPanel() {
           </div>
         </div>
         <div class="panel">
-          <h3 class="section-heading">${t('Pending Loans')}</h3>
-          <p style="color:#94a3b8;font-size:0.85rem">${t('Approve loans from members after review.')}</p>
-          <div id="pending-loans"></div>
-          <h3 class="section-heading" style="margin-top:18px">${t('Pending Payments')}</h3>
-          <div id="pending-payments"></div>
+          <h3 class="section-heading">${t('Submitted Requests')}</h3>
+          <p style="color:#94a3b8;font-size:0.85rem">${t('Approve or reject member requests after review.')}</p>
+          <div id="submitted-requests"></div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <h3 class="section-heading">${t('Rejected Requests')}</h3>
+          <p style="color:#94a3b8;font-size:0.85rem">${t('All rejected requests with the reason, for reference.')}</p>
+          <div id="rejected-requests"></div>
         </div>
       </div>
       <div class="panel" style="margin-top:18px">
@@ -1091,7 +1104,7 @@ async function renderAdminPanel() {
         <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
         <div class="ee-filters">
           <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
-          <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.id}">${escHtml(m.name)}</option>`).join('')}</select>
+          <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.member_id}">${escHtml(m.name)}</option>`).join('')}</select>
           <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
         </div>
         <div class="ee-filters" style="margin-top:8px">
@@ -1255,8 +1268,8 @@ async function renderAdminPanel() {
     eeLoad()
   }
   window.toggleInvType()
-  await renderPendingLoans()
-  await renderPendingPayments()
+  await renderSubmittedRequests()
+  await renderRejectedRequests()
   await renderFdEntries()
   await renderIeList()
 }
@@ -1291,7 +1304,7 @@ async function eeLoad() {
   if (from) url += '&date_from=' + encodeURIComponent(from)
   if (to) url += '&date_to=' + encodeURIComponent(to)
   try {
-    eeEntries = await api(url, {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    eeEntries = await api(url, {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
   } catch (err) {
     list.innerHTML = '<p style="color:#fca5a5;text-align:center;padding:16px">' + t('Error loading') + '</p>'
     return
@@ -1308,8 +1321,8 @@ function eeRowHtml(e) {
     const cell = (label, val, cls) => `<span class="ee-split-cell${cls ? ' ' + cls : ''}"><span class="ee-split-label">${label}</span><span class="ee-split-val">${formatCurrency(val || 0)}</span></span>`
     const total = (sp.share || 0) + (sp.late_fee || 0) + (sp.interest || 0) + (sp.principal || 0)
     amountHtml = `<div class="ee-split">${cell(t('Share'), sp.share)}${cell(t('Late fee'), sp.late_fee)}${cell(t('Interest'), sp.interest)}${cell(t('Principal'), sp.principal)}${cell(t('Total'), total, 'ee-split-total')}</div>`
-  } else if (e.desc) {
-    detail = `<div class="ee-sub">${escHtml(e.desc)}</div>`
+  } else if (e.description) {
+    detail = `<div class="ee-sub">${escHtml(e.description)}</div>`
   }
   const badge = isSplitKind(e.kind) ? 'ee-badge-split' : (e.kind === 'expense' || (e.debit_credit === 'debit') ? 'ee-badge-expense' : 'ee-badge-' + e.kind)
   return `<div class="ee-row">
@@ -1391,6 +1404,7 @@ async function eeSave(e, overlay) {
     contribution_id: e.contribution_id,
     transaction_id: e.transaction_id,
     payment_id: e.payment_id,
+    changed_by: (state.currentUser && state.currentUser.member_id) || null,
   }
   if (isSplitKind(e.kind)) {
     const num = id2 => Number(document.getElementById(id2).value.replace(/,/g, '')) || 0
@@ -1404,7 +1418,7 @@ async function eeSave(e, overlay) {
   try {
     const res = await api('/admin/entries/edit', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
       body: JSON.stringify(payload),
     })
     if (res.error) throw new Error(res.error)
@@ -1422,16 +1436,17 @@ async function eeDelete(id) {
   if (!(await showConfirm(t('Delete Entry'), t('Delete this entry permanently?') + ' ' + eeKindLabel(e.kind) + ' — ' + formatCurrency(e.amount)))) return
   try {
     const payload = e.kind === 'split'
-      ? {kind: 'split', member_id: e.member_id, date: e.date}
+      ? {kind: 'split', member_id: e.member_id, date: e.date, changed_by: (state.currentUser && state.currentUser.member_id) || null}
       : {
           kind: e.kind,
           contribution_id: e.contribution_id,
           transaction_id: e.transaction_id,
           payment_id: e.payment_id,
+          changed_by: (state.currentUser && state.currentUser.member_id) || null,
         }
     await api('/admin/entries/delete', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
       body: JSON.stringify(payload),
     })
     showToast(t('Entry deleted'), 'success')
@@ -1470,13 +1485,13 @@ async function renderIeList() {
   if (!div) return
   div.innerHTML = loadingHtml()
   try {
-    const rows = await api('/admin/transactions', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    const rows = await api('/admin/transactions', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
     if (!rows || !rows.length) { div.innerHTML = '<p style="color:#64748b">' + t('No income or expense entries yet.') + '</p>'; return }
     div.innerHTML = '<table class="table"><thead><tr><th>' + t('Date') + '</th><th>' + t('Type') + '</th><th>' + t('Reason') + '</th><th style="text-align:right">' + t('Amount') + '</th></tr></thead><tbody>' +
       rows.slice(0, 30).map(r => `<tr>
         <td style="white-space:nowrap">${formatDate(r.timestamp)}</td>
         <td><span style="color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? t('Income') : t('Expense')}</span></td>
-        <td style="color:#94a3b8">${r.desc || '-'}</td>
+        <td style="color:#94a3b8">${r.description || '-'}</td>
         <td style="text-align:right;font-weight:600;color:${r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'}">${r.debit_credit === 'credit' ? '+' : '-'}${formatCurrency(r.amount)}</td>
       </tr>`).join('') + '</tbody></table>'
   } catch (e) {
@@ -1498,8 +1513,8 @@ async function handleSaveIe(type) {
   try {
     await api('/admin/income-expense/add', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
-      body: JSON.stringify({type, amount, desc, entry_date}),
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
+      body: JSON.stringify({type, amount, description, entry_date}),
     })
     showToast(type === 'credit' ? 'Income recorded' : 'Expense recorded', 'success')
     document.getElementById(`${prefix}-amount`).value = ''
@@ -1512,83 +1527,102 @@ async function handleSaveIe(type) {
 }
 
 
-async function renderPendingPayments() {
-  const div = document.getElementById('pending-payments')
+async function renderSubmittedRequests() {
+  const div = document.getElementById('submitted-requests')
+  if (!div) return
   div.innerHTML = loadingHtml()
   try {
-    const items = await api('/admin/payment_requests', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    const items = await api('/admin/submitted_requests', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
     if (!items || items.length === 0) {
-      div.innerHTML = '<p style="color:#64748b">' + t('No pending payments') + '</p>'
+      div.innerHTML = '<p style="color:#64748b">' + t('No submitted requests yet.') + '</p>'
       return
     }
     div.innerHTML = ''
     const list = document.createElement('div')
     list.className = 'list-card'
     items.forEach((it, idx) => {
+      const isLoan = it.item_type === 'loan'
       const row = document.createElement('div')
       row.className = 'list-item'
       row.style.flexWrap = 'wrap'
-      const isCombined = it.type === 'combined'
-      let details = ''
-      if (isCombined) {
+      row.id = 'req-row-' + idx
+      const typeBadge = isLoan
+        ? '<span class="badge" style="background:rgba(139,92,246,0.15);color:#c4b5fd">' + t('Loan Request') + ' · ' + (it.req_no || '') + '</span>'
+        : '<span class="badge" style="background:rgba(59,130,246,0.15);color:#93c5fd">' + t('Payment') + ' · ' + (it.req_no || '') + '</span>'
+      let subHtml
+      if (isLoan) {
+        subHtml = `${t('Loan')} ${formatCurrency(it.loan_principal || 0)} ${t('for')} ${it.loan_term_months || 0} ${t('mo')}`
+      } else {
         const sa = Number(it.share_amount || 0)
-        const la = Number(it.loan_amount || 0)
+        const la = Number(it.loan_payment || 0)
         const ia = Number(it.interest_amount || 0)
         const lf = Number(it.late_fee || 0)
-        if (sa > 0) details += `<span style="color:#67e8f9">Share: ${formatCurrency(sa)}</span> `
-        if (la > 0) details += `<span style="color:#86efac">Loan: ${formatCurrency(la)}</span> `
-        if (ia > 0) details += `<span style="color:#f59e0b">Interest: ${formatCurrency(ia)}</span> `
-        if (lf > 0) details += `<span style="color:#f97316">Fine: ${formatCurrency(lf)}</span> `
+        const isCombined = sa > 0 && (la > 0 || ia > 0 || lf > 0)
+        let details = ''
+        if (isCombined) {
+          if (sa > 0) details += `<span style="color:#67e8f9">Share: ${formatCurrency(sa)}</span> `
+          if (la > 0) details += `<span style="color:#86efac">Loan: ${formatCurrency(la)}</span> `
+          if (ia > 0) details += `<span style="color:#f59e0b">Interest: ${formatCurrency(ia)}</span> `
+          if (lf > 0) details += `<span style="color:#f97316">Fine: ${formatCurrency(lf)}</span> `
+        }
+        const typeLabel = sa > 0 ? t('Share') : (la > 0 ? t('Loan') : (ia > 0 ? t('Loan Interest') : t('Payment')))
+        subHtml = isCombined ? details : `${typeLabel} ${formatCurrency(it.total_amount)}`
       }
       row.innerHTML = `
         <div>
           <strong>${it.member_name}</strong><br>
-          <small>${isCombined ? details : `${it.type} ${formatCurrency(it.amount)}`}${it.note ? ' — ' + it.note : ''}</small>
+          <small>${subHtml}${it.note ? ' — ' + it.note : ''}</small><br>
+          ${typeBadge}
         </div>
-        <div>${it.screenshot?`<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">${t('📎 Screenshot')}</a>`:''}</div>
-        <div id="pay-actions-${idx}">
+        <div>${!isLoan && it.screenshot ? `<a href="${it.screenshot}" target="_blank" style="color:#7dd3fc">${t('📎 Screenshot')}</a>` : ''}</div>
+        <div id="req-actions-${idx}">
           <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">${t('Approve')}</button>
           <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">${t('Reject')}</button>
         </div>
-        <div id="pay-reject-form-${idx}" class="reject-form hidden">
-          <textarea id="pay-reason-${idx}" placeholder="${t('Reason for rejection...')}" rows="2"></textarea>
+        <div id="req-reject-form-${idx}" class="reject-form hidden">
+          <textarea id="reject-reason-${idx}" placeholder="${t('Reason for rejection...')}" rows="2"></textarea>
           <div class="reject-form-actions">
-            <button class="btn primary" id="pay-reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Reject')}</button>
-            <button class="btn secondary" id="pay-reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">${t('Cancel')}</button>
+            <button class="btn primary" id="reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Reject')}</button>
+            <button class="btn secondary" id="reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">${t('Cancel')}</button>
           </div>
         </div>`
+      const approverId = (state.currentUser && state.currentUser.member_id) || 0
       row.querySelector('.approve-btn').onclick = async () => {
-        const confirmMsg = isCombined
-          ? `Approve payment from ${it.member_name}?<br><br>${details}`
-          : `Approve ${it.type} payment of ${formatCurrency(it.amount)} from ${it.member_name}?`
-        if (!(await showConfirm('Approve Payment', confirmMsg))) return
+        const confirmMsg = isLoan
+          ? `Approve loan of ${formatCurrency(it.loan_principal)} for ${it.member_name}?`
+          : `Approve payment of ${formatCurrency(it.total_amount)} from ${it.member_name}?`
+        if (!(await showConfirm(t('Approve'), confirmMsg))) return
         const btn = row.querySelector('.approve-btn')
         setLoading(btn, true)
         try {
-          const res = await fetch(`/api/admin/approve_request/${it.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+          const url = isLoan ? `/api/admin/approve_loan/${it.req_id}` : `/api/admin/approve_request/${it.req_id}`
+          const res = await fetch(url, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-TOKEN': (state.adminToken || '')}, body: JSON.stringify({approver_id: approverId})})
           if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Approve failed') }
-          showToast(t('Payment approved'), 'success')
-          await renderPendingPayments()
+          showToast(isLoan ? t('Loan approved') : t('Payment approved'), 'success')
+          await renderSubmittedRequests()
+          await renderRejectedRequests()
         } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
       }
       row.querySelector('.reject-btn').onclick = () => {
-        document.getElementById('pay-actions-' + idx).classList.add('hidden')
-        document.getElementById('pay-reject-form-' + idx).classList.remove('hidden')
+        document.getElementById('req-actions-' + idx).classList.add('hidden')
+        document.getElementById('req-reject-form-' + idx).classList.remove('hidden')
       }
-      row.querySelector('#pay-reject-cancel-' + idx).onclick = () => {
-        document.getElementById('pay-actions-' + idx).classList.remove('hidden')
-        document.getElementById('pay-reject-form-' + idx).classList.add('hidden')
+      row.querySelector('#reject-cancel-' + idx).onclick = () => {
+        document.getElementById('req-actions-' + idx).classList.remove('hidden')
+        document.getElementById('req-reject-form-' + idx).classList.add('hidden')
       }
-      row.querySelector('#pay-reject-confirm-' + idx).onclick = async () => {
-        const btn = row.querySelector('#pay-reject-confirm-' + idx)
-        const reason = document.getElementById('pay-reason-' + idx).value.trim()
+      row.querySelector('#reject-confirm-' + idx).onclick = async () => {
+        const btn = row.querySelector('#reject-confirm-' + idx)
+        const reason = document.getElementById('reject-reason-' + idx).value.trim()
         if (!reason) { showToast(t('Enter a reason'), 'error'); return }
         setLoading(btn, true)
         try {
-          const res = await fetch(`/api/admin/reject_request/${it.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
+          const url = isLoan ? `/api/admin/reject_loan/${it.req_id}` : `/api/admin/reject_request/${it.req_id}`
+          const res = await fetch(url, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-TOKEN': (state.adminToken || '')}, body: JSON.stringify({approver_id: approverId, reason})})
           if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Reject failed') }
-          showToast(t('Payment rejected'), 'info')
-          await renderPendingPayments()
+          showToast(isLoan ? t('Loan rejected') : t('Payment rejected'), 'info')
+          await renderSubmittedRequests()
+          await renderRejectedRequests()
         } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
       }
       list.appendChild(row)
@@ -1599,78 +1633,35 @@ async function renderPendingPayments() {
   }
 }
 
-async function renderPendingLoans() {
-  const pendingDiv = document.getElementById('pending-loans')
-  pendingDiv.innerHTML = loadingHtml()
-  let loans = []
+async function renderRejectedRequests() {
+  const div = document.getElementById('rejected-requests')
+  if (!div) return
+  div.innerHTML = loadingHtml()
   try {
-    loans = await api('/admin/pending_loans', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    const items = await api('/admin/rejected_requests', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
+    if (!items || items.length === 0) {
+      div.innerHTML = '<p style="color:#64748b">' + t('No rejected requests yet.') + '</p>'
+      return
+    }
+    div.innerHTML = '<div class="table-scroll"><table class="table"><thead><tr>' +
+      '<th>' + t('Req No') + '</th><th>' + t('Member') + '</th><th>' + t('Type') + '</th><th>' + t('Amount') + '</th><th>' + t('Rejected on') + '</th><th>' + t('Reason') + '</th><th>' + t('Rejected by') + '</th></tr></thead><tbody>' +
+      items.map(it => {
+        const isLoan = it.item_type === 'loan'
+        const amount = isLoan ? formatCurrency(it.loan_principal || 0) : formatCurrency(it.total_amount || 0)
+        const type = isLoan ? t('Loan Request') : t('Payment')
+        return `<tr>
+          <td style="font-family:monospace">${escHtml(it.req_no || '')}</td>
+          <td>${escHtml(it.member_name || '-')}</td>
+          <td>${type}</td>
+          <td>${amount}</td>
+          <td>${it.rejected_date ? formatDateTime(it.rejected_date) : '-'}</td>
+          <td style="color:#fca5a5">${escHtml(it.reject_reason || '-')}</td>
+          <td>${escHtml(it.rejected_by_name || '-')}</td>
+        </tr>`
+      }).join('') + '</tbody></table></div>'
   } catch (e) {
-    pendingDiv.innerHTML = '<p style="color:#ef4444">' + t('Error loading pending loans') + '</p>'
-    return
+    div.innerHTML = '<p style="color:#ef4444">' + t('Error loading') + ': ' + (e.error || e) + '</p>'
   }
-  if (!loans || loans.length === 0) {
-    pendingDiv.innerHTML = '<p style="color:#64748b">' + t('No pending loans at the moment.') + '</p>'
-    return
-  }
-  pendingDiv.innerHTML = ''
-  const list = document.createElement('div')
-  list.className = 'list-card'
-  loans.forEach((item, idx) => {
-    const row = document.createElement('div')
-    row.className = 'list-item'
-    row.style.flexWrap = 'wrap'
-    row.id = 'loan-row-' + idx
-    row.innerHTML = `
-      <div>
-        <strong>${item.member_name}</strong><br>
-        <small>${t('Loan')} ${formatCurrency(item.principal)} ${t('for')} ${item.term_months} ${t('mo')}</small>
-      </div>
-      <div id="loan-actions-${idx}">
-        <button class="btn primary approve-btn" style="padding:6px 12px;font-size:0.85rem">${t('Approve')}</button>
-        <button class="btn secondary reject-btn" style="padding:6px 12px;font-size:0.85rem">${t('Reject')}</button>
-      </div>
-      <div id="loan-reject-form-${idx}" class="reject-form hidden">
-        <textarea id="reject-reason-${idx}" placeholder="${t('Reason for rejection...')}" rows="2"></textarea>
-        <div class="reject-form-actions">
-          <button class="btn primary" id="reject-confirm-${idx}" style="padding:6px 14px;font-size:0.85rem;background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Reject')}</button>
-          <button class="btn secondary" id="reject-cancel-${idx}" style="padding:6px 14px;font-size:0.85rem">${t('Cancel')}</button>
-        </div>
-      </div>`
-    row.querySelector('.approve-btn').onclick = async () => {
-      if (!(await showConfirm('Approve Loan', `Approve loan of ${formatCurrency(item.principal)} for ${item.member_name}?`))) return
-      const btn = row.querySelector('.approve-btn')
-      setLoading(btn, true)
-      try {
-        const res = await fetch(`/api/admin/approve_loan/${item.id}`, {method:'POST', headers: {'X-ADMIN-PIN': ADMIN_PIN}})
-        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Approve failed') }
-        showToast(t("'s loan approved").replace("'s"," " + item.member_name + "'s"), 'success')
-        await renderPendingLoans()
-      } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
-    }
-    row.querySelector('.reject-btn').onclick = () => {
-      document.getElementById('loan-actions-' + idx).classList.add('hidden')
-      document.getElementById('loan-reject-form-' + idx).classList.remove('hidden')
-    }
-    row.querySelector('#reject-cancel-' + idx).onclick = () => {
-      document.getElementById('loan-actions-' + idx).classList.remove('hidden')
-      document.getElementById('loan-reject-form-' + idx).classList.add('hidden')
-    }
-    row.querySelector('#reject-confirm-' + idx).onclick = async () => {
-      const btn = row.querySelector('#reject-confirm-' + idx)
-      const reason = document.getElementById('reject-reason-' + idx).value.trim()
-      if (!reason) { showToast(t('Enter a reason'), 'error'); return }
-      setLoading(btn, true)
-      try {
-        const res = await fetch(`/api/admin/reject_loan/${item.id}`, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-PIN': ADMIN_PIN}, body: JSON.stringify({reason})})
-        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Reject failed') }
-        showToast(t('Loan rejected'), 'info')
-        await renderPendingLoans()
-      } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
-    }
-    list.appendChild(row)
-  })
-  pendingDiv.appendChild(list)
 }
 
 async function renderAllMembers() {
@@ -1681,7 +1672,7 @@ async function renderAllMembers() {
     const avatarHtml = m.photo_url
       ? `<div class="mc-avatar" style="background-image:url('${m.photo_url}')"></div>`
       : `<div class="mc-avatar mc-avatar-placeholder" style="background:${color}">${initials(m.name)}</div>`
-    return `<div class="member-card" onclick="renderMemberProfile(${m.id})" style="cursor:pointer">
+    return `<div class="member-card" onclick="renderMemberProfile(${m.member_id})" style="cursor:pointer">
       ${avatarHtml}
       <div class="mc-info">
         <div class="mc-name">${m.name}${m.is_admin ? ' ⭐' : ''}</div>
@@ -1946,19 +1937,28 @@ function applyPbFilters() {
 }
 
 async function renderAllHistory() {
-  const m = await api(`/members/${state.currentUser.id}`)
+  const m = await api(`/members/${state.currentUser.member_id}`)
+  // Unified request history from m.requests
+  const normDate = (s) => s && !String(s).includes('T') ? String(s) + 'T00:00:00' : String(s)
   const requestRows = []
-  // Loan applications from m.loans
-  ;(m.loans || []).forEach(l => {
-    const appliedDate = l.last_accrual_date || l.disbursed_date || ''
-    const padSort = (s) => s && !s.includes('T') ? s + 'T00:00:00' : s
-    let info = l.status === 'applied' ? t('Pending approval') : (l.status === 'active' ? t('Approved and active') : (l.status === 'rejected' ? (l.reject_reason || t('Rejected')) : l.status))
-    requestRows.push({ sortKey: padSort(appliedDate), date: appliedDate, type: t('Loan Application'), amount: l.principal, status: l.status, info })
-  })
-  // Payment requests from m.payment_requests
-  ;(m.payment_requests || []).forEach(r => {
-    let info = r.status === 'rejected' ? (r.reject_reason || t('Rejected')) : (r.status === 'approved' ? t('Approved on ') + formatDate(r.approved_date) : t('Pending'))
-    requestRows.push({ sortKey: r.date_submitted, date: r.date_submitted, type: r.type === 'share' ? t('Share Payment') : t('Loan Payment'), amount: r.amount, status: r.status, info })
+  ;(m.requests || []).forEach(r => {
+    const isLoan = r.item_type === 'loan'
+    let typeLabel
+    if (isLoan) {
+      typeLabel = t('Loan Application')
+    } else {
+      const sa = Number(r.share_amount || 0)
+      const la = Number(r.loan_payment || 0)
+      const ia = Number(r.interest_amount || 0)
+      const lf = Number(r.late_fee || 0)
+      typeLabel = sa > 0 && (la > 0 || ia > 0 || lf > 0) ? t('Combined Payment') : (sa > 0 ? t('Share Payment') : (la > 0 ? t('Loan Payment') : (ia > 0 ? t('Loan Interest') : t('Payment'))))
+    }
+    const amount = isLoan ? (r.loan_principal || 0) : (r.total_amount || 0)
+    let info
+    if (r.status === 'approved') info = t('Approved') + ' ' + (r.approved_date ? t('on ') + formatDateTime(r.approved_date) : '') + (r.approved_by_name ? ' — ' + r.approved_by_name : '')
+    else if (r.status === 'rejected') info = t('Rejected') + (r.reject_reason ? ' — ' + r.reject_reason : '') + (r.rejected_date ? ' ' + t('on') + ' ' + formatDateTime(r.rejected_date) : '')
+    else info = t('Submitted')
+    requestRows.push({ sortKey: normDate(r.date_submitted), date: r.date_submitted, type: typeLabel, amount, status: r.status, info })
   })
   requestRows.sort((a, b) => b.sortKey.localeCompare(a.sortKey))
   const rowsHtml = requestRows.length ? requestRows.map(r => `<tr><td>${r.date ? formatDateTime(r.date.includes('T') ? r.date : r.date + 'T00:00:00') : '-'}</td><td>${r.type}</td><td>${formatCurrency(r.amount)}</td><td>${r.status}</td><td>${r.info}</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">${t('No history yet')}</td></tr>`
@@ -1977,26 +1977,26 @@ async function renderMemberProfile(memberId) {
   state.selectedMember = memberId
   content.innerHTML = loadingHtml()
   const m = await api(`/members/${memberId}`)
-  const own = state.currentUser.id === m.id
+  const own = state.currentUser.member_id === m.member_id
   const canManage = own || state.currentUser.is_admin
   // Calculate repaid and interest per loan
   const repaidByLoan = {}
   const interestByLoan = {}
   ;(m.payments || []).forEach(p => {
     if (p.loan_id) {
-      repaidByLoan[p.loan_id] = (repaidByLoan[p.loan_id] || 0) + (p.principal_paid || p.amount || 0)
-      interestByLoan[p.loan_id] = (interestByLoan[p.loan_id] || 0) + (p.interest_paid || 0)
+      repaidByLoan[p.loan_id] = (repaidByLoan[p.loan_id] || 0) + (p.loan_principal || p.total_amount || 0)
+      interestByLoan[p.loan_id] = (interestByLoan[p.loan_id] || 0) + (p.loan_interest || 0)
     }
   })
   let loansCardsHtml
   try {
     loansCardsHtml = m.loans && m.loans.filter(l => l.status === 'active').length ? m.loans.filter(l => l.status === 'active').map(l => {
-    const statusBadge = l.status === 'active' ? '<span class="badge success">Active</span>' : (l.status === 'applied' ? '<span class="badge warn">Applied</span>' : (l.status === 'rejected' ? '<span class="badge" style="background:rgba(239,68,68,0.15);color:#fca5a5">Rejected</span>' : '<span class="badge">' + l.status + '</span>'))
+    const statusBadge = '<span class="badge success">Active</span>'
     const takenDate = l.disbursed_date || l.last_accrual_date || ''
-    const repaid = repaidByLoan[l.id] || 0
-    const interestPaid = interestByLoan[l.id] || 0
-    const loanPayments = (m.payments || []).filter(p => p.loan_id === l.id)
-    const paidMonths = new Set(loanPayments.map(p => (p.date || '').slice(0, 7))).size
+    const repaid = repaidByLoan[l.loan_id] || 0
+    const interestPaid = interestByLoan[l.loan_id] || 0
+    const loanPayments = (m.payments || []).filter(p => p.loan_id === l.loan_id)
+    const paidMonths = new Set(loanPayments.map(p => (p.pay_date || '').slice(0, 7))).size
     let closeDate = '-'
     if (l.disbursed_date && l.term_months) {
       const d = new Date(l.disbursed_date)
@@ -2011,7 +2011,7 @@ async function renderMemberProfile(memberId) {
       <div class="loan-card">
         <div class="lc-top">
           <div class="lc-top-left">
-            <span class="loan-id">💰 Loan #${l.id}</span>
+            <span class="loan-id">💰 Loan #${l.loan_id}</span>
             ${statusBadge}
             <span style="font-size:0.75rem;color:#64748b;margin-left:4px;">${interestRate}/mo</span>
           </div>
@@ -2025,7 +2025,6 @@ async function renderMemberProfile(memberId) {
           <div class="lc-cell lc-interest"><span class="lc-label">Interest Paid</span><span class="lc-value">${interestPaid > 0 ? formatCurrency(interestPaid) : '-'}</span></div>
           <div class="lc-cell lc-term lc-full"><span class="lc-label">Term</span><span class="lc-value">${paidMonths} / ${l.term_months || '?'} months</span></div>
         </div>
-        ${l.status === 'rejected' ? `<div style="margin-bottom:8px;padding:6px 10px;background:rgba(239,68,68,0.08);border-radius:8px;font-size:0.8rem;color:#fca5a5">Reason: ${l.reject_reason || 'Not specified'}</div>` : ''}
         <div class="lc-progress-row">
           <span class="lc-progress-pct">${displayPct}% repaid</span>
           <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${displayPct}%"></div></div>
@@ -2070,23 +2069,15 @@ async function renderMemberProfile(memberId) {
       </div>
     </div>
   `
-  // Build unified payment history (share contributions + loan payments + late fees merged by date)
+  // Build unified payment history from the single payments table (share + loan + interest + fine)
   const historyByDate = {}
-  m.contributions.filter(c => c.type === 'share').forEach(c => {
-    const key = c.date
-    if (!historyByDate[key]) historyByDate[key] = { date: c.date, share: 0, loan: 0, interest: 0, fine: 0 }
-    historyByDate[key].share += c.amount
-  })
   ;(m.payments || []).forEach(p => {
-    const key = p.date
-    if (!historyByDate[key]) historyByDate[key] = { date: p.date, share: 0, loan: 0, interest: 0, fine: 0 }
-    historyByDate[key].loan += (p.principal_paid || 0)
-    historyByDate[key].interest += (p.interest_paid || 0)
-  })
-  ;(m.late_fees || []).forEach(f => {
-    const key = f.timestamp.slice(0, 10)
+    const key = (p.pay_date || '').slice(0, 10)
     if (!historyByDate[key]) historyByDate[key] = { date: key, share: 0, loan: 0, interest: 0, fine: 0 }
-    historyByDate[key].fine += f.amount
+    historyByDate[key].share += (p.share_amount || 0)
+    historyByDate[key].loan += (p.loan_principal || 0)
+    historyByDate[key].interest += (p.loan_interest || 0)
+    historyByDate[key].fine += (p.late_fee || 0)
   })
   const allHistory = Object.values(historyByDate).sort((a, b) => b.date.localeCompare(a.date))
   const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0 || r.interest > 0 || r.fine > 0)
@@ -2140,9 +2131,9 @@ async function renderMemberProfile(memberId) {
       // Remove via avatar menu delegates to same remove flow
       if (avatarRemoveBtn) avatarRemoveBtn.addEventListener('click', async () => {
         if (!(await showConfirm('Remove Photo', 'Are you sure you want to remove your profile photo?'))) return
-        await api(`/members/${m.id}/self`, {method:'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({photo_url: ''})})
+        await api(`/members/${m.member_id}/self`, {method:'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({photo_url: ''})})
         showToast('Photo removed', 'info')
-        renderMemberProfile(m.id)
+        renderMemberProfile(m.member_id)
       })
       // clicking outside hides the menu
       // (delegated listener added once at init)
@@ -2181,9 +2172,9 @@ async function renderMemberProfile(memberId) {
         setLoading(confirmBtn, true)
         const fd = new FormData()
         fd.append('photo', stagedBlob, 'photo.jpg')
-        const res = await fetch(`/api/members/${m.id}/upload_photo`, {method: 'POST', body: fd})
+        const res = await fetch(`/api/members/${m.member_id}/upload_photo`, {method: 'POST', body: fd})
         setLoading(confirmBtn, false)
-        if (res.ok) { showToast(t('Photo uploaded'), 'success'); renderMemberProfile(m.id) } else { const e = await res.json().catch(()=>({})); showToast(e.error||t('Upload failed'),'error') }
+        if (res.ok) { showToast(t('Photo uploaded'), 'success'); renderMemberProfile(m.member_id) } else { const e = await res.json().catch(()=>({})); showToast(e.error||t('Upload failed'),'error') }
       }
     }
 
@@ -2204,9 +2195,9 @@ async function renderMemberProfile(memberId) {
       removeBtn.style.display = 'none'
       removeBtn.onclick = async () => {
         if (!confirm('Remove photo?')) return
-        await api(`/members/${m.id}/self`, {method:'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({photo_url: ''})})
+        await api(`/members/${m.member_id}/self`, {method:'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({photo_url: ''})})
         showToast('Photo removed', 'info')
-        renderMemberProfile(m.id)
+        renderMemberProfile(m.member_id)
       }
     }
 
@@ -2238,20 +2229,20 @@ async function renderMemberProfile(memberId) {
           if (nw !== conf) { showToast(t('Passwords do not match'), 'error'); return }
           setLoading(document.getElementById('pw-save-btn'), true)
           try {
-            await api(`/members/${m.id}/self`, {
+            await api(`/members/${m.member_id}/self`, {
               method: 'PATCH',
               headers: {'Content-Type': 'application/json'},
               body: JSON.stringify({current_password: cur, password: nw}),
             })
             showToast(t('Password changed'), 'success')
-            renderMemberProfile(m.id)
+            renderMemberProfile(m.member_id)
           } catch (err) {
             showToast(err.error || 'Failed to change password', 'error')
           } finally {
             setLoading(document.getElementById('pw-save-btn'), false)
           }
         }
-        document.getElementById('pw-cancel-btn').onclick = () => renderMemberProfile(m.id)
+        document.getElementById('pw-cancel-btn').onclick = () => renderMemberProfile(m.member_id)
       }
     }
 
@@ -2284,9 +2275,9 @@ async function renderMemberProfile(memberId) {
         if (removeBtn) removeBtn.style.display = m.photo_url ? 'inline-block' : 'none'
         // bind save/cancel
         document.getElementById('self-save-btn').onclick = async () => {
-          await handleUpdateDetails(m.id)
+          await handleUpdateDetails(m.member_id)
         }
-        document.getElementById('self-cancel-btn').onclick = () => renderMemberProfile(m.id)
+        document.getElementById('self-cancel-btn').onclick = () => renderMemberProfile(m.member_id)
       }
     }
 
@@ -2294,7 +2285,7 @@ async function renderMemberProfile(memberId) {
 
 async function renderSubmitView() {
   content.innerHTML = loadingHtml()
-  const m = await api(`/members/${state.currentUser.id}`)
+  const m = await api(`/members/${state.currentUser.member_id}`)
   const today = new Date().toISOString().slice(0, 10)
   content.innerHTML = `
     <div class="panel">
@@ -2412,7 +2403,7 @@ async function renderSubmitView() {
 
   const submitPaymentBtn = document.getElementById('submit-payment-btn-top')
   if (submitPaymentBtn) {
-    submitPaymentBtn.onclick = () => handleSubmitPayment(m.id)
+    submitPaymentBtn.onclick = () => handleSubmitPayment(m.member_id)
   }
   // auto-calculate fine on date change
   const payDateInput = document.getElementById('pay-txn-date')
@@ -2456,7 +2447,7 @@ async function renderSubmitView() {
       if (!(await showConfirm('Request Loan', `Request loan of ${formatCurrency(amt)} for ${loanYears}y ${loanMonths}m?`))) return
       setLoading(requestLoanBtn, true)
       try {
-        await api(`/members/${m.id}/apply_loan`, {
+        await api(`/members/${m.member_id}/apply_loan`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({amount: amt, term_months: totalMonths}),
@@ -2519,7 +2510,7 @@ async function handleDirectEntry() {
   try {
     const res = await fetch('/api/admin/direct_entry', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
       body: JSON.stringify({
         member_id: memberId,
         share_amount: shareAmount,
@@ -2557,12 +2548,14 @@ function toggleAdminSection(btnId, bodyId) {
   btn.classList.toggle('active', !open)
 }
 
+function fdSchemeNo(id) { return 'FD' + String(id || 0).padStart(4, '0') }
+
 async function renderFdEntries() {
   const keepingDiv = document.getElementById('fd-keeping')
   const recordDiv = document.getElementById('fd-record')
   if (!keepingDiv) return
   try {
-    const entries = await api('/admin/fd/list', {headers: {'X-ADMIN-PIN': ADMIN_PIN}})
+    const entries = await api('/admin/fd/list', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
     state.fdEntries = entries
     if (!entries || !entries.length) {
       keepingDiv.innerHTML = '<div class="fd-empty">' + t('No entries yet.') + '</div>'
@@ -2603,43 +2596,45 @@ async function renderFdEntries() {
 }
 
 function activeFdTable(fds) {
-  return '<table class="fd-table"><thead><tr><th>' + t('Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Provider') + '</th><th></th></tr></thead><tbody>' +
+  return '<table class="fd-table"><thead><tr><th>' + t('FD No.') + '</th><th>' + t('Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Provider') + '</th><th></th></tr></thead><tbody>' +
     fds.map(fd => `<tr>
+      <td class="td-bank"><strong>${fdSchemeNo(fd.fd_id)}</strong></td>
       <td class="td-amount">${formatCurrency(fd.amount)}</td>
       <td>${formatDate(fd.start_date)}</td>
       <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
       <td>${fd.interest_rate ? fd.interest_rate + '%' : '-'}</td>
       <td class="td-bank">${fd.notes || '-'}</td>
-      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.id})">${t('Close')}</button></td>
+      <td><button class="fd-btn-withdraw" onclick="closeFd(${fd.fd_id})">${t('Close')}</button></td>
     </tr>`).join('') + '</tbody></table>'
 }
 
 function schemeCard(scheme, installments, totalInvested) {
   const instRows = installments.map((inst, i) => `
     <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.08);font-size:0.85rem">
-      <span style="color:#94a3b8">#${i + 1} ${inst.installment_date ? formatDate(inst.installment_date) : ''}</span>
+      <span style="color:#94a3b8">${fdSchemeNo(scheme.fd_id)} · #${i + 1} ${inst.installment_date ? formatDate(inst.installment_date) : ''}</span>
       <span style="font-weight:500">${formatCurrency(inst.amount)}</span>
     </div>`).join('')
   return `<div style="background:rgba(199,210,254,0.04);border:1px solid rgba(199,210,254,0.12);border-radius:10px;padding:14px;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div>
-        <span style="font-weight:600;font-size:0.9rem">${escHtml(scheme.notes || 'Unnamed')}</span>
+        <strong style="font-size:0.75rem;color:#fbbf24">${fdSchemeNo(scheme.fd_id)}</strong>
+        <span style="font-weight:600;font-size:0.9rem"> ${escHtml(scheme.notes || 'Unnamed')}</span>
         <span style="display:inline-block;margin-left:8px;font-size:0.7rem;background:rgba(251,191,36,0.15);color:#fbbf24;padding:2px 8px;border-radius:4px">${t('Monthly Scheme')}</span>
       </div>
-      <button class="fd-btn-withdraw" onclick="closeFd(${scheme.id})" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">${t('Close Scheme')}</button>
+      <button class="fd-btn-withdraw" onclick="closeFd(${scheme.fd_id})" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)">${t('Close Scheme')}</button>
     </div>
     <div style="display:flex;gap:12px;font-size:0.8rem;color:#94a3b8;align-items:center;flex-wrap:wrap">
       <span>${formatDate(scheme.start_date)} → ${scheme.maturity_date ? formatDate(scheme.maturity_date) : '-'}</span>
       <span>${t('Total')}: <strong style="color:#e2e8f0">${formatCurrency(totalInvested)}</strong></span>
       <span>${installments.length} ${t('installments')}</span>
-      <button class="fd-scheme-toggle" id="scheme-toggle-${scheme.id}" onclick="toggleScheme(${scheme.id})">${t('Show installments')} <span class="fd-chevron">▾</span></button>
+      <button class="fd-scheme-toggle" id="scheme-toggle-${scheme.fd_id}" onclick="toggleScheme(${scheme.fd_id})">${t('Show installments')} <span class="fd-chevron">▾</span></button>
     </div>
-    <div id="scheme-body-${scheme.id}" style="margin-top:8px;display:none">
+    <div id="scheme-body-${scheme.fd_id}" style="margin-top:8px;display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <span style="font-size:0.8rem;color:#94a3b8">${t('Installments')}</span>
-        <button class="fd-btn-withdraw" onclick="showInstallmentForm(${scheme.id})" style="background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.2);padding:2px 10px;font-size:0.75rem">+ ${t('Add')}</button>
+        <button class="fd-btn-withdraw" onclick="showInstallmentForm(${scheme.fd_id})" style="background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.2);padding:2px 10px;font-size:0.75rem">+ ${t('Add')}</button>
       </div>
-      <div id="inst-form-${scheme.id}"></div>
+      <div id="inst-form-${scheme.fd_id}"></div>
       ${instRows || '<div style="color:#64748b;font-size:0.8rem">' + t('No installments yet') + '</div>'}
     </div>
   </div>`
@@ -2657,21 +2652,21 @@ function toggleScheme(schemeId) {
 function closedSchemeCard(scheme, installments, totalInvested) {
   const instRows = installments.map((inst, i) => `
     <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.8rem;color:#94a3b8">
-      <span>#${i + 1} ${inst.installment_date ? formatDate(inst.installment_date) : ''}</span>
+      <span>${fdSchemeNo(scheme.fd_id)} · #${i + 1} ${inst.installment_date ? formatDate(inst.installment_date) : ''}</span>
       <span>${formatCurrency(inst.amount)}</span>
     </div>`).join('')
   return `<div style="background:rgba(148,163,184,0.03);border:1px solid rgba(148,163,184,0.1);border-radius:10px;padding:14px;margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-      <span style="font-weight:600;font-size:0.9rem">${escHtml(scheme.notes || 'Unnamed')}</span>
+      <span><strong style="font-size:0.75rem;color:#94a3b8">${fdSchemeNo(scheme.fd_id)}</strong> <span style="font-weight:600;font-size:0.9rem">${escHtml(scheme.notes || 'Unnamed')}</span></span>
       <span style="font-size:0.7rem;background:rgba(148,163,184,0.15);color:#94a3b8;padding:2px 8px;border-radius:4px">${t('Closed Scheme')}</span>
     </div>
     <div style="display:flex;gap:12px;font-size:0.8rem;color:#94a3b8;align-items:center;flex-wrap:wrap">
       <span>${formatDate(scheme.start_date)} → ${scheme.maturity_date ? formatDate(scheme.maturity_date) : '-'}</span>
       <span>${t('Invested')}: ${formatCurrency(totalInvested)}</span>
       <span>${t('Return')}: ${scheme.interest_earned ? formatCurrency(scheme.interest_earned) : '-'}</span>
-      <button class="fd-scheme-toggle" id="scheme-toggle-${scheme.id}" onclick="toggleScheme(${scheme.id})">${t('Show installments')} <span class="fd-chevron">▸</span></button>
+      <button class="fd-scheme-toggle" id="scheme-toggle-${scheme.fd_id}" onclick="toggleScheme(${scheme.fd_id})">${t('Show installments')} <span class="fd-chevron">▸</span></button>
     </div>
-    <div id="scheme-body-${scheme.id}" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(148,163,184,0.08);display:none">
+    <div id="scheme-body-${scheme.fd_id}" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(148,163,184,0.08);display:none">
       <div style="font-size:0.75rem;color:#64748b;margin-bottom:4px">${installments.length} ${t('installments')}</div>
       ${instRows}
     </div>
@@ -2679,8 +2674,9 @@ function closedSchemeCard(scheme, installments, totalInvested) {
 }
 
 function closedFdTable(fds) {
-  return '<table class="fd-table"><thead><tr><th>' + t('Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Return') + '</th><th>' + t('Provider') + '</th></tr></thead><tbody>' +
+  return '<table class="fd-table"><thead><tr><th>' + t('FD No.') + '</th><th>' + t('Amount') + '</th><th>' + t('Start') + '</th><th>' + t('Maturity') + '</th><th>' + t('Rate') + '</th><th>' + t('Return') + '</th><th>' + t('Provider') + '</th></tr></thead><tbody>' +
     fds.map(fd => `<tr>
+      <td class="td-bank"><strong>${fdSchemeNo(fd.fd_id)}</strong></td>
       <td class="td-amount">${formatCurrency(fd.amount)}</td>
       <td>${formatDate(fd.start_date)}</td>
       <td>${fd.maturity_date ? formatDate(fd.maturity_date) : '-'}</td>
@@ -2715,7 +2711,7 @@ async function handleAddFd() {
   try {
     await api('/admin/fd/add', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
       body: JSON.stringify({
         amount: isMonthly ? 0 : amount,
         start_date, term_months,
@@ -2771,7 +2767,7 @@ window.handleAddInstallment = async function(schemeId) {
   try {
     const res = await fetch('/api/admin/fd/installment', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+      headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
       body: JSON.stringify({parent_id: schemeId, amount, installment_date, notes: ''}),
     })
     if (!res.ok) {
@@ -2789,7 +2785,7 @@ window.handleAddInstallment = async function(schemeId) {
 window.closeFd = async function(fdId) {
   const existing = document.getElementById('fd-close-overlay')
   if (existing) existing.remove()
-  const fdRow = state.fdEntries ? state.fdEntries.find(e => e.id === fdId) : null
+  const fdRow = state.fdEntries ? state.fdEntries.find(e => e.fd_id === fdId) : null
   if (!fdRow) { showToast(t('Entry not found'), 'error'); return }
   const isScheme = fdRow.investment_type === 'monthly'
   const installments = isScheme ? state.fdEntries.filter(e => e.parent_id === fdId && e.status === 'active') : []
@@ -2834,7 +2830,7 @@ window.closeFd = async function(fdId) {
     try {
       await api(`/admin/fd/close/${fdId}`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-ADMIN-PIN': ADMIN_PIN},
+        headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
         body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
       })
       overlay.remove()
@@ -2876,22 +2872,6 @@ window.handleUpdateDetails = handleUpdateDetails
 window.renderMemberProfile = renderMemberProfile
 window.setView = setView
 
-// Member cancels their own pending request
-async function handleCancelRequest(memberId, reqId) {
-  if (!(await showConfirm(t('Cancel Request'), t('Are you sure you want to cancel this request?')))) return
-  const res = await fetch(`/api/members/${memberId}/cancel_request/${reqId}`, {method:'POST'})
-  if (res.ok) {
-    showToast('Cancelled', 'success')
-    if (state.activeView === 'my-history') renderAllHistory()
-    else if (state.activeView === 'submit') renderSubmitView()
-    else renderMemberProfile(memberId)
-  } else {
-    const e = await res.json().catch(()=>({error:'failed'}))
-    showToast(e.error || 'Failed to cancel', 'error')
-  }
-  }
-window.handleCancelRequest = handleCancelRequest
-
 async function handleSubmitPayment(memberId) {
   const btn = document.getElementById('submit-payment-btn-top')
   const shareRaw = document.getElementById('share-amount-input').value.replace(/,/g, '')
@@ -2919,7 +2899,6 @@ async function handleSubmitPayment(memberId) {
   try {
     const fd = new FormData()
     fd.append('amount', total)
-    fd.append('type', 'combined')
     fd.append('share_amount', shareAmount)
     fd.append('loan_amount', loanAmount)
     fd.append('interest_amount', interestAmount)
@@ -2941,8 +2920,6 @@ async function handleSubmitPayment(memberId) {
     setLoading(btn, false)
   }
 }
-
-const ADMIN_PIN = '5634'
 
 document.addEventListener('DOMContentLoaded', () => {
   try {

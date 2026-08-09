@@ -10,5 +10,5 @@ def apply_loan(member_id):
     data = request.json
     amount = float(data.get('amount'))
     term = int(data.get('term_months', 12))
-    loan = create_loan(member_id, amount, term)
-    return jsonify({'loan': loan}), 201
+    req = create_loan(member_id, amount, term)
+    return jsonify({'request': req}), 201

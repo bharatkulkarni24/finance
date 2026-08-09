@@ -1,22 +1,22 @@
 import pytest
 
 from core.models.transaction import (
-    admin_add_funds, add_transaction, get_recent_transactions,
+    add_transaction, get_recent_transactions,
     get_member_statement, get_admin_stats, get_passbook_entries,
 )
 from datetime import date as dt_date
 from core.models.member import create_member
-from core.models.loan import create_loan, approve_loan
+from core.models.loan import create_loan, approve_loan, apply_payment_to_loan, get_loan
 from core.models.fd import add_fd
 from core.models.payment import add_contribution
-from core.database import get_conn, row_to_dict
+from core.database import get_conn
 
 
 # ─── Zombies: Simple ──────────────────────────────────────────────────────────
 
 class TestTransactionSimple:
-    def test_admin_add_funds(self, setup_db):
-        t = admin_add_funds(10000, 'Test deposit')
+    def test_add_income_transaction(self, setup_db):
+        t = add_transaction('credit', 10000, 'Test deposit')
         assert t['amount'] == 10000
         assert t['debit_credit'] == 'credit'
 
@@ -24,17 +24,13 @@ class TestTransactionSimple:
 # ─── Zombies: Zero ────────────────────────────────────────────────────────────
 
 class TestTransactionZero:
-    def test_admin_add_funds_zero(self, setup_db):
-        t = admin_add_funds(0, 'Zero')
+    def test_add_transaction_zero_amount(self, setup_db):
+        t = add_transaction('credit', 0, 'zero')
         assert t['amount'] == 0
 
     def test_get_recent_transactions_empty(self, setup_db):
         txns = get_recent_transactions()
         assert txns == []
-
-    def test_add_transaction_zero_amount(self, setup_db):
-        t = add_transaction('credit', 0, 'zero')
-        assert t['amount'] == 0
 
     def test_get_admin_stats_returns_keys(self, setup_db):
         stats = get_admin_stats()
@@ -50,7 +46,7 @@ class TestTransactionOne:
     def test_add_one_income(self, setup_db):
         t = add_transaction('credit', 5000, 'Donation', '2026-06-01T12:00:00')
         assert t['debit_credit'] == 'credit'
-        assert t['desc'] == 'Donation'
+        assert t['description'] == 'Donation'
 
     def test_add_one_expense(self, setup_db):
         t = add_transaction('debit', 2000, 'Snacks', '2026-06-01T12:00:00')
@@ -64,7 +60,7 @@ class TestTransactionOne:
 
     def test_member_statement(self, setup_db):
         m = create_member('Statement Test')
-        csv = get_member_statement(m['id'])
+        csv = get_member_statement(m['member_id'])
         assert csv.startswith('type,date,amount,details')
         assert 'deposit' in csv
 
@@ -90,8 +86,8 @@ class TestTransactionMany:
 class TestTransactionBoundary:
     def test_stats_with_fd_and_loans(self, setup_db):
         m = create_member('Stats Test')
-        loan = create_loan(m['id'], 50000, 12)
-        approve_loan(loan['id'])
+        req = create_loan(m['member_id'], 50000, 12)
+        approve_loan(req['req_id'], 0)
         add_fd(100000, '2026-01-01', 12, 7, 'SBI')
         stats = get_admin_stats()
         assert stats['total_lent'] >= 50000
@@ -107,15 +103,15 @@ class TestTransactionBoundary:
 
     def test_passbook_descending_order(self, setup_db):
         m = create_member('Order Test')
-        add_contribution(m['id'], dt_date(2026, 6, 1), 100, 'share')
-        add_contribution(m['id'], dt_date(2026, 6, 2), 200, 'share')
+        add_contribution(m['member_id'], dt_date(2026, 6, 1), 100, 'share')
+        add_contribution(m['member_id'], dt_date(2026, 6, 2), 200, 'share')
         entries = get_passbook_entries()
         ts_filtered = [e['ts'] for e in entries if e['member_name'] == 'Order Test']
         assert ts_filtered == sorted(ts_filtered, reverse=True)
 
     def test_passbook_no_duplicate_entries(self, setup_db):
         m = create_member('Dedup Test')
-        add_contribution(m['id'], dt_date(2026, 6, 1), 500, 'share')
+        add_contribution(m['member_id'], dt_date(2026, 6, 1), 500, 'share')
         entries = get_passbook_entries()
         member_entries = [e for e in entries if e['member_name'] == 'Dedup Test']
         assert len(member_entries) == 2  # initial deposit + share
@@ -127,8 +123,8 @@ class TestTransactionBoundary:
         fd_deposits = [e for e in entries if e['category'] == 'FD Deposit']
         assert len(fd_deposits) >= 1
 
-    def test_admin_add_funds_large(self, setup_db):
-        t = admin_add_funds(1000000, 'Large deposit')
+    def test_add_income_transaction_large(self, setup_db):
+        t = add_transaction('credit', 1000000, 'Large deposit')
         assert t['amount'] == 1000000
 
 
@@ -147,13 +143,12 @@ class TestTransactionInterface:
 
     def test_member_statement_shows_all_types(self, setup_db):
         m = create_member('CSV Test')
-        loan = create_loan(m['id'], 10000, 12)
-        approve_loan(loan['id'])
-        from core.models.loan import apply_payment_to_loan
-        loan_dict = {'id': loan['id'], 'member_id': m['id'], 'outstanding': 10000}
+        req = create_loan(m['member_id'], 10000, 12)
+        loan = approve_loan(req['req_id'], 0)
+        loan_dict = get_loan(loan['loan_id'])
         apply_payment_to_loan(loan_dict, 2000)
-        csv = get_member_statement(m['id'])
-        assert 'payment' in csv
+        csv = get_member_statement(m['member_id'])
+        assert 'loan_payment' in csv
 
 
 # ─── Zombies: Exception ───────────────────────────────────────────────────────

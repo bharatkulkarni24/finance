@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request
 
-from core.config import ADMIN_PIN
-from core.models.payment import list_pending_requests, approve_payment_request, reject_payment_request, admin_direct_entry
-from core.models.loan import list_pending_loans, get_loan, approve_loan, reject_loan
+from core.models.payment import approve_payment_request, reject_payment_request, admin_direct_entry
+from core.models.loan import approve_loan, reject_loan
+from core.models.requests import list_submitted_requests, list_rejected_items
 from core.models.fd import add_fd, add_fd_installment, close_fd, get_fd_entries
 from core.models.transaction import add_transaction, get_recent_transactions, get_admin_stats, get_passbook_entries, get_period_summary
-from core.models.edit import list_entries, edit_entry, delete_entry
+from core.models.edit import list_entries, edit_entry, delete_entry, list_audit_log
+from core.session import check_admin_token
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -13,30 +14,27 @@ admin_bp = Blueprint('admin', __name__)
 
 
 
-@admin_bp.route('/api/admin/payment_requests', methods=['GET'])
-def admin_payment_requests():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+@admin_bp.route('/api/admin/submitted_requests', methods=['GET'])
+def admin_submitted_requests():
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
-    items = list_pending_requests()
-    return jsonify(items)
+    return jsonify(list_submitted_requests())
 
 
-@admin_bp.route('/api/admin/pending_loans', methods=['GET'])
-def admin_pending_loans():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+@admin_bp.route('/api/admin/rejected_requests', methods=['GET'])
+def admin_rejected_requests():
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
-    items = list_pending_loans()
-    return jsonify(items)
+    return jsonify(list_rejected_items())
 
 
 @admin_bp.route('/api/admin/approve_request/<int:req_id>', methods=['POST'])
 def admin_approve_request(req_id):
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
-    res = approve_payment_request(req_id, approver_id=0)
+    data = request.get_json(silent=True) or {}
+    approver_id = data.get('approver_id') or 0
+    res = approve_payment_request(req_id, approver_id)
     if not res:
         return jsonify({'error': 'not found'}), 404
     return jsonify({'status': 'approved', 'request': res})
@@ -44,12 +42,12 @@ def admin_approve_request(req_id):
 
 @admin_bp.route('/api/admin/reject_request/<int:req_id>', methods=['POST'])
 def admin_reject_request(req_id):
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    approver_id = data.get('approver_id') or 0
     reason = data.get('reason', '')
-    res = reject_payment_request(req_id, approver_id=0, reason=reason)
+    res = reject_payment_request(req_id, approver_id, reason)
     if not res:
         return jsonify({'error': 'not found'}), 404
     return jsonify({'status': 'rejected', 'request': res})
@@ -57,8 +55,7 @@ def admin_reject_request(req_id):
 
 @admin_bp.route('/api/admin/fd/add', methods=['POST'])
 def admin_fd_add():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     fd = add_fd(
@@ -74,8 +71,7 @@ def admin_fd_add():
 
 @admin_bp.route('/api/admin/fd/installment', methods=['POST'])
 def admin_fd_installment():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     parent_id = int(data.get('parent_id', 0))
@@ -94,8 +90,7 @@ def admin_fd_installment():
 
 @admin_bp.route('/api/admin/fd/close/<int:fd_id>', methods=['POST'])
 def admin_fd_close(fd_id):
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     fd = close_fd(fd_id, data.get('end_date', ''), float(data.get('interest_earned', 0)))
@@ -106,8 +101,7 @@ def admin_fd_close(fd_id):
 
 @admin_bp.route('/api/admin/fd/list', methods=['GET'])
 def admin_fd_list():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     status = request.args.get('status')
     entries = get_fd_entries(status)
@@ -116,14 +110,13 @@ def admin_fd_list():
 
 @admin_bp.route('/api/admin/income-expense/add', methods=['POST'])
 def admin_income_expense_add():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     row = add_transaction(
         debit_credit=data.get('type', 'credit'),
         amount=float(data.get('amount', 0)),
-        desc=data.get('desc', ''),
+        description=data.get('description', ''),
         entry_date=data.get('entry_date', ''),
     )
     return jsonify(row)
@@ -131,8 +124,7 @@ def admin_income_expense_add():
 
 @admin_bp.route('/api/admin/transactions', methods=['GET'])
 def admin_transactions():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_recent_transactions(100))
 
@@ -144,16 +136,14 @@ def admin_passbook():
 
 @admin_bp.route('/api/admin/period_summary', methods=['GET'])
 def admin_period_summary():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_period_summary())
 
 
 @admin_bp.route('/api/admin/entries', methods=['GET'])
 def admin_entries():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     etype = request.args.get('type', 'all')
     member_id = request.args.get('member_id') or None
@@ -169,8 +159,7 @@ def admin_entries():
 
 @admin_bp.route('/api/admin/entries/edit', methods=['POST'])
 def admin_entries_edit():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     return jsonify(edit_entry(data))
@@ -178,46 +167,54 @@ def admin_entries_edit():
 
 @admin_bp.route('/api/admin/entries/delete', methods=['POST'])
 def admin_entries_delete():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     return jsonify(delete_entry(data))
 
 
+@admin_bp.route('/api/admin/audit_log', methods=['GET'])
+def admin_audit_log_route():
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+        return jsonify({'error': 'unauthorized'}), 401
+    return jsonify(list_audit_log())
+
+
 @admin_bp.route('/api/admin/stats', methods=['GET'])
 def admin_stats():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_admin_stats())
 
 
-@admin_bp.route('/api/admin/approve_loan/<int:loan_id>', methods=['POST'])
-def approve_loan_route(loan_id):
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+@admin_bp.route('/api/admin/approve_loan/<int:req_id>', methods=['POST'])
+def approve_loan_route(req_id):
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
-    approve_loan(loan_id)
-    loan = get_loan(loan_id)
+    data = request.get_json(silent=True) or {}
+    approver_id = data.get('approver_id') or 0
+    loan = approve_loan(req_id, approver_id)
+    if not loan:
+        return jsonify({'error': 'not found'}), 404
     return jsonify({'status': 'approved', 'loan': loan})
 
 
-@admin_bp.route('/api/admin/reject_loan/<int:loan_id>', methods=['POST'])
-def reject_loan_route(loan_id):
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+@admin_bp.route('/api/admin/reject_loan/<int:req_id>', methods=['POST'])
+def reject_loan_route(req_id):
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
+    approver_id = data.get('approver_id') or 0
     reason = data.get('reason', '')
-    reject_loan(loan_id, reason)
-    return jsonify({'status': 'rejected'})
+    res = reject_loan(req_id, approver_id, reason)
+    if not res:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify({'status': 'rejected', 'request': res})
 
 
 @admin_bp.route('/api/admin/direct_entry', methods=['POST'])
 def admin_direct_entry_route():
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     member_id = int(data.get('member_id', 0))

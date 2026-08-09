@@ -3,9 +3,10 @@ import pytest
 
 from core.models.loan import (
     Loan, create_loan, get_loan, approve_loan, reject_loan,
-    compute_interest_accrued, apply_payment_to_loan, list_pending_loans,
+    compute_interest_accrued, apply_payment_to_loan,
 )
-from core.database import get_conn, row_to_dict
+from core.models.requests import list_submitted_requests
+from core.database import get_conn
 
 
 # ─── Zombies: Simple ──────────────────────────────────────────────────────────
@@ -13,25 +14,26 @@ from core.database import get_conn, row_to_dict
 class TestLoanSimple:
     def test_loan_dataclass_defaults(self):
         loan = Loan()
-        assert loan.id is None
+        assert loan.loan_id is None
         assert loan.principal == 0.0
         assert loan.outstanding == 0.0
         assert loan.rate_monthly == 0.01
         assert loan.term_months == 12
-        assert loan.status == 'applied'
+        assert loan.status == 'active'
 
 
 # ─── Zombies: Zero ────────────────────────────────────────────────────────────
 
 class TestLoanZero:
     def test_create_zero_amount_loan(self, setup_db):
-        loan = create_loan(member_id=1, amount=0, term_months=12)
-        assert loan['principal'] == 0
-        assert loan['outstanding'] == 0
-        assert loan['status'] == 'applied'
+        req = create_loan(member_id=1, amount=0, term_months=12)
+        assert req['loan_principal'] == 0
+        assert req['loan_term_months'] == 12
+        assert req['status'] == 'submitted'
+        assert get_loan(1) is None
 
-    def test_interest_no_accrual_on_applied_loan(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000, status='applied')
+    def test_interest_no_accrual_on_inactive_loan(self):
+        loan = Loan(member_id=1, principal=10000, outstanding=10000, status='submitted')
         interest = compute_interest_accrued(loan, date(2026, 6, 22))
         assert interest == 0.0
 
@@ -46,15 +48,11 @@ class TestLoanZero:
         loan = get_loan(99999)
         assert loan is None
 
-    def test_approve_nonexistent_loan_does_not_raise(self):
-        approve_loan(99999)
+    def test_approve_nonexistent_loan_returns_none(self, setup_db):
+        assert approve_loan(99999) is None
 
-    def test_reject_nonexistent_loan_does_not_raise(self):
-        reject_loan(99999, 'test reason')
-
-    def test_list_pending_loans_empty(self):
-        loans = list_pending_loans()
-        assert loans == []
+    def test_reject_nonexistent_loan_returns_none(self, setup_db):
+        assert reject_loan(99999, 0, 'test reason') is None
 
     def test_zero_days_interest(self):
         loan = Loan(member_id=1, principal=10000, outstanding=10000,
@@ -67,32 +65,37 @@ class TestLoanZero:
 # ─── Zombies: One ─────────────────────────────────────────────────────────────
 
 class TestLoanOne:
-    def test_create_one_loan(self, setup_db):
-        loan = create_loan(member_id=1, amount=10000, term_months=12)
-        assert loan['id'] is not None
-        assert loan['principal'] == 10000
-        assert loan['outstanding'] == 10000
-        assert loan['status'] == 'applied'
+    def test_create_one_loan_request(self, setup_db):
+        req = create_loan(member_id=1, amount=10000, term_months=12)
+        assert req['req_id'] is not None
+        assert req['loan_principal'] == 10000
+        assert req['loan_term_months'] == 12
+        assert req['status'] == 'submitted'
+        assert req['item_type'] == 'loan'
 
-    def test_get_one_loan(self, setup_db):
-        created = create_loan(member_id=1, amount=5000, term_months=6)
-        fetched = get_loan(created['id'])
-        assert fetched['id'] == created['id']
-        assert fetched['principal'] == 5000
+    def test_approve_creates_loan_row(self, setup_db):
+        req = create_loan(member_id=1, amount=5000, term_months=6)
+        loan = approve_loan(req['req_id'], 0)
+        assert loan['loan_id'] is not None
+        assert loan['principal'] == 5000
+        assert loan['outstanding'] == 5000
+        assert loan['status'] == 'active'
+        fetched = get_loan(loan['loan_id'])
+        assert fetched['loan_id'] == loan['loan_id']
 
     def test_approve_one_loan(self, setup_db):
-        loan = create_loan(member_id=1, amount=10000, term_months=12)
-        approve_loan(loan['id'])
-        fetched = get_loan(loan['id'])
+        req = create_loan(member_id=1, amount=10000, term_months=12)
+        loan = approve_loan(req['req_id'], 0)
+        fetched = get_loan(loan['loan_id'])
         assert fetched['status'] == 'active'
         assert fetched['disbursed_date'] is not None
 
-    def test_reject_one_loan(self, setup_db):
-        loan = create_loan(member_id=1, amount=10000, term_months=12)
-        reject_loan(loan['id'], 'Not eligible')
-        fetched = get_loan(loan['id'])
-        assert fetched['status'] == 'rejected'
-        assert fetched['reject_reason'] == 'Not eligible'
+    def test_reject_one_loan_creates_no_loan_row(self, setup_db):
+        req = create_loan(member_id=1, amount=10000, term_months=12)
+        rejected = reject_loan(req['req_id'], 0, 'Not eligible')
+        assert rejected['status'] == 'rejected'
+        assert rejected['reject_reason'] == 'Not eligible'
+        assert get_loan(99999) is None
 
     def test_one_period_interest(self):
         loan = Loan(member_id=1, principal=10000, outstanding=10000,
@@ -106,14 +109,13 @@ class TestLoanOne:
 # ─── Zombies: Many ────────────────────────────────────────────────────────────
 
 class TestLoanMany:
-    def test_create_multiple_loans(self, setup_db):
-        loans = []
+    def test_create_multiple_loan_requests(self, setup_db):
+        reqs = []
         for i in range(5):
-            l = create_loan(member_id=1, amount=(i + 1) * 1000, term_months=12)
-            loans.append(l)
-        assert len(loans) == 5
-        assert loans[0]['principal'] == 1000
-        assert loans[4]['principal'] == 5000
+            reqs.append(create_loan(member_id=1, amount=(i + 1) * 1000, term_months=12))
+        assert len(reqs) == 5
+        assert reqs[0]['loan_principal'] == 1000
+        assert reqs[4]['loan_principal'] == 5000
 
     def test_multiple_interest_periods(self):
         loan = Loan(member_id=1, principal=10000, outstanding=10000,
@@ -125,21 +127,21 @@ class TestLoanMany:
         interest2 = compute_interest_accrued(loan, date(2026, 3, 1))
         assert round(interest2, 2) > 0
 
-    def test_list_multiple_pending_loans(self, setup_db):
+    def test_list_multiple_submitted_loans(self, setup_db):
         create_loan(member_id=1, amount=5000, term_months=12)
         create_loan(member_id=2, amount=10000, term_months=24)
-        pending = list_pending_loans()
+        pending = [r for r in list_submitted_requests() if r['item_type'] == 'loan']
         assert len(pending) == 2
 
     def test_multiple_payments_on_loan(self, setup_db):
-        loan = create_loan(member_id=1, amount=10000, term_months=12)
-        approve_loan(loan['id'])
-        loan_dict = get_loan(loan['id'])
+        req = create_loan(member_id=1, amount=10000, term_months=12)
+        loan = approve_loan(req['req_id'], 0)
+        loan_dict = get_loan(loan['loan_id'])
         pay1 = apply_payment_to_loan(loan_dict, 3000)
-        assert pay1['amount'] == 3000
+        assert pay1['total_amount'] == 3000
         assert loan_dict['outstanding'] == 7000
         pay2 = apply_payment_to_loan(loan_dict, 4000)
-        assert pay2['amount'] == 4000
+        assert pay2['total_amount'] == 4000
         assert loan_dict['outstanding'] == 3000
 
 
@@ -166,67 +168,78 @@ class TestLoanBoundary:
         loan = Loan(member_id=1, principal=5000, outstanding=5000,
                     status='active', disbursed_date=date(2026, 1, 1),
                     last_accrual_date=date(2026, 1, 1))
-        loan_dict = {'id': 1, 'member_id': 1, 'outstanding': 5000}
+        loan_dict = {'loan_id': 1, 'member_id': 1, 'outstanding': 5000}
         pay = apply_payment_to_loan(loan_dict, 5000)
         assert loan_dict['outstanding'] == 0
 
     def test_payment_exceeds_outstanding(self, setup_db):
-        loan = create_loan(member_id=1, amount=3000, term_months=12)
-        approve_loan(loan['id'])
-        loan_dict = get_loan(loan['id'])
+        req = create_loan(member_id=1, amount=3000, term_months=12)
+        loan = approve_loan(req['req_id'], 0)
+        loan_dict = get_loan(loan['loan_id'])
         pay = apply_payment_to_loan(loan_dict, 9999)
         assert loan_dict['outstanding'] == 0
 
     def test_term_minimum_1_month(self, setup_db):
-        loan = create_loan(member_id=1, amount=5000, term_months=1)
-        assert loan['term_months'] == 1
+        req = create_loan(member_id=1, amount=5000, term_months=1)
+        assert req['loan_term_months'] == 1
 
     def test_loan_amount_boundary_large(self, setup_db):
-        loan = create_loan(member_id=1, amount=999999, term_months=12)
-        assert loan['principal'] == 999999
+        req = create_loan(member_id=1, amount=999999, term_months=12)
+        assert req['loan_principal'] == 999999
 
     def test_loan_boundary_zero_term(self, setup_db):
-        loan = create_loan(member_id=1, amount=5000, term_months=0)
-        assert loan['term_months'] == 0
+        req = create_loan(member_id=1, amount=5000, term_months=0)
+        assert req['loan_term_months'] == 0
+
+    def test_reapprove_after_reject_fails(self, setup_db):
+        req = create_loan(member_id=1, amount=5000, term_months=12)
+        reject_loan(req['req_id'], 0, 'No')
+        assert approve_loan(req['req_id'], 0) is None
 
 
 # ─── Zombies: Interface ───────────────────────────────────────────────────────
 
 class TestLoanInterface:
     def test_approve_updates_db(self, setup_db):
-        loan = create_loan(member_id=1, amount=10000, term_months=12)
-        approve_loan(loan['id'])
+        req = create_loan(member_id=1, amount=10000, term_months=12)
+        loan = approve_loan(req['req_id'], 0)
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute('SELECT status, disbursed_date FROM loans WHERE id=?', (loan['id'],))
+        cur.execute('SELECT status, disbursed_date FROM loans WHERE loan_id=?', (loan['loan_id'],))
         row = dict(cur.fetchone())
         conn.close()
         assert row['status'] == 'active'
         assert row['disbursed_date'] is not None
 
     def test_interest_accrual_persists_to_db(self, setup_db):
-        loan = create_loan(member_id=1, amount=10000, term_months=12)
-        approve_loan(loan['id'])
-        loan_dict = get_loan(loan['id'])
+        req = create_loan(member_id=1, amount=10000, term_months=12)
+        loan = approve_loan(req['req_id'], 0)
+        loan_dict = get_loan(loan['loan_id'])
         compute_interest_accrued(loan_dict, date.today() + timedelta(days=35))
-        refreshed = get_loan(loan['id'])
+        refreshed = get_loan(loan['loan_id'])
         assert refreshed['outstanding'] > 10000
 
-    def test_member_name_in_pending_loans(self, setup_db):
+    def test_member_name_in_submitted_loans(self, setup_db):
         from core.models.member import create_member
         m = create_member('Test Member')
-        create_loan(member_id=m['id'], amount=5000, term_months=12)
-        pending = list_pending_loans()
+        create_loan(member_id=m['member_id'], amount=5000, term_months=12)
+        pending = [r for r in list_submitted_requests() if r['item_type'] == 'loan']
         assert any(p['member_name'] == 'Test Member' for p in pending)
 
-    def test_reject_reason_stored(self, setup_db):
-        loan = create_loan(member_id=1, amount=5000, term_months=12)
-        reject_loan(loan['id'], 'Low credit score')
-        fetched = get_loan(loan['id'])
-        assert fetched['reject_reason'] == 'Low credit score'
+    def test_reject_reason_stored_on_request(self, setup_db):
+        req = create_loan(member_id=1, amount=5000, term_months=12)
+        rejected = reject_loan(req['req_id'], 0, 'Low credit score')
+        assert rejected['reject_reason'] == 'Low credit score'
+
+    def test_loan_req_no_sequence_includes_approved_loans(self, setup_db):
+        req1 = create_loan(member_id=1, amount=5000, term_months=12)
+        assert req1['req_no'] == 'L0001'
+        approve_loan(req1['req_id'], 0)
+        req2 = create_loan(member_id=1, amount=5000, term_months=12)
+        assert req2['req_no'] == 'L0002'
 
     def test_dict_and_dataclass_interest_consistency(self):
-        dict_loan = {'id': 1, 'member_id': 1, 'principal': 10000, 'outstanding': 10000,
+        dict_loan = {'loan_id': 1, 'member_id': 1, 'principal': 10000, 'outstanding': 10000,
                      'rate_monthly': 0.01, 'term_months': 12, 'status': 'active',
                      'disbursed_date': '2026-01-01', 'last_accrual_date': '2026-01-01'}
         dc_loan = Loan(member_id=1, principal=10000, outstanding=10000,
@@ -246,15 +259,14 @@ class TestLoanException:
         loan = get_loan(0)
         assert loan is None
 
-    def test_payment_on_nonexistent_loan_requires_dict_with_id(self, setup_db):
-        bad_loan = {'id': 99999, 'member_id': 1, 'outstanding': 5000}
+    def test_payment_on_nonexistent_loan_requires_dict_with_loan_id(self, setup_db):
+        bad_loan = {'loan_id': 99999, 'member_id': 1, 'outstanding': 5000}
         result = apply_payment_to_loan(bad_loan, 100)
         assert result is not None
-        assert 'id' in result
+        assert 'pay_id' in result
 
     def test_interest_on_loan_without_disbursement(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
-                    status='applied')
+        loan = Loan(member_id=1, principal=10000, outstanding=10000, status='active')
         interest = compute_interest_accrued(loan, date(2026, 6, 22))
         assert interest == 0.0
 

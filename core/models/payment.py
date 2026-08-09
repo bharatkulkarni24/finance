@@ -1,147 +1,108 @@
-from datetime import datetime, date, date as dt_date
+from datetime import datetime, date
 
 from core.database import get_conn, row_to_dict
 from core.models.loan import compute_interest_accrued
+from core.models.requests import _as_datetime, next_req_no, _fetch
+
+DEPOSIT_FILTER = 'share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0'
 
 
 def add_contribution(member_id: int, when: date, amount: float, type: str = 'share'):
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute(
-        'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-        (member_id, when.isoformat(), amount, type),
-    )
-    cur.execute(
-        'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-        (member_id, datetime.utcnow().isoformat(), 'Share payment' if type == 'share' else 'Deposit', 'credit', amount),
-    )
+    now = datetime.utcnow().isoformat()
+    pay_date = _as_datetime(when.isoformat())
+    if type == 'share':
+        cur.execute(
+            'INSERT INTO member_ledger (member_id, pay_date, total_amount, share_amount, created_at, modified_at) VALUES (?,?,?,?,?,?)',
+            (member_id, pay_date, amount, amount, now, now),
+        )
+    else:
+        cur.execute(
+            'INSERT INTO member_ledger (member_id, pay_date, total_amount, created_at, modified_at) VALUES (?,?,?,?,?)',
+            (member_id, pay_date, amount, now, now),
+        )
     conn.commit()
     conn.close()
 
 
-def pay_due(member_id: int, due_id: int, amount: float):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute('UPDATE dues SET paid=1 WHERE id=? AND member_id=?', (due_id, member_id))
-    cur.execute(
-        'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-        (member_id, date.today().isoformat(), amount, 'share'),
-    )
-    cur.execute(
-        'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-        (member_id, datetime.utcnow().isoformat(), f'Due payment #{due_id}', 'credit', amount),
-    )
-    conn.commit()
-    cur.execute('SELECT * FROM dues WHERE id=?', (due_id,))
-    due = row_to_dict(cur.fetchone())
-    conn.close()
-    return due
-
-
-def create_payment_request(member_id: int, amount: float, ptype: str, note: str = '', screenshot: str = '', txn_date: str = None, late_fee: float = 0.0, share_amount: float = 0.0, loan_amount: float = 0.0, interest_amount: float = 0.0) -> dict:
+def create_payment_request(member_id: int, amount: float, note: str = '', screenshot: str = '', txn_date: str = None, late_fee: float = 0.0, share_amount: float = 0.0, loan_amount: float = 0.0, interest_amount: float = 0.0) -> dict:
     conn = get_conn()
     cur = conn.cursor()
     now = datetime.utcnow().isoformat()
+    req_no = next_req_no('payment')
     cur.execute(
-        'INSERT INTO payment_requests (member_id, date_submitted, amount, type, note, screenshot, status, txn_date, late_fee, share_amount, loan_amount, interest_amount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-        (member_id, now, amount, ptype, note, screenshot, 'pending', txn_date, late_fee, share_amount, loan_amount, interest_amount),
+        'INSERT INTO requests (req_no, member_id, item_type, date_submitted, pay_date, share_amount, loan_payment, interest_amount, late_fee, total_amount, note, screenshot, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        (req_no, member_id, 'payment', now, _as_datetime(txn_date), share_amount, loan_amount, interest_amount, late_fee, amount, note, screenshot, 'submitted'),
     )
     req_id = cur.lastrowid
     conn.commit()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (req_id,))
+    req = _fetch(cur, req_id)
+    conn.close()
+    return req
+
+
+def _active_loan(cur, member_id):
+    cur.execute('SELECT * FROM loans WHERE member_id=? AND status=?', (member_id, 'active'))
     row = cur.fetchone()
-    conn.close()
-    return row_to_dict(row)
-
-
-def list_pending_requests():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT pr.*, m.name as member_name FROM payment_requests pr LEFT JOIN members m ON pr.member_id=m.id WHERE pr.status='pending' ORDER BY pr.date_submitted",
-    )
-    rows = [row_to_dict(r) for r in cur.fetchall()]
-    conn.close()
-    return rows
+    return row_to_dict(row) if row else None
 
 
 def approve_payment_request(request_id: int, approver_id: int):
     conn = get_conn()
     cur = conn.cursor()
     now = datetime.utcnow().isoformat()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (request_id,))
-    req = cur.fetchone()
-    if not req:
+    req = _fetch(cur, request_id)
+    if not req or req['item_type'] != 'payment' or req['status'] != 'submitted':
         conn.close()
         return None
-    reqd = row_to_dict(req)
     cur.execute(
-        'UPDATE payment_requests SET status=?, approved_by=?, approved_date=? WHERE id=?',
+        'UPDATE requests SET status=?, approved_by=?, approved_date=? WHERE req_id=?',
         ('approved', approver_id, now, request_id),
     )
-    use_date = reqd.get('txn_date') or now[:10]
-    share_amt = reqd['share_amount'] or (reqd['amount'] if reqd['type'] == 'share' else 0)
-    loan_amt = reqd['loan_amount'] or (reqd['amount'] if reqd['type'] == 'loan' else 0)
-    interest_amt = reqd['interest_amount'] or (reqd['amount'] if reqd['type'] == 'loan_interest' else 0)
-    late_fee = reqd.get('late_fee', 0.0) or 0.0
-    if share_amt > 0:
-        cur.execute(
-            'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-            (reqd['member_id'], use_date, share_amt, 'share'),
-        )
-        cur.execute(
-            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (reqd['member_id'], now, 'Share payment (approved)', 'credit', share_amt),
-        )
-    if late_fee > 0:
-        cur.execute(
-            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (reqd['member_id'], use_date + 'T12:00:00', 'Late fee', 'credit', late_fee),
-        )
+    use_date = _as_datetime(req.get('pay_date'))
+    share_amt = req['share_amount'] or 0
+    loan_amt = req['loan_payment'] or 0
+    interest_amt = req['interest_amount'] or 0
+    late_fee = req.get('late_fee', 0.0) or 0.0
+    if not share_amt and not loan_amt and not interest_amt:
+        share_amt = req.get('total_amount') or 0
+    total = round((share_amt or 0) + (loan_amt or 0) + (interest_amt or 0) + (late_fee or 0), 2)
+
+    loan_id = None
     if loan_amt > 0 or interest_amt > 0:
-        cur.execute('SELECT * FROM loans WHERE member_id=? AND status=?', (reqd['member_id'], 'active'))
-        active_loan = cur.fetchone()
-        loan_id = None
-        pay_amount = loan_amt + interest_amt
+        active_loan = _active_loan(cur, req['member_id'])
         if active_loan:
-            loan_dict = row_to_dict(active_loan)
-            compute_interest_accrued(loan_dict, dt_date.today(), cur)
-            to_apply = min(pay_amount, loan_dict['outstanding'])
-            new_out = round(loan_dict['outstanding'] - to_apply, 2)
-            cur.execute('UPDATE loans SET outstanding=? WHERE id=?', (new_out, loan_dict['id']))
-            loan_id = loan_dict['id']
-        cur.execute(
-            'INSERT INTO payments (member_id, loan_id, date, amount, interest_paid, principal_paid, late_fee_paid) VALUES (?,?,?,?,?,?,?)',
-            (reqd['member_id'], loan_id, use_date, pay_amount, interest_amt, loan_amt, 0.0),
-        )
-        if pay_amount > 0:
-            cur.execute(
-                'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-                (reqd['member_id'], now, 'Loan payment (approved)', 'credit', pay_amount),
-            )
+            compute_interest_accrued(active_loan, date.today(), cur)
+            to_apply = min(loan_amt or 0, active_loan['outstanding'] or 0)
+            new_out = round((active_loan['outstanding'] or 0) - to_apply, 2)
+            cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, active_loan['loan_id']))
+            loan_id = active_loan['loan_id']
+
+    cur.execute(
+        'INSERT INTO member_ledger (member_id, pay_date, total_amount, share_amount, loan_principal, loan_interest, late_fee, request_id, loan_id, req_no, created_at, modified_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+        (req['member_id'], use_date, total, share_amt, loan_amt, interest_amt, late_fee, request_id, loan_id, req['req_no'], now, now),
+    )
     conn.commit()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (request_id,))
-    out = row_to_dict(cur.fetchone())
+    out = _fetch(cur, request_id)
     conn.close()
     return out
 
 
-def reject_payment_request(request_id: int, approver_id: int, reason: str):
+def reject_payment_request(request_id: int, approver_id: int, reason: str = ''):
     conn = get_conn()
     cur = conn.cursor()
     now = datetime.utcnow().isoformat()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (request_id,))
-    req = cur.fetchone()
-    if not req:
+    req = _fetch(cur, request_id)
+    if not req or req['item_type'] != 'payment' or req['status'] != 'submitted':
         conn.close()
         return None
     cur.execute(
-        'UPDATE payment_requests SET status=?, approved_by=?, approved_date=?, reject_reason=? WHERE id=?',
+        'UPDATE requests SET status=?, rejected_by=?, rejected_date=?, reject_reason=? WHERE req_id=?',
         ('rejected', approver_id, now, reason, request_id),
     )
     conn.commit()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (request_id,))
-    out = row_to_dict(cur.fetchone())
+    out = _fetch(cur, request_id)
     conn.close()
     return out
 
@@ -152,77 +113,24 @@ def admin_direct_entry(member_id: int, share_amount: float = 0, late_fee: float 
     conn = get_conn()
     cur = conn.cursor()
     now = datetime.utcnow().isoformat()
-    use_date = entry_date or now[:10]
-    if share_amount > 0:
-        cur.execute(
-            'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-            (member_id, use_date, share_amount, 'share'),
-        )
-        cur.execute(
-            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (member_id, now, note or 'Share payment (admin)', 'credit', share_amount),
-        )
-        if late_fee > 0:
-            cur.execute(
-                'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-                (member_id, use_date + 'T12:00:00', 'Late fee', 'credit', late_fee),
-            )
+    use_date = _as_datetime(entry_date)
+
+    loan_id = None
     if loan_amount > 0:
-        from datetime import date as dt_date
-        cur.execute('SELECT * FROM loans WHERE member_id=? AND status=?', (member_id, 'active'))
-        active_loan = cur.fetchone()
-        loan_id = None
+        active_loan = _active_loan(cur, member_id)
         if active_loan:
-            loan_dict = row_to_dict(active_loan)
-            compute_interest_accrued(loan_dict, dt_date.today(), cur)
-            to_apply = min(loan_amount, loan_dict['outstanding'])
-            new_out = round(loan_dict['outstanding'] - to_apply, 2)
-            cur.execute('UPDATE loans SET outstanding=? WHERE id=?', (new_out, loan_dict['id']))
-            loan_id = loan_dict['id']
+            compute_interest_accrued(active_loan, date.today(), cur)
+            to_apply = min(loan_amount, active_loan['outstanding'] or 0)
+            new_out = round((active_loan['outstanding'] or 0) - to_apply, 2)
+            cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, active_loan['loan_id']))
+            loan_id = active_loan['loan_id']
+
+    total = round((share_amount or 0) + (loan_amount or 0) + (interest_amount or 0) + (late_fee or 0), 2)
+    if total > 0:
         cur.execute(
-            'INSERT INTO payments (member_id, loan_id, date, amount, interest_paid, principal_paid, late_fee_paid) VALUES (?,?,?,?,?,?,?)',
-            (member_id, loan_id, use_date, loan_amount, 0.0, loan_amount, 0.0),
-        )
-        cur.execute(
-            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (member_id, now, note or 'Loan payment (admin)', 'credit', loan_amount),
-        )
-    if interest_amount > 0:
-        cur.execute('SELECT * FROM loans WHERE member_id=? AND status=?', (member_id, 'active'))
-        active_loan = cur.fetchone()
-        loan_id = active_loan['id'] if active_loan else None
-        cur.execute(
-            'INSERT INTO payments (member_id, loan_id, date, amount, interest_paid, principal_paid, late_fee_paid) VALUES (?,?,?,?,?,?,?)',
-            (member_id, loan_id, use_date, interest_amount, interest_amount, 0.0, 0.0),
-        )
-        cur.execute(
-            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (member_id, now, note or 'Loan interest (admin)', 'credit', interest_amount),
+            'INSERT INTO member_ledger (member_id, pay_date, total_amount, share_amount, loan_principal, loan_interest, late_fee, description, loan_id, created_at, modified_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+            (member_id, use_date, total, share_amount, loan_amount, interest_amount, late_fee, note, loan_id, now, now),
         )
     conn.commit()
     conn.close()
     return {'status': 'ok'}
-
-
-def cancel_payment_request(request_id: int, member_id: int):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (request_id,))
-    req = cur.fetchone()
-    if not req:
-        conn.close()
-        return None
-    r = row_to_dict(req)
-    if r.get('member_id') != member_id or r.get('status') != 'pending':
-        conn.close()
-        return None
-    now = datetime.utcnow().isoformat()
-    cur.execute(
-        'UPDATE payment_requests SET status=?, approved_by=?, approved_date=?, reject_reason=? WHERE id=?',
-        ('cancelled', member_id, now, 'cancelled_by_member', request_id),
-    )
-    conn.commit()
-    cur.execute('SELECT * FROM payment_requests WHERE id=?', (request_id,))
-    out = row_to_dict(cur.fetchone())
-    conn.close()
-    return out

@@ -12,6 +12,7 @@ def get_conn():
 def row_to_dict(row: sqlite3.Row) -> dict:
     return {k: row[k] for k in row.keys()}
 
+
 def strip_sensitive(m: dict) -> dict:
     m.pop('password', None)
     return m
@@ -22,7 +23,7 @@ def init_db():
     cur = conn.cursor()
     cur.execute('''
     CREATE TABLE IF NOT EXISTS members (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        member_id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         phone TEXT,
         joined_date TEXT NOT NULL,
@@ -34,31 +35,9 @@ def init_db():
         password TEXT DEFAULT ''
     )
     ''')
-    try:
-        cur.execute('ALTER TABLE members ADD COLUMN password TEXT DEFAULT \'\'')
-    except Exception:
-        pass
-    cur.execute('''
-    CREATE TABLE IF NOT EXISTS contributions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        member_id INTEGER,
-        date TEXT,
-        amount REAL,
-        type TEXT
-    )
-    ''')
-    cur.execute('''
-    CREATE TABLE IF NOT EXISTS dues (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        member_id INTEGER,
-        due_date TEXT,
-        amount REAL,
-        paid INTEGER DEFAULT 0
-    )
-    ''')
     cur.execute('''
     CREATE TABLE IF NOT EXISTS loans (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        loan_id INTEGER PRIMARY KEY AUTOINCREMENT,
         member_id INTEGER,
         principal REAL,
         outstanding REAL,
@@ -67,61 +46,85 @@ def init_db():
         status TEXT,
         disbursed_date TEXT,
         last_accrual_date TEXT,
-        reject_reason TEXT
+        request_id INTEGER,
+        req_no TEXT
     )
     ''')
     cur.execute('''
-    CREATE TABLE IF NOT EXISTS payments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CREATE TABLE IF NOT EXISTS member_ledger (
+        pay_id INTEGER PRIMARY KEY AUTOINCREMENT,
         member_id INTEGER,
+        pay_date TEXT,
+        total_amount REAL DEFAULT 0,
+        share_amount REAL DEFAULT 0,
+        loan_principal REAL DEFAULT 0,
+        loan_interest REAL DEFAULT 0,
+        late_fee REAL DEFAULT 0,
+        description TEXT DEFAULT '',
+        request_id INTEGER,
         loan_id INTEGER,
-        date TEXT,
-        amount REAL,
-        interest_paid REAL,
-        principal_paid REAL,
-        late_fee_paid REAL
+        req_no TEXT,
+        created_at TEXT,
+        modified_at TEXT
     )
     ''')
     cur.execute('''
-    CREATE TABLE IF NOT EXISTS transactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CREATE TABLE IF NOT EXISTS group_ledger (
+        trn_id INTEGER PRIMARY KEY AUTOINCREMENT,
         member_id INTEGER,
         timestamp TEXT,
-        desc TEXT,
+        description TEXT,
         debit_credit TEXT,
-        amount REAL,
-        source TEXT DEFAULT ''
+        amount REAL
     )
     ''')
-
-    try:
-        cur.execute("ALTER TABLE transactions ADD COLUMN source TEXT DEFAULT ''")
-    except Exception:
-        pass
-
     cur.execute('''
-    CREATE TABLE IF NOT EXISTS payment_requests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CREATE TABLE IF NOT EXISTS requests (
+        req_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        req_no TEXT,
         member_id INTEGER,
+        item_type TEXT,
         date_submitted TEXT,
-        txn_date TEXT,
-        amount REAL,
-        type TEXT,
-        note TEXT,
-        screenshot TEXT,
-        status TEXT DEFAULT 'pending',
+        pay_date TEXT,
+        share_amount REAL DEFAULT 0,
+        loan_payment REAL DEFAULT 0,
+        interest_amount REAL DEFAULT 0,
+        late_fee REAL DEFAULT 0,
+        total_amount REAL DEFAULT 0,
+        note TEXT DEFAULT '',
+        screenshot TEXT DEFAULT '',
+        loan_principal REAL DEFAULT 0,
+        loan_term_months INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'submitted',
         approved_by INTEGER,
         approved_date TEXT,
-        late_fee REAL DEFAULT 0,
-        share_amount REAL DEFAULT 0,
-        loan_amount REAL DEFAULT 0,
-        interest_amount REAL DEFAULT 0
+        rejected_by INTEGER,
+        rejected_date TEXT,
+        reject_reason TEXT DEFAULT ''
     )
     ''')
-
     cur.execute('''
-    CREATE TABLE IF NOT EXISTS fd_entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CREATE TABLE IF NOT EXISTS audit_log (
+        audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pay_id INTEGER,
+        action TEXT,
+        changed_by INTEGER,
+        changed_at TEXT,
+        old_share_amount REAL,
+        new_share_amount REAL,
+        old_late_fee REAL,
+        new_late_fee REAL,
+        old_loan_interest REAL,
+        new_loan_interest REAL,
+        old_loan_principal REAL,
+        new_loan_principal REAL,
+        old_total_amount REAL,
+        new_total_amount REAL
+    )
+    ''')
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS fixed_deposits (
+        fd_id INTEGER PRIMARY KEY AUTOINCREMENT,
         amount REAL NOT NULL,
         start_date TEXT NOT NULL,
         term_months INTEGER NOT NULL,
@@ -130,69 +133,12 @@ def init_db():
         maturity_date TEXT,
         interest_earned REAL DEFAULT 0,
         notes TEXT,
-        created_at TEXT
+        created_at TEXT,
+        investment_type TEXT DEFAULT 'one_time',
+        parent_id INTEGER DEFAULT NULL,
+        installment_date TEXT DEFAULT NULL
     )
     ''')
-
-    cur.execute('PRAGMA table_info(fd_entries)')
-    fd_cols = [row['name'] for row in cur.fetchall()]
-    if 'investment_type' not in fd_cols:
-        try:
-            cur.execute("ALTER TABLE fd_entries ADD COLUMN investment_type TEXT DEFAULT 'one_time'")
-        except Exception:
-            pass
-    if 'parent_id' not in fd_cols:
-        try:
-            cur.execute('ALTER TABLE fd_entries ADD COLUMN parent_id INTEGER DEFAULT NULL')
-        except Exception:
-            pass
-    if 'installment_date' not in fd_cols:
-        try:
-            cur.execute('ALTER TABLE fd_entries ADD COLUMN installment_date TEXT DEFAULT NULL')
-        except Exception:
-            pass
-
-    cur.execute('PRAGMA table_info(members)')
-    existing = [row['name'] for row in cur.fetchall()]
-    if 'is_admin' not in existing:
-        cur.execute('ALTER TABLE members ADD COLUMN is_admin INTEGER DEFAULT 0')
-    if 'dob' not in existing:
-        cur.execute('ALTER TABLE members ADD COLUMN dob TEXT')
-    if 'address' not in existing:
-        cur.execute('ALTER TABLE members ADD COLUMN address TEXT')
-    if 'photo_url' not in existing:
-        cur.execute('ALTER TABLE members ADD COLUMN photo_url TEXT')
-    cur.execute('PRAGMA table_info(payment_requests)')
-    pr_cols = [row['name'] for row in cur.fetchall()]
-    if 'txn_date' not in pr_cols:
-        try:
-            cur.execute('ALTER TABLE payment_requests ADD COLUMN txn_date TEXT')
-        except Exception:
-            pass
-    if 'reject_reason' not in pr_cols:
-        try:
-            cur.execute('ALTER TABLE payment_requests ADD COLUMN reject_reason TEXT')
-        except Exception:
-            pass
-    if 'late_fee' not in pr_cols:
-        try:
-            cur.execute("ALTER TABLE payment_requests ADD COLUMN late_fee REAL DEFAULT 0")
-        except Exception:
-            pass
-    if 'share_amount' not in pr_cols:
-        try:
-            cur.execute("ALTER TABLE payment_requests ADD COLUMN share_amount REAL DEFAULT 0")
-            cur.execute("ALTER TABLE payment_requests ADD COLUMN loan_amount REAL DEFAULT 0")
-            cur.execute("ALTER TABLE payment_requests ADD COLUMN interest_amount REAL DEFAULT 0")
-        except Exception:
-            pass
-    cur.execute('PRAGMA table_info(loans)')
-    loan_cols = [row['name'] for row in cur.fetchall()]
-    if 'reject_reason' not in loan_cols:
-        try:
-            cur.execute('ALTER TABLE loans ADD COLUMN reject_reason TEXT')
-        except Exception:
-            pass
 
     conn.commit()
     conn.close()
@@ -207,25 +153,18 @@ def seed_db():
         conn.close()
         return
     initial_members = [
-        {'name': 'Govindrao Kulkarni', 'is_admin': 1},
+        {'member_id': 1001, 'name': 'Govindrao Kulkarni', 'is_admin': 1},
+        {'member_id': 1002, 'name': 'Bharat Kulkarni', 'is_admin': 1},
     ]
-    from core.models.dues import generate_dues_for_member_internal
-    from datetime import date as dt_date
     for member in initial_members:
         joined = '2025-04-01'
         cur.execute(
-            'INSERT INTO members (name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url) VALUES (?,?,?,?,?,?,?,?)',
-            (member['name'], '', joined, 25000, member['is_admin'], '', '', ''),
-        )
-        member_id = cur.lastrowid
-        cur.execute(
-            'INSERT INTO contributions (member_id, date, amount, type) VALUES (?,?,?,?)',
-            (member_id, joined, 25000, 'deposit'),
+            'INSERT INTO members (member_id, name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url) VALUES (?,?,?,?,?,?,?,?,?)',
+            (member['member_id'], member['name'], '', joined, 25000, member['is_admin'], '', '', ''),
         )
         cur.execute(
-            'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (member_id, '2025-04-01T09:00:00', 'Initial deposit', 'credit', 25000),
+            'INSERT INTO member_ledger (member_id, pay_date, total_amount, created_at, modified_at) VALUES (?,?,?,?,?)',
+            (member['member_id'], joined + 'T12:00:00', 25000, joined + 'T12:00:00', joined + 'T12:00:00'),
         )
-        generate_dues_for_member_internal(cur, member_id, dt_date(2025, 4, 1))
     conn.commit()
     conn.close()

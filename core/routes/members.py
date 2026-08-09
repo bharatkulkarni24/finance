@@ -5,12 +5,12 @@ from flask import Blueprint, jsonify, request, current_app
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from core.config import ADMIN_PIN
 from core.database import strip_sensitive
 from core.models.member import get_all_members, create_member, get_member, update_member
-from core.models.payment import add_contribution, create_payment_request, cancel_payment_request
+from core.models.payment import add_contribution, create_payment_request
 from core.models.transaction import get_member_statement
 from core.models.loan import compute_interest_accrued
+from core.session import check_admin_token
 
 members_bp = Blueprint('members', __name__)
 
@@ -52,8 +52,7 @@ def get_member_route(member_id):
 
 @members_bp.route('/api/members/<int:member_id>', methods=['PATCH'])
 def update_member_route(member_id):
-    pin = request.headers.get('X-ADMIN-PIN', '')
-    if pin != ADMIN_PIN:
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json
     member = update_member(
@@ -135,7 +134,6 @@ def submit_payment_request(member_id):
         else:
             screenshot = ''
         amount = float(request.form.get('amount', 0))
-        ptype = request.form.get('type', 'share')
         note = request.form.get('note', '')
         txn_date = request.form.get('txn_date') or None
         late_fee = float(request.form.get('late_fee', 0) or 0)
@@ -147,7 +145,6 @@ def submit_payment_request(member_id):
         if data is None:
             data = request.form or {}
         amount = float(data.get('amount', 0))
-        ptype = data.get('type', 'share')
         note = data.get('note', '')
         screenshot = data.get('screenshot', '')
         txn_date = data.get('txn_date') or None
@@ -155,16 +152,8 @@ def submit_payment_request(member_id):
         share_amount = float(data.get('share_amount', 0) or 0)
         loan_amount = float(data.get('loan_amount', 0) or 0)
         interest_amount = float(data.get('interest_amount', 0) or 0)
-    req = create_payment_request(member_id, amount, ptype, note, screenshot, txn_date, late_fee, share_amount, loan_amount, interest_amount)
+    req = create_payment_request(member_id, amount, note, screenshot, txn_date, late_fee, share_amount, loan_amount, interest_amount)
     return jsonify({'status': 'submitted', 'request': req}), 201
-
-
-@members_bp.route('/api/members/<int:member_id>/cancel_request/<int:req_id>', methods=['POST'])
-def cancel_request(member_id, req_id):
-    res = cancel_payment_request(req_id, member_id)
-    if not res:
-        return jsonify({'error': 'not found or cannot cancel'}), 404
-    return jsonify({'status': 'cancelled', 'request': res})
 
 
 @members_bp.route('/api/members/<int:member_id>/statement', methods=['GET'])

@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request, render_template, current_app
 from werkzeug.security import check_password_hash
 
-from core.config import ADMIN_PIN
 from core.database import strip_sensitive
 from core.models.member import get_all_members, find_member_by_name
+from core.session import create_admin_session
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -27,14 +27,15 @@ def login():
     member = find_member_by_name(name)
     if not member:
         return jsonify({'error': 'Member not found'}), 404
+    if not pin:
+        return jsonify({'error': 'Password is needed'}), 400
+    stored = member.get('password') or ''
+    if not stored or not check_password_hash(stored, pin):
+        return jsonify({'error': 'Incorrect password'}), 401
+    result = strip_sensitive(member)
     if member['is_admin']:
-        if pin != ADMIN_PIN:
-            return jsonify({'error': 'Admin PIN required'}), 401
-    else:
-        stored = member.get('password') or ''
-        if stored and not check_password_hash(stored, pin):
-            return jsonify({'error': 'Incorrect password'}), 401
-    return jsonify(strip_sensitive(member))
+        result['token'] = create_admin_session(member['member_id'])
+    return jsonify(result)
 
 
 @auth_bp.route('/api/client_error', methods=['POST'])

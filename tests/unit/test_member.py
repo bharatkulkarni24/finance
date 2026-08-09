@@ -59,7 +59,7 @@ class TestMemberZero:
 class TestMemberOne:
     def test_create_one_member(self, setup_db):
         m = create_member('Alice', phone='9999999999', is_admin=1)
-        assert m['id'] is not None
+        assert m['member_id'] is not None
         assert m['name'] == 'Alice'
         assert m['phone'] == '9999999999'
         assert m['is_admin'] == 1
@@ -77,17 +77,15 @@ class TestMemberOne:
 
     def test_get_one_member(self, setup_db):
         m = create_member('Dave')
-        fetched = get_member(m['id'])
+        fetched = get_member(m['member_id'])
         assert fetched['name'] == 'Dave'
 
     def test_get_one_member_full_returns_relations(self, setup_db):
         m = create_member('Eve')
-        full = get_member(m['id'], full=True)
-        assert 'contributions' in full
-        assert 'loans' in full
+        full = get_member(m['member_id'], full=True)
         assert 'payments' in full
-        assert 'dues' in full
-        assert 'payment_requests' in full
+        assert 'loans' in full
+        assert 'requests' in full
 
 
 # ─── Zombies: Many ────────────────────────────────────────────────────────────
@@ -126,13 +124,13 @@ class TestMemberBoundary:
 
     def test_update_phone_only(self, setup_db):
         m = create_member('Update Test')
-        updated = update_member(m['id'], phone='9876543210')
+        updated = update_member(m['member_id'], phone='9876543210')
         assert updated['phone'] == '9876543210'
         assert updated['name'] == 'Update Test'
 
     def test_update_all_fields(self, setup_db):
         m = create_member('Full Update')
-        updated = update_member(m['id'], phone='1111111111', dob='1990-01-01',
+        updated = update_member(m['member_id'], phone='1111111111', dob='1990-01-01',
                                 address='123 Test St', photo_url='/img/photo.jpg')
         assert updated['phone'] == '1111111111'
         assert updated['dob'] == '1990-01-01'
@@ -143,23 +141,12 @@ class TestMemberBoundary:
 # ─── Zombies: Interface ───────────────────────────────────────────────────────
 
 class TestMemberInterface:
-    def test_create_adds_initial_contribution(self, setup_db):
+    def test_create_adds_initial_deposit_payment(self, setup_db):
         m = create_member('Initial Deposit')
-        full = get_member(m['id'], full=True)
-        deposits = [c for c in full['contributions'] if c['type'] == 'deposit']
+        full = get_member(m['member_id'], full=True)
+        deposits = [p for p in full['payments'] if not p['share_amount'] and not p['loan_principal'] and not p['loan_interest'] and not p['late_fee']]
         assert len(deposits) >= 1
-        assert deposits[0]['amount'] == 25000
-
-    def test_create_adds_initial_transaction(self, setup_db):
-        m = create_member('Txn Check')
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM transactions WHERE member_id=? AND desc='Initial deposit'", (m['id'],))
-        rows = cur.fetchall()
-        conn.close()
-        assert len(rows) == 1
-        assert rows[0]['amount'] == 25000
-        assert rows[0]['debit_credit'] == 'credit'
+        assert deposits[0]['total_amount'] == 25000
 
     def test_create_with_custom_deposit(self, setup_db):
         m = create_member('Custom Dep', deposit_amount=50000, deposit_date='2026-07-15')
@@ -167,21 +154,16 @@ class TestMemberInterface:
         assert m['joined_date'] == '2026-07-15'
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM contributions WHERE member_id=? AND type='deposit'", (m['id'],))
+        cur.execute("SELECT * FROM member_ledger WHERE member_id=? AND share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0", (m['member_id'],))
         row = cur.fetchone()
-        assert row['amount'] == 50000
-        assert row['date'] == '2026-07-15'
+        assert row['total_amount'] == 50000
+        assert row['pay_date'][:10] == '2026-07-15'
         conn.close()
-
-    def test_create_generates_dues(self, setup_db):
-        m = create_member('Dues Check')
-        full = get_member(m['id'], full=True)
-        assert len(full['dues']) > 0
 
     def test_update_then_get_reflects_changes(self, setup_db):
         m = create_member('Before')
-        update_member(m['id'], phone='5555555555')
-        fetched = get_member(m['id'])
+        update_member(m['member_id'], phone='5555555555')
+        fetched = get_member(m['member_id'])
         assert fetched['phone'] == '5555555555'
 
 
@@ -190,7 +172,7 @@ class TestMemberInterface:
 class TestMemberException:
     def test_update_with_no_changes_returns_member(self, setup_db):
         m = create_member('No Change')
-        result = update_member(m['id'])
+        result = update_member(m['member_id'])
         assert result['name'] == 'No Change'
 
     def test_create_with_none_name(self, setup_db):

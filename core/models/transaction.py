@@ -4,31 +4,16 @@ from core.database import get_conn, row_to_dict
 from core.models.fd import get_active_fd_total
 
 
-def admin_add_funds(amount: float, note: str = ''):
-    conn = get_conn()
-    cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
-    cur.execute(
-        'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount) VALUES (?,?,?,?,?)',
-        (None, now, note or 'Admin add funds', 'credit', amount),
-    )
-    conn.commit()
-    cur.execute('SELECT * FROM transactions WHERE id=?', (cur.lastrowid,))
-    row = cur.fetchone()
-    conn.close()
-    return row_to_dict(row)
-
-
-def add_transaction(debit_credit: str, amount: float, desc: str = '', entry_date: str = ''):
+def add_transaction(debit_credit: str, amount: float, description: str = '', entry_date: str = ''):
     conn = get_conn()
     cur = conn.cursor()
     ts = entry_date if entry_date else datetime.utcnow().isoformat()
     cur.execute(
-        'INSERT INTO transactions (member_id, timestamp, desc, debit_credit, amount, source) VALUES (?,?,?,?,?,?)',
-        (None, ts, desc, debit_credit, amount, 'manual_ie'),
+        'INSERT INTO group_ledger (member_id, timestamp, description, debit_credit, amount) VALUES (?,?,?,?,?)',
+        (None, ts, description, debit_credit, amount),
     )
     conn.commit()
-    cur.execute('SELECT * FROM transactions WHERE id=?', (cur.lastrowid,))
+    cur.execute('SELECT * FROM group_ledger WHERE trn_id=?', (cur.lastrowid,))
     row = cur.fetchone()
     conn.close()
     return row_to_dict(row)
@@ -38,25 +23,36 @@ def get_recent_transactions(limit=50):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        "SELECT * FROM transactions WHERE source='manual_ie' ORDER BY timestamp DESC LIMIT ?", (limit,),
+        "SELECT * FROM group_ledger WHERE member_id IS NULL AND description NOT LIKE 'FD Interest%' ORDER BY timestamp DESC LIMIT ?", (limit,),
     )
     rows = cur.fetchall()
     conn.close()
     return [row_to_dict(r) for r in rows]
 
 
+def _stmt_type(r):
+    if not r['share_amount'] and not r['loan_principal'] and not r['loan_interest'] and not r['late_fee']:
+        return 'deposit'
+    if r['share_amount'] and (r['loan_principal'] or r['loan_interest'] or r['late_fee']):
+        return 'payment'
+    if r['share_amount']:
+        return 'share'
+    if r['loan_principal'] or r['loan_interest']:
+        return 'loan_payment'
+    if r['late_fee']:
+        return 'late_fee'
+    return 'payment'
+
+
 def get_member_statement(member_id: int) -> str:
     conn = get_conn()
     cur = conn.cursor()
     out = 'type,date,amount,details\n'
-    cur.execute('SELECT * FROM contributions WHERE member_id=? ORDER BY date', (member_id,))
-    for c in cur.fetchall():
-        r = row_to_dict(c)
-        out += f"{r['type']},{r['date']},{r['amount']},\n"
-    cur.execute('SELECT * FROM payments WHERE member_id=? ORDER BY date', (member_id,))
+    cur.execute('SELECT * FROM member_ledger WHERE member_id=? ORDER BY pay_date', (member_id,))
     for p in cur.fetchall():
         r = row_to_dict(p)
-        out += f"payment,{r['date']},{r['amount']},loan:{r['loan_id']};interest:{r['interest_paid']};principal:{r['principal_paid']}\n"
+        details = f"share:{r['share_amount']};principal:{r['loan_principal']};interest:{r['loan_interest']};late_fee:{r['late_fee']};loan:{r['loan_id']}"
+        out += f"{_stmt_type(r)},{r['pay_date']},{r['total_amount']},{details}\n"
     conn.close()
     return out
 
@@ -64,19 +60,22 @@ def get_member_statement(member_id: int) -> str:
 def get_admin_stats():
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT SUM(amount) FROM contributions WHERE type='deposit'")
+    cur.execute("SELECT SUM(total_amount) FROM member_ledger WHERE share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0")
     deposits_total = cur.fetchone()[0] or 0.0
-    cur.execute("SELECT SUM(amount) FROM contributions WHERE type='share'")
+    cur.execute("SELECT SUM(share_amount) FROM member_ledger")
     shares_total = cur.fetchone()[0] or 0.0
-    cur.execute("SELECT SUM(principal_paid) FROM payments")
+    cur.execute("SELECT SUM(loan_principal) FROM member_ledger")
     loan_principal_received = cur.fetchone()[0] or 0.0
-    cur.execute("SELECT SUM(interest_paid) FROM payments")
+    cur.execute("SELECT SUM(loan_interest) FROM member_ledger")
     loan_interest_received = cur.fetchone()[0] or 0.0
     cur.execute(
-        "SELECT SUM(amount) FROM transactions WHERE debit_credit='credit' AND (desc LIKE 'FD Interest%' OR source='manual_ie' OR desc='Late fee')",
+        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND (description LIKE 'FD Interest%' OR member_id IS NULL)",
     )
-    others_total = cur.fetchone()[0] or 0.0
-    cur.execute("SELECT SUM(amount) FROM transactions WHERE debit_credit='debit'")
+    txn_others = cur.fetchone()[0] or 0.0
+    cur.execute("SELECT COALESCE(SUM(late_fee),0) FROM member_ledger")
+    late_fees_total = cur.fetchone()[0] or 0.0
+    others_total = txn_others + late_fees_total
+    cur.execute("SELECT SUM(amount) FROM group_ledger WHERE debit_credit='debit'")
     expenses_total = cur.fetchone()[0] or 0.0
     total_collected = deposits_total + shares_total + loan_principal_received + loan_interest_received + others_total - expenses_total
     cur.execute("SELECT COUNT(*) FROM members")
@@ -115,19 +114,17 @@ def get_period_summary():
     conn = get_conn()
     cur = conn.cursor()
 
-    cur.execute("SELECT substr(date,1,7) m, SUM(amount) s FROM contributions WHERE type='share' AND date IS NOT NULL GROUP BY m")
+    cur.execute("SELECT substr(pay_date,1,7) m, SUM(share_amount) s FROM member_ledger WHERE pay_date IS NOT NULL GROUP BY m")
     share_by_month = {r['m']: r['s'] for r in cur.fetchall()}
-    cur.execute("SELECT substr(date,1,7) m, SUM(principal_paid) s FROM payments WHERE date IS NOT NULL GROUP BY m")
+    cur.execute("SELECT substr(pay_date,1,7) m, SUM(loan_principal) s FROM member_ledger WHERE pay_date IS NOT NULL GROUP BY m")
     principal_by_month = {r['m']: r['s'] for r in cur.fetchall()}
-    cur.execute("SELECT substr(date,1,7) m, SUM(interest_paid) s FROM payments WHERE date IS NOT NULL GROUP BY m")
+    cur.execute("SELECT substr(pay_date,1,7) m, SUM(loan_interest) s FROM member_ledger WHERE pay_date IS NOT NULL GROUP BY m")
     interest_by_month = {r['m']: r['s'] for r in cur.fetchall()}
-    cur.execute("SELECT substr(date,1,7) m, SUM(COALESCE(late_fee_paid,0)) s FROM payments WHERE date IS NOT NULL GROUP BY m")
-    fine_pay_by_month = {r['m']: r['s'] for r in cur.fetchall()}
-    cur.execute("SELECT substr(timestamp,1,7) m, SUM(amount) s FROM transactions WHERE desc='Late fee' AND timestamp IS NOT NULL GROUP BY m")
-    fine_txn_by_month = {r['m']: r['s'] for r in cur.fetchall()}
+    cur.execute("SELECT substr(pay_date,1,7) m, SUM(late_fee) s FROM member_ledger WHERE pay_date IS NOT NULL GROUP BY m")
+    fine_by_month = {r['m']: r['s'] for r in cur.fetchall()}
     conn.close()
 
-    months = sorted(set(share_by_month) | set(principal_by_month) | set(interest_by_month) | set(fine_pay_by_month) | set(fine_txn_by_month))
+    months = sorted(set(share_by_month) | set(principal_by_month) | set(interest_by_month) | set(fine_by_month))
     yearly_keys = sorted({m[:4] for m in months})
 
     monthly = {}
@@ -136,7 +133,7 @@ def get_period_summary():
             'share': round(share_by_month.get(m, 0.0) or 0.0, 2),
             'principal': round(principal_by_month.get(m, 0.0) or 0.0, 2),
             'interest': round(interest_by_month.get(m, 0.0) or 0.0, 2),
-            'fine': round((fine_pay_by_month.get(m, 0.0) or 0.0) + (fine_txn_by_month.get(m, 0.0) or 0.0), 2),
+            'fine': round(fine_by_month.get(m, 0.0) or 0.0, 2),
         }
 
     yearly = {}
@@ -157,33 +154,35 @@ def get_passbook_entries():
     cur = conn.cursor()
     cur.execute("""
     SELECT ts, category, member_name, amount, debit_credit FROM (
-        SELECT p.date || 'T12:00:00' as ts, 'Loan Payment' as category, m.name as member_name, p.principal_paid + p.interest_paid + COALESCE(p.late_fee_paid,0) as amount, 'credit' as debit_credit
-        FROM payments p JOIN loans l ON l.id = p.loan_id JOIN members m ON m.id = l.member_id
+        SELECT p.pay_date as ts,
+            CASE
+                WHEN p.share_amount = 0 AND p.loan_principal = 0 AND p.loan_interest = 0 AND p.late_fee = 0 THEN 'Deposit'
+                WHEN p.late_fee > 0 AND p.share_amount = 0 AND p.loan_principal = 0 AND p.loan_interest = 0 THEN 'Late Fee'
+                WHEN p.share_amount > 0 AND (p.loan_principal > 0 OR p.loan_interest > 0) THEN 'Payment'
+                WHEN p.share_amount > 0 THEN 'Share'
+                ELSE 'Loan Payment'
+            END as category,
+            m.name as member_name, p.total_amount as amount, 'credit' as debit_credit
+        FROM member_ledger p LEFT JOIN members m ON m.member_id = p.member_id
         UNION ALL
         SELECT l.disbursed_date || 'T12:00:00', 'Loan Disbursed', m.name, l.principal, 'debit'
-        FROM loans l JOIN members m ON m.id = l.member_id WHERE l.disbursed_date IS NOT NULL AND l.status IN ('active','repaid')
+        FROM loans l JOIN members m ON m.member_id = l.member_id WHERE l.disbursed_date IS NOT NULL AND l.status IN ('active','repaid')
         UNION ALL
         SELECT t.timestamp,
             CASE
-                WHEN t.desc LIKE 'FD Interest%' THEN 'FD Interest'
-                WHEN t.desc LIKE 'Share%' THEN 'Share'
-                WHEN t.desc LIKE 'Deposit%' THEN 'Deposit'
-                WHEN t.desc = 'Initial deposit' THEN 'Deposit'
-                WHEN t.desc LIKE 'Loan%' AND t.debit_credit='credit' THEN 'Loan Payment'
-                WHEN t.desc LIKE 'Due payment%' THEN 'Due Payment'
-                WHEN t.source='manual_ie' AND t.debit_credit='credit' THEN 'Income'
-                WHEN t.source='manual_ie' AND t.debit_credit='debit' THEN 'Expense'
-                WHEN t.desc='Admin add funds' THEN 'Income'
-                ELSE t.desc
+                WHEN t.description LIKE 'FD Interest%' THEN 'FD Interest'
+                WHEN t.debit_credit='credit' THEN 'Income'
+                ELSE 'Expense'
             END as category,
             m.name as member_name, t.amount, t.debit_credit
-        FROM transactions t LEFT JOIN members m ON m.id = t.member_id
+        FROM group_ledger t LEFT JOIN members m ON m.member_id = t.member_id
+        WHERE t.member_id IS NULL
         UNION ALL
         SELECT f.start_date || 'T12:00:00', 'FD Deposit', NULL, f.amount, 'debit'
-        FROM fd_entries f
+        FROM fixed_deposits f WHERE f.amount > 0
         UNION ALL
         SELECT f.maturity_date || 'T12:00:00', 'FD Matured', NULL, f.amount, 'credit'
-        FROM fd_entries f WHERE f.status='matured'
+        FROM fixed_deposits f WHERE f.status='matured' AND f.amount > 0
     ) ORDER BY ts DESC
     """)
     rows = [dict(r) for r in cur.fetchall()]
