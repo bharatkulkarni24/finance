@@ -18,6 +18,132 @@ def strip_sensitive(m: dict) -> dict:
     return m
 
 
+# Canonical column set for each table. Used by _ensure_columns() to upgrade an
+# existing database when a future version adds a column (CREATE TABLE only adds
+# missing tables, not missing columns). When adding a new column in a future
+# release, add it here AND to the CREATE TABLE statement above/below so fresh
+# databases and existing databases stay in sync.
+_COLUMN_DEFS = {
+    'members': {
+        'member_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'name': 'TEXT NOT NULL',
+        'phone': 'TEXT',
+        'joined_date': 'TEXT NOT NULL',
+        'deposit_amount': 'REAL DEFAULT 25000',
+        'is_admin': 'INTEGER DEFAULT 0',
+        'dob': 'TEXT',
+        'address': 'TEXT',
+        'photo_url': 'TEXT',
+        'password': "TEXT DEFAULT ''",
+    },
+    'loans': {
+        'loan_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'member_id': 'INTEGER',
+        'principal': 'REAL',
+        'outstanding': 'REAL',
+        'rate_monthly': 'REAL',
+        'term_months': 'INTEGER',
+        'status': 'TEXT',
+        'disbursed_date': 'TEXT',
+        'last_accrual_date': 'TEXT',
+        'request_id': 'INTEGER',
+        'req_no': 'TEXT',
+    },
+    'member_ledger': {
+        'pay_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'member_id': 'INTEGER',
+        'pay_date': 'TEXT',
+        'total_amount': 'REAL DEFAULT 0',
+        'share_amount': 'REAL DEFAULT 0',
+        'loan_principal': 'REAL DEFAULT 0',
+        'loan_interest': 'REAL DEFAULT 0',
+        'late_fee': 'REAL DEFAULT 0',
+        'description': "TEXT DEFAULT ''",
+        'request_id': 'INTEGER',
+        'loan_id': 'INTEGER',
+        'req_no': 'TEXT',
+        'created_at': 'TEXT',
+        'modified_at': 'TEXT',
+    },
+    'group_ledger': {
+        'trn_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'member_id': 'INTEGER',
+        'timestamp': 'TEXT',
+        'description': 'TEXT',
+        'debit_credit': 'TEXT',
+        'amount': 'REAL',
+    },
+    'requests': {
+        'req_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'req_no': 'TEXT',
+        'member_id': 'INTEGER',
+        'item_type': 'TEXT',
+        'date_submitted': 'TEXT',
+        'pay_date': 'TEXT',
+        'share_amount': 'REAL DEFAULT 0',
+        'loan_payment': 'REAL DEFAULT 0',
+        'interest_amount': 'REAL DEFAULT 0',
+        'late_fee': 'REAL DEFAULT 0',
+        'total_amount': 'REAL DEFAULT 0',
+        'note': "TEXT DEFAULT ''",
+        'screenshot': "TEXT DEFAULT ''",
+        'loan_principal': 'REAL DEFAULT 0',
+        'loan_term_months': 'INTEGER DEFAULT 0',
+        'status': "TEXT DEFAULT 'submitted'",
+        'approved_by': 'INTEGER',
+        'approved_date': 'TEXT',
+        'rejected_by': 'INTEGER',
+        'rejected_date': 'TEXT',
+        'reject_reason': "TEXT DEFAULT ''",
+    },
+    'audit_log': {
+        'audit_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'pay_id': 'INTEGER',
+        'action': 'TEXT',
+        'changed_by': 'INTEGER',
+        'changed_at': 'TEXT',
+        'old_share_amount': 'REAL',
+        'new_share_amount': 'REAL',
+        'old_late_fee': 'REAL',
+        'new_late_fee': 'REAL',
+        'old_loan_interest': 'REAL',
+        'new_loan_interest': 'REAL',
+        'old_loan_principal': 'REAL',
+        'new_loan_principal': 'REAL',
+        'old_total_amount': 'REAL',
+        'new_total_amount': 'REAL',
+    },
+    'fixed_deposits': {
+        'fd_id': 'INTEGER PRIMARY KEY AUTOINCREMENT',
+        'amount': 'REAL NOT NULL',
+        'start_date': 'TEXT NOT NULL',
+        'term_months': 'INTEGER NOT NULL',
+        'interest_rate': 'REAL NOT NULL',
+        'status': "TEXT DEFAULT 'active'",
+        'maturity_date': 'TEXT',
+        'interest_earned': 'REAL DEFAULT 0',
+        'notes': 'TEXT',
+        'created_at': 'TEXT',
+        'investment_type': "TEXT DEFAULT 'one_time'",
+        'parent_id': 'INTEGER DEFAULT NULL',
+        'installment_date': 'TEXT DEFAULT NULL',
+    },
+}
+
+
+def _ensure_columns(cur) -> None:
+    """Add any columns a newer version of the app expects but this DB lacks.
+
+    Additive-only: existing rows and data are never touched. Column and table
+    names come from the hardcoded _COLUMN_DEFS map, never from user input.
+    """
+    for table, columns in _COLUMN_DEFS.items():
+        existing = {row['name'] for row in cur.execute(f'PRAGMA table_info({table})')}
+        for col, decl in columns.items():
+            if col not in existing:
+                cur.execute(f'ALTER TABLE {table} ADD COLUMN {col} {decl}')
+
+
 def init_db():
     conn = get_conn()
     cur = conn.cursor()
@@ -146,6 +272,8 @@ def init_db():
     cur.execute(
         'DELETE FROM member_ledger WHERE share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0'
     )
+
+    _ensure_columns(cur)
 
     conn.commit()
     conn.close()
