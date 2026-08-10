@@ -913,11 +913,19 @@ function renderMenu() {
     }
     menuLinks.appendChild(a)
   })
+  const langBtn = document.createElement('button')
+  langBtn.type = 'button'
+  langBtn.id = 'lang-toggle'
+  langBtn.className = 'nav-link'
+  langBtn.textContent = state.lang === 'kn' ? 'EN' : 'KN'
+  langBtn.style.border = 'none'
+  langBtn.style.cursor = 'pointer'
+  langBtn.style.font = 'inherit'
+  menuLinks.appendChild(langBtn)
   const logoutLink = document.createElement('a')
   logoutLink.href = '#'
   logoutLink.className = 'nav-link'
   logoutLink.textContent = t('Sign Out')
-  logoutLink.style.marginLeft = 'auto'
   logoutLink.onclick = (e) => {
     e.preventDefault()
     showLogoutConfirm()

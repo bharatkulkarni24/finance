@@ -14,6 +14,31 @@ from core.session import require_admin, require_self_or_admin
 
 members_bp = Blueprint('members', __name__)
 
+ALLOWED_PHOTO_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+MAX_PHOTO_BYTES = 2 * 1024 * 1024
+
+
+def _save_uploaded_image(file, prefix: str):
+    """Validate an uploaded image and store it under static/uploads.
+
+    Returns the public URL path, or None if the file is rejected.
+    """
+    if not file or not file.filename:
+        return None
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_PHOTO_EXTENSIONS:
+        return None
+    data = file.read(MAX_PHOTO_BYTES + 1)
+    if len(data) > MAX_PHOTO_BYTES:
+        return None
+    uploads = os.path.join(current_app.static_folder, 'uploads')
+    os.makedirs(uploads, exist_ok=True)
+    fn = secure_filename(f"{prefix}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}{ext}")
+    path = os.path.join(uploads, fn)
+    with open(path, 'wb') as f:
+        f.write(data)
+    return f"/static/uploads/{fn}"
+
 
 @members_bp.route('/api/members', methods=['GET', 'POST'])
 def members():
@@ -108,17 +133,9 @@ def upload_member_photo(member_id):
         return jsonify({'error': 'unauthorized'}), 401
     if 'photo' not in request.files:
         return jsonify({'error': 'no file'}), 400
-    file = request.files['photo']
-    if not file.filename:
-        return jsonify({'error': 'no filename'}), 400
-    uploads = os.path.join(current_app.static_folder, 'uploads')
-    os.makedirs(uploads, exist_ok=True)
-    fn = secure_filename(
-        f"profile_{member_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{file.filename}",
-    )
-    path = os.path.join(uploads, fn)
-    file.save(path)
-    photo_url = f"/static/uploads/{fn}"
+    photo_url = _save_uploaded_image(request.files['photo'], f'profile_{member_id}')
+    if not photo_url:
+        return jsonify({'error': 'unsupported file type or file too large'}), 400
     member = update_member(member_id, photo_url=photo_url)
     return jsonify({'status': 'ok', 'member': member})
 
@@ -141,15 +158,7 @@ def submit_payment_request(member_id):
     txn_date = None
     if 'screenshot' in request.files:
         file = request.files['screenshot']
-        if file.filename:
-            uploads = os.path.join(current_app.static_folder, 'uploads')
-            os.makedirs(uploads, exist_ok=True)
-            fn = secure_filename(f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{file.filename}")
-            path = os.path.join(uploads, fn)
-            file.save(path)
-            screenshot = f"/static/uploads/{fn}"
-        else:
-            screenshot = ''
+        screenshot = _save_uploaded_image(file, 'screenshot') or ''
         amount = float(request.form.get('amount', 0))
         note = request.form.get('note', '')
         txn_date = request.form.get('txn_date') or None

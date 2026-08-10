@@ -91,8 +91,7 @@ body {
 .topbar.login-mode .login-fields > * {
   pointer-events: auto;
 }
-.topbar.login-mode .logo,
-.topbar.login-mode .lang-wrap {
+.topbar.login-mode .logo {
   display: none;
 }
 
@@ -141,11 +140,6 @@ body {
   padding: 0;
   max-width: 320px;
   width: 100%;
-}
-.topbar.login-mode .lang-wrap {
-  justify-self: end;
-  align-self: start;
-  padding: 0;
 }
 
 /* ── After login (not login-mode) ── */
@@ -196,13 +190,6 @@ body {
 .topbar .logo {
   position: relative;
   z-index: 3;
-}
-
-.lang-wrap {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-end;
 }
 
 @keyframes fadeInUp {
@@ -448,18 +435,26 @@ body {
 .navbar {
   margin-bottom: 18px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.navbar::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-link {
   color: #cbd5e1;
   text-decoration: none;
-  padding: 12px 18px;
+  padding: 10px 14px;
   border-radius: 14px;
   background: rgba(148, 163, 184, 0.08);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
   transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
 

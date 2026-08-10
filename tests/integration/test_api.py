@@ -1,5 +1,6 @@
 import os
 import sys
+import io
 import pytest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -567,6 +568,21 @@ class TestAPIException:
     def test_upload_photo_no_file(self, client):
         mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/upload_photo')
+        assert resp.status_code == 400
+
+    def test_upload_photo_rejects_non_image(self, client):
+        mid = _create_and_login_member(client)
+        resp = client.post(f'/api/members/{mid}/upload_photo',
+                           data={'photo': (io.BytesIO(b'<script>alert(1)</script>'), 'evil.html')},
+                           content_type='multipart/form-data')
+        assert resp.status_code == 400
+
+    def test_upload_photo_rejects_oversize(self, client):
+        mid = _create_and_login_member(client)
+        big = io.BytesIO(b'x' * (2 * 1024 * 1024 + 1))
+        resp = client.post(f'/api/members/{mid}/upload_photo',
+                           data={'photo': (big, 'big.png')},
+                           content_type='multipart/form-data')
         assert resp.status_code == 400
 
     def test_contribute_with_no_data(self, client):
