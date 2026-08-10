@@ -303,7 +303,10 @@ const I18N = {
     'Deposit Date': 'Deposit Date',
     'Password': 'Password',
     'Set member password': 'Set member password',
+    'View Profile': 'View Profile',
     'Change Password': 'Change Password',
+    'My Payments & Loans': 'My Payments & Loans',
+    'Your payments and active loans.': 'Your payments and active loans.',
     'Change your password': 'Change your password',
     'Current password': 'Current password',
     'New password': 'New password',
@@ -537,7 +540,10 @@ const I18N = {
     'Deposit Date': 'ಠೇವಣಿ ದಿನಾಂಕ',
     'Password': 'ಪಾಸ್‌ವರ್ಡ್',
     'Set member password': 'ಸದಸ್ಯರ ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಸಿ',
+    'View Profile': 'ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಿಸಿ',
     'Change Password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
+    'My Payments & Loans': 'ನನ್ನ ಪಾವತಿಗಳು ಮತ್ತು ಸಾಲಗಳು',
+    'Your payments and active loans.': 'ನಿಮ್ಮ ಪಾವತಿಗಳು ಮತ್ತು ಸಕ್ರಿಯ ಸಾಲಗಳು.',
     'Change your password': 'ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
     'Current password': 'ಪ್ರಸ್ತುತ ಪಾಸ್‌ವರ್ಡ್',
     'New password': 'ಹೊಸ ಪಾಸ್‌ವರ್ಡ್',
@@ -661,6 +667,15 @@ function formatDateTime(d) {
   const dt = new Date(d)
   return dt.toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})
     + ' ' + dt.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'})
+}
+
+function formatDateParts(d) {
+  if (!d) return { date: '-', time: '' }
+  const dt = new Date(d)
+  return {
+    date: dt.toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'}),
+    time: dt.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'})
+  }
 }
 
 function smartDateInput(input) {
@@ -889,9 +904,22 @@ function initials(name) {
 
 function renderMenu() {
   menuLinks.innerHTML = ''
+  const viewTitles = {
+    'home': t('Dashboard'),
+    'my-accounts': '💳 ' + t('My Payments & Loans'),
+    'submit': t('Submit'),
+    'my-history': t('📜 My Activity'),
+    'all-members': t('All Members'),
+    'admin-panel': t('Admin Panel'),
+    'passbook': t('📒 Passbook'),
+    'my-profile': t('View Profile'),
+    'change-password': t('Change Password'),
+  }
+  const titleEl = document.getElementById('navbar-title')
+  if (titleEl) titleEl.textContent = viewTitles[state.activeView] || ''
   const items = [
     {id: 'home', label: t('Dashboard')},
-    {id: 'my-profile', label: t('My Profile')},
+    {id: 'my-accounts', label: '💳 ' + t('My Payments & Loans')},
     {id: 'submit', label: t('Submit')},
     {id: 'my-history', label: t('📜 My Activity')},
     {id: 'all-members', label: t('All Members')},
@@ -931,6 +959,60 @@ function renderMenu() {
     showLogoutConfirm()
   }
   menuLinks.appendChild(logoutLink)
+
+  // Mobile hamburger menu: open/close the dropdown
+  const menuBtn = document.getElementById('menu-btn')
+  if (menuBtn) {
+    menuBtn.onclick = (e) => {
+      e.stopPropagation()
+      menuBtn.classList.toggle('open')
+      menuLinks.classList.toggle('open')
+    }
+  }
+  // Selecting any item (incl. Sign Out / language) closes the menu
+  menuLinks.querySelectorAll('.nav-link').forEach(a => {
+    a.addEventListener('click', () => {
+      menuLinks.classList.remove('open')
+      if (menuBtn) menuBtn.classList.remove('open')
+    })
+  })
+
+  // ── Top-right profile avatar (mobile) ──
+  const avatarBtn = document.getElementById('user-avatar-btn')
+  const userMenu = document.getElementById('user-menu')
+  if (avatarBtn && userMenu) {
+    const u = state.currentUser
+    avatarBtn.hidden = false
+    if (u && u.photo_url) {
+      avatarBtn.style.backgroundImage = `url('${u.photo_url}')`
+      avatarBtn.textContent = ''
+      avatarBtn.classList.add('has-photo')
+    } else {
+      avatarBtn.style.backgroundImage = ''
+      avatarBtn.textContent = u ? initials(u.name) : ''
+      avatarBtn.classList.remove('has-photo')
+    }
+    userMenu.innerHTML = `
+      <button type="button" class="user-menu-item" id="user-view-profile">👤 <span>${t('View Profile')}</span></button>
+      <button type="button" class="user-menu-item" id="user-change-pw">🔒 <span>${t('Change Password')}</span></button>
+    `
+    avatarBtn.onclick = (e) => {
+      e.stopPropagation()
+      userMenu.classList.toggle('open')
+      if (menuBtn) menuBtn.classList.remove('open')
+      menuLinks.classList.remove('open')
+    }
+    document.getElementById('user-view-profile').onclick = () => {
+      userMenu.classList.remove('open')
+      setView('my-profile')
+    }
+    document.getElementById('user-change-pw').onclick = () => {
+      userMenu.classList.remove('open')
+      state.activeView = 'change-password'
+      persistActiveView()
+      renderView()
+    }
+  }
 }
 
 async function loadMembers() {
@@ -939,6 +1021,19 @@ async function loadMembers() {
 }
 
 async function init() {
+  // Close the mobile menu when tapping anywhere outside it
+  document.addEventListener('click', (e) => {
+    const navbar = document.getElementById('navbar')
+    if (navbar && !navbar.contains(e.target)) {
+      const btn = document.getElementById('menu-btn')
+      const links = document.getElementById('menu-links')
+      const avatarBtn = document.getElementById('user-avatar-btn')
+      const userMenu = document.getElementById('user-menu')
+      if (btn) btn.classList.remove('open')
+      if (links) links.classList.remove('open')
+      if (userMenu) userMenu.classList.remove('open')
+    }
+  })
   await loadMembers()
   try {
     const user = await api('/me')
@@ -1026,7 +1121,9 @@ function renderView() {
   renderMenu()
   const view = state.activeView
   if (view === 'admin-panel') return renderAdminPanel()
-  if (view === 'my-profile') return renderMemberProfile(state.currentUser.member_id)
+  if (view === 'my-profile') return renderMemberProfile(state.currentUser.member_id, 'details')
+  if (view === 'my-accounts') return renderMemberProfile(state.currentUser.member_id, 'accounts')
+  if (view === 'change-password') return renderChangePassword()
   if (view === 'submit') return renderSubmitView()
   if (view === 'my-history') return renderAllHistory()
   if (view === 'all-members') return renderAllMembers()
@@ -1175,7 +1272,6 @@ async function renderAdminPanel() {
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   const html = `
     <div class="panel">
-      <h2 class="page-title">${t('Admin Panel')}</h2>
       <div class="grid-2 grid-stretch">
         <div class="panel">
           <button class="btn btn-admin-toggle" id="toggle-add-member" style="width:100%;justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
@@ -1875,14 +1971,13 @@ async function renderAllMembers() {
   }).join('')
   content.innerHTML = `
     <div class="panel">
-      <h2 class="page-title">${t('All Members')}</h2>
       <div class="member-grid">${cards}</div>
     </div>
   `
 }
 
 async function renderPassbook() {
-  content.innerHTML = '<div class="panel"><h2 class="page-title">' + t('📒 Passbook') + '</h2><p style="color:#94a3b8;margin:0 0 14px">' + t('All transactions in one place.') + '</p><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto">' + loadingHtml() + '</div></div>'
+  content.innerHTML = '<div class="panel"><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto">' + loadingHtml() + '</div></div>'
   await loadPbData()
 }
 
@@ -2123,8 +2218,9 @@ function applyPbFilters() {
     filtered.slice(0, 500).map(r => {
       const cls = r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'
       const sign = r.debit_credit === 'credit' ? '+' : '−'
+      const dp = formatDateParts(r.ts)
       return `<tr>
-        <td style="white-space:nowrap;font-size:0.8rem">${formatDateTime(r.ts)}</td>
+        <td class="pb-date-cell" style="white-space:nowrap;font-size:0.8rem">${dp.date}<span class="pb-time"> ${dp.time}</span></td>
         <td><span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${r.category}</span></td>
         <td style="color:#94a3b8">${r.member_name || '-'}</td>
         <td style="text-align:right;font-weight:700;color:${cls}">${sign} ${formatCurrency(r.amount)}</td>
@@ -2157,19 +2253,99 @@ async function renderAllHistory() {
     requestRows.push({ sortKey: normDate(r.date_submitted), date: r.date_submitted, type: typeLabel, amount, status: r.status, info })
   })
   requestRows.sort((a, b) => b.sortKey.localeCompare(a.sortKey))
-  const rowsHtml = requestRows.length ? requestRows.map(r => `<tr><td>${r.date ? formatDateTime(r.date.includes('T') ? r.date : r.date + 'T00:00:00') : '-'}</td><td>${r.type}</td><td>${formatCurrency(r.amount)}</td><td>${r.status}</td><td>${r.info}</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">${t('No history yet')}</td></tr>`
+  const rowsHtml = requestRows.length ? requestRows.map(r => {
+    const dp = formatDateParts(r.date ? (r.date.includes('T') ? r.date : r.date + 'T00:00:00') : '')
+    return `<tr>
+      <td class="act-date-cell" style="white-space:nowrap;font-size:0.8rem">${dp.date}<span class="act-time"> ${dp.time}</span></td>
+      <td class="act-type-cell">${r.type}</td>
+      <td style="white-space:nowrap">${formatCurrency(r.amount)}</td>
+      <td>${r.status}</td>
+      <td>${r.info}</td>
+    </tr>`
+  }).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">${t('No history yet')}</td></tr>`
   content.innerHTML = `
     <div class="panel">
-      <h2 class="page-title">${t('📜 My Activity')}</h2>
-      <p style="color:#94a3b8">${t('All your requests — payments, loan applications, and their statuses.')}</p>
-      <div class="table-scroll">
+      <div class="table-scroll activity-scroll">
         <table class="table"><thead><tr><th>${t('Date')}</th><th>${t('Type')}</th><th>${t('Amount')}</th><th>${t('Status')}</th><th>${t('Comments')}</th></tr></thead><tbody>${rowsHtml}</tbody></table>
       </div>
     </div>
   `
 }
 
-async function renderMemberProfile(memberId) {
+function passwordFormFields() {
+  return `
+    <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:10px">${t('Change your password')}</p>
+    <div style="margin-bottom:8px"><input id="pw-current" type="password" placeholder="${t('Current password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
+    <div style="margin-bottom:8px"><input id="pw-new" type="password" placeholder="${t('New password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
+    <div style="margin-bottom:12px"><input id="pw-confirm" type="password" placeholder="${t('Confirm new password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" id="pw-save-btn">${t('Save')}</button><button class="btn" id="pw-cancel-btn">${t('Cancel')}</button></div>
+  `
+}
+
+function wirePasswordForm(memberId, onDone) {
+  document.getElementById('pw-save-btn').onclick = async () => {
+    const cur = document.getElementById('pw-current').value
+    const nw = document.getElementById('pw-new').value
+    const conf = document.getElementById('pw-confirm').value
+    if (!cur || !nw) { showToast(t('Fill all fields'), 'error'); return }
+    if (nw !== conf) { showToast(t('Passwords do not match'), 'error'); return }
+    setLoading(document.getElementById('pw-save-btn'), true)
+    try {
+      await api(`/members/${memberId}/self`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({current_password: cur, password: nw}),
+      })
+      showToast(t('Password changed'), 'success')
+      onDone()
+    } catch (err) {
+      showToast(err.error || 'Failed to change password', 'error')
+    } finally {
+      setLoading(document.getElementById('pw-save-btn'), false)
+    }
+  }
+  document.getElementById('pw-cancel-btn').onclick = () => onDone()
+}
+
+function openPasswordForm(memberId, mode) {
+  if (document.getElementById('pw-change-form')) return
+  const copy = document.querySelector('.profile-copy')
+  if (!copy) return
+  const div = document.createElement('div')
+  div.id = 'pw-change-form'
+  div.style.marginTop = '12px'
+  div.style.padding = '12px'
+  div.style.borderRadius = '10px'
+  div.style.background = 'rgba(255,255,255,0.03)'
+  div.innerHTML = passwordFormFields()
+  copy.appendChild(div)
+  wirePasswordForm(memberId, () => renderMemberProfile(memberId, mode))
+}
+
+async function renderChangePassword() {
+  content.innerHTML = loadingHtml()
+  await api(`/members/${state.currentUser.member_id}`)
+  content.innerHTML = `
+    <div class="profile-wrapper">
+      <div class="profile-card">
+        <div class="profile-copy" style="width:100%">
+          <h2 style="margin-bottom:16px;">🔒 ${t('Change Password')}</h2>
+          <div class="pc-details">
+            <div class="pc-left" style="width:100%">
+              ${passwordFormFields()}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  wirePasswordForm(state.currentUser.member_id, () => setView('my-profile'))
+}
+
+async function renderMemberProfile(memberId, mode) {
+  if (!mode) {
+    mode = state.activeView === 'my-accounts' ? 'accounts' : (state.activeView === 'my-profile' ? 'details' : undefined)
+  }
   state.selectedMember = memberId
   content.innerHTML = loadingHtml()
   const m = await api(`/members/${memberId}`)
@@ -2259,7 +2435,7 @@ async function renderMemberProfile(memberId) {
             <p><strong>DOB:</strong> <span class="input-readonly" id="ro-dob">${m.dob ? formatDate(m.dob) : '-'}</span></p>
             <p><strong>Age:</strong> <span class="input-readonly">${calculateAge(m.dob)}</span></p>
             <p><strong>Address:</strong> <span class="input-readonly" id="ro-address">${m.address || '-'}</span></p>
-            ${own ? `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="self-edit-btn">Edit Profile</button><button class="btn secondary" id="change-pw-btn">Change Password</button></div>` : ''}
+            ${own ? `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="self-edit-btn">Edit Profile</button>${mode !== 'details' ? `<button class="btn secondary" id="change-pw-btn">Change Password</button>` : ''}</div>` : ''}
           </div>
         </div>
       </div>
@@ -2285,25 +2461,48 @@ async function renderMemberProfile(memberId) {
   if (totalInterest > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Interest:</strong> ${formatCurrency(totalInterest)}`
   if (totalFine > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Fine Paid:</strong> ${formatCurrency(totalFine)}`
   historyHeader += '</div>'
-  content.innerHTML = `
-    <div class="profile-wrapper">
-      ${profileFields}
-    </div>
+  const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>`
 
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-top:18px">
+  if (mode === 'details') {
+    content.innerHTML = `
+      <div class="profile-wrapper">
+        ${profileFields}
+      </div>
+    `
+  } else if (mode === 'accounts') {
+    content.innerHTML = `
       <div class="panel" style="margin-bottom:12px;">
-        <h3>📊 Payment History</h3>
         ${historyHeader}
         <div class="table-scroll">
-          <table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>
+          ${paymentTableHtml}
         </div>
       </div>
       <div class="panel compact-panel" id="loans-panel">
         <h3 style="margin-bottom:10px;">🏦 Loans</h3>
         ${loansCardsHtml}
       </div>
-    </div>
-  `
+    `
+  } else {
+    content.innerHTML = `
+      <div class="profile-wrapper">
+        ${profileFields}
+      </div>
+
+      <div class="profile-grid">
+        <div class="panel" style="margin-bottom:12px;">
+          <h3>📊 Payment History</h3>
+          ${historyHeader}
+          <div class="table-scroll">
+            ${paymentTableHtml}
+          </div>
+        </div>
+        <div class="panel compact-panel" id="loans-panel">
+          <h3 style="margin-bottom:10px;">🏦 Loans</h3>
+          ${loansCardsHtml}
+        </div>
+      </div>
+    `
+  }
     // Attach handlers for inline profile photo and edit/save flow
     const avatar = document.getElementById('profile-avatar')
     const photoInput = document.getElementById('profile-photo-input')
@@ -2399,48 +2598,7 @@ async function renderMemberProfile(memberId) {
 
     // Change password flow
     const pwBtn = document.getElementById('change-pw-btn')
-    if (pwBtn) {
-      pwBtn.onclick = () => {
-        if (document.getElementById('pw-change-form')) return
-        const copy = document.querySelector('.profile-copy')
-        const div = document.createElement('div')
-        div.id = 'pw-change-form'
-        div.style.marginTop = '12px'
-        div.style.padding = '12px'
-        div.style.borderRadius = '10px'
-        div.style.background = 'rgba(255,255,255,0.03)'
-        div.innerHTML = `
-          <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:10px">${t('Change your password')}</p>
-          <div style="margin-bottom:8px"><input id="pw-current" type="password" placeholder="${t('Current password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
-          <div style="margin-bottom:8px"><input id="pw-new" type="password" placeholder="${t('New password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
-          <div style="margin-bottom:12px"><input id="pw-confirm" type="password" placeholder="${t('Confirm new password')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,0.15);background:rgba(15,23,42,0.9);color:#f8fafc" /></div>
-          <div style="display:flex;gap:8px"><button class="btn primary" id="pw-save-btn">${t('Save')}</button><button class="btn" id="pw-cancel-btn">${t('Cancel')}</button></div>
-        `
-        copy.appendChild(div)
-        document.getElementById('pw-save-btn').onclick = async () => {
-          const cur = document.getElementById('pw-current').value
-          const nw = document.getElementById('pw-new').value
-          const conf = document.getElementById('pw-confirm').value
-          if (!cur || !nw) { showToast(t('Fill all fields'), 'error'); return }
-          if (nw !== conf) { showToast(t('Passwords do not match'), 'error'); return }
-          setLoading(document.getElementById('pw-save-btn'), true)
-          try {
-            await api(`/members/${m.member_id}/self`, {
-              method: 'PATCH',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({current_password: cur, password: nw}),
-            })
-            showToast(t('Password changed'), 'success')
-            renderMemberProfile(m.member_id)
-          } catch (err) {
-            showToast(err.error || 'Failed to change password', 'error')
-          } finally {
-            setLoading(document.getElementById('pw-save-btn'), false)
-          }
-        }
-        document.getElementById('pw-cancel-btn').onclick = () => renderMemberProfile(m.member_id)
-      }
-    }
+    if (pwBtn) pwBtn.onclick = () => openPasswordForm(m.member_id, mode)
 
     // Edit flow: transform readonly fields into inputs when user clicks Edit
     if (editBtn) {
@@ -2485,8 +2643,6 @@ async function renderSubmitView() {
   const today = new Date().toISOString().slice(0, 10)
   content.innerHTML = `
     <div class="panel">
-      <h2 class="page-title" style="margin-bottom:4px;">Submit Payment</h2>
-      <p style="color:#94a3b8;margin-bottom:16px;">Submit proof of payment or request a loan</p>
       <div class="grid-2" style="gap:20px;">
         <div class="panel compact-panel">
           <h3>📤 Submit Proof of Payment</h3>

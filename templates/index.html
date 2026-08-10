@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
-    <link rel="stylesheet" href="/static/css/styles.css?v=6" />
+    <link rel="stylesheet" href="/static/css/styles.css?v=25" />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
   </head>
   <body>
@@ -57,7 +57,7 @@
             <label for="admin-pin" data-i18n="Password">Password</label>
             <div style="position:relative;flex:1">
               <input id="admin-pin" type="password" placeholder="Enter password" />
-              <span id="pin-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span>
+              <span id="pin-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:18px;user-select:none">👁</span>
             </div>
           </div>
           <button id="login-button" class="btn primary" data-i18n="Login">Login</button>
@@ -66,11 +66,17 @@
       </div>
 
       <div id="main-screen" class="screen hidden">
-        <div class="navbar" id="menu-links"></div>
+        <div class="navbar" id="navbar">
+          <button type="button" id="menu-btn" class="menu-btn" aria-label="Menu"><span class="menu-icon"></span></button>
+          <div id="navbar-title" class="navbar-title"></div>
+          <div id="menu-links"></div>
+          <button type="button" id="user-avatar-btn" class="user-avatar" hidden></button>
+          <div class="user-menu" id="user-menu"></div>
+        </div>
         <div id="content"></div>
       </div>
       <div id="toast-container" aria-live="polite" style="position:fixed;right:18px;bottom:18px;z-index:9999"></div>
     </div>
-    <script src="/static/js/app.js?v=8"></script>
+    <script src="/static/js/app.js?v=20"></script>
   </body>
 </html>
