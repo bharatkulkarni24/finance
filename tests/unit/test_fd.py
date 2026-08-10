@@ -1,7 +1,7 @@
 import pytest
 
 from core.models.fd import add_fd, close_fd, get_fd_entries, get_active_fd_total
-from core.database import get_conn, row_to_dict
+from core.database import get_conn
 
 
 # ─── Zombies: Simple ──────────────────────────────────────────────────────────

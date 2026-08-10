@@ -10,7 +10,7 @@ from core.models.member import get_all_members, create_member, get_member, updat
 from core.models.payment import add_contribution, create_payment_request
 from core.models.transaction import get_member_statement
 from core.models.loan import compute_interest_accrued
-from core.session import check_admin_token
+from core.session import require_admin, require_self_or_admin
 
 members_bp = Blueprint('members', __name__)
 
@@ -19,7 +19,14 @@ members_bp = Blueprint('members', __name__)
 def members():
     if request.method == 'GET':
         ms = get_all_members()
-        return jsonify([strip_sensitive(m) for m in ms])
+        public = []
+        for m in ms:
+            m = strip_sensitive(m)
+            m.pop('address', None)
+            public.append(m)
+        return jsonify(public)
+    if not require_admin():
+        return jsonify({'error': 'unauthorized'}), 401
     data = request.json
     dep_amt = data.get('deposit_amount')
     if dep_amt is not None:
@@ -27,7 +34,7 @@ def members():
     m = create_member(
         data.get('name'),
         data.get('phone', ''),
-        int(data.get('is_admin', 0)),
+        0,
         data.get('dob', ''),
         data.get('address', ''),
         data.get('photo_url', ''),
@@ -40,6 +47,8 @@ def members():
 
 @members_bp.route('/api/members/<int:member_id>', methods=['GET'])
 def get_member_route(member_id):
+    if not require_self_or_admin(member_id):
+        return jsonify({'error': 'unauthorized'}), 401
     m = get_member(member_id, full=True)
     if not m:
         return jsonify({'error': 'not found'}), 404
@@ -52,7 +61,7 @@ def get_member_route(member_id):
 
 @members_bp.route('/api/members/<int:member_id>', methods=['PATCH'])
 def update_member_route(member_id):
-    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+    if not require_admin():
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json
     member = update_member(
@@ -69,6 +78,8 @@ def update_member_route(member_id):
 
 @members_bp.route('/api/members/<int:member_id>/self', methods=['PATCH'])
 def self_update_member(member_id):
+    if not require_self_or_admin(member_id):
+        return jsonify({'error': 'unauthorized'}), 401
     data = request.json or {}
     phone = data.get('phone')
     dob = data.get('dob')
@@ -93,6 +104,8 @@ def self_update_member(member_id):
 
 @members_bp.route('/api/members/<int:member_id>/upload_photo', methods=['POST'])
 def upload_member_photo(member_id):
+    if not require_self_or_admin(member_id):
+        return jsonify({'error': 'unauthorized'}), 401
     if 'photo' not in request.files:
         return jsonify({'error': 'no file'}), 400
     file = request.files['photo']
@@ -112,6 +125,8 @@ def upload_member_photo(member_id):
 
 @members_bp.route('/api/members/<int:member_id>/contribute', methods=['POST'])
 def contribute(member_id):
+    if not require_self_or_admin(member_id):
+        return jsonify({'error': 'unauthorized'}), 401
     data = request.json
     amount = float(data.get('amount', 0))
     when = date.today()
@@ -121,6 +136,8 @@ def contribute(member_id):
 
 @members_bp.route('/api/members/<int:member_id>/submit_payment_request', methods=['POST'])
 def submit_payment_request(member_id):
+    if not require_self_or_admin(member_id):
+        return jsonify({'error': 'unauthorized'}), 401
     txn_date = None
     if 'screenshot' in request.files:
         file = request.files['screenshot']
@@ -158,5 +175,7 @@ def submit_payment_request(member_id):
 
 @members_bp.route('/api/members/<int:member_id>/statement', methods=['GET'])
 def member_statement(member_id):
+    if not require_self_or_admin(member_id):
+        return jsonify({'error': 'unauthorized'}), 401
     csv_text = get_member_statement(member_id)
     return (csv_text, 200, {'Content-Type': 'text/csv'})

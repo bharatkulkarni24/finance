@@ -1,10 +1,13 @@
-from flask import Blueprint, jsonify, request
+from datetime import date
+
+from flask import Blueprint, jsonify, request, Response
 
 from core.models.payment import approve_payment_request, reject_payment_request, admin_direct_entry
 from core.models.loan import approve_loan, reject_loan
 from core.models.requests import list_submitted_requests, list_rejected_items
 from core.models.fd import add_fd, add_fd_installment, close_fd, get_fd_entries
 from core.models.transaction import add_transaction, get_recent_transactions, get_admin_stats, get_passbook_entries, get_period_summary
+from core.models.report import get_report_data, build_report_pdf
 from core.models.edit import list_entries, edit_entry, delete_entry, list_audit_log
 from core.session import check_admin_token
 
@@ -131,6 +134,8 @@ def admin_transactions():
 
 @admin_bp.route('/api/admin/passbook', methods=['GET'])
 def admin_passbook():
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+        return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_passbook_entries())
 
 
@@ -210,6 +215,29 @@ def reject_loan_route(req_id):
     if not res:
         return jsonify({'error': 'not found'}), 404
     return jsonify({'status': 'rejected', 'request': res})
+
+
+@admin_bp.route('/api/admin/export_report', methods=['GET'])
+def admin_export_report():
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+        return jsonify({'error': 'unauthorized'}), 401
+    f = request.args.get('from', '')
+    t = request.args.get('to', '')
+    try:
+        date.fromisoformat(f)
+        date.fromisoformat(t)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid_dates', 'message': 'Provide from/to as YYYY-MM-DD'}), 400
+    if t < f:
+        return jsonify({'error': 'invalid_range', 'message': 'to date must be on or after from date'}), 400
+    data = get_report_data(f, t)
+    pdf_bytes = build_report_pdf(data)
+    filename = f'SLV_Finance_Report_{f}_to_{t}.pdf'
+    return Response(
+        pdf_bytes,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename={filename}'},
+    )
 
 
 @admin_bp.route('/api/admin/direct_entry', methods=['POST'])

@@ -4,7 +4,7 @@ from core.models.member import (
     get_all_members, create_member, find_member_by_name,
     get_member, update_member,
 )
-from core.database import get_conn, row_to_dict
+from core.database import get_conn
 
 
 # ─── Zombies: Simple ──────────────────────────────────────────────────────────

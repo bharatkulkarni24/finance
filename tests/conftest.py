@@ -15,6 +15,8 @@ def setup_db(tmp_path):
     core.config.DB_PATH = db_path
     from core.database import init_db
     init_db()
+    from core.rate_limit import reset
+    reset()
     yield
 
 

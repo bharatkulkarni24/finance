@@ -72,14 +72,6 @@ def list_rejected_items():
     return rows
 
 
-def get_request(req_id):
-    conn = get_conn()
-    cur = conn.cursor()
-    req = _fetch(cur, req_id)
-    conn.close()
-    return req
-
-
 def list_member_requests(member_id):
     conn = get_conn()
     cur = conn.cursor()

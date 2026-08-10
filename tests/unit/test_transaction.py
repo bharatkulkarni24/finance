@@ -1,5 +1,3 @@
-import pytest
-
 from core.models.transaction import (
     add_transaction, get_recent_transactions,
     get_member_statement, get_admin_stats, get_passbook_entries,
@@ -9,7 +7,6 @@ from core.models.member import create_member
 from core.models.loan import create_loan, approve_loan, apply_payment_to_loan, get_loan
 from core.models.fd import add_fd
 from core.models.payment import add_contribution
-from core.database import get_conn
 
 
 # ─── Zombies: Simple ──────────────────────────────────────────────────────────

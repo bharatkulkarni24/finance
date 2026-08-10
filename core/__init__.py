@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from flask import Flask, jsonify, request, redirect
 import logging
 import traceback
 from logging.handlers import RotatingFileHandler
 import os
 from datetime import timedelta
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from core.database import init_db, seed_db
 import core.config
@@ -16,12 +16,16 @@ def create_app():
         static_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static'),
         template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates'),
     )
-    CORS(app)
+    # Trust X-Forwarded-Proto/Host when running behind a reverse proxy (nginx/caddy).
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     app.secret_key = core.config.SECRET_KEY
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
+    app.config['FORCE_HTTPS'] = os.environ.get('FORCE_HTTPS', '') == '1'
+    if app.config['FORCE_HTTPS']:
+        app.config['SESSION_COOKIE_SECURE'] = True
 
     os.makedirs('logs', exist_ok=True)
     if not any(isinstance(h, RotatingFileHandler) for h in app.logger.handlers):
@@ -32,6 +36,12 @@ def create_app():
         handler.setLevel(logging.INFO)
         app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
+
+    if app.config['FORCE_HTTPS']:
+        @app.before_request
+        def enforce_https():
+            if not request.is_secure:
+                return redirect(request.url.replace('http://', 'https://', 1), 308)
 
     @app.before_request
     def log_request_info():

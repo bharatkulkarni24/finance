@@ -3,6 +3,7 @@ from werkzeug.security import check_password_hash
 
 from core.database import strip_sensitive
 from core.models.member import get_all_members, find_member_by_name, get_member
+from core.rate_limit import too_many, record_failure, record_success
 from core.session import create_admin_session
 
 auth_bp = Blueprint('auth', __name__)
@@ -24,14 +25,24 @@ def login():
     pin = data.get('pin', '').strip()
     if not name:
         return jsonify({'error': 'Name is required'}), 400
+    ip_key = f'ip:{request.remote_addr or "?"}'
+    name_key = f'name:{name.lower()}'
+    if too_many(ip_key) or too_many(name_key):
+        return jsonify({'error': 'Too many failed attempts. Please wait a few minutes and try again.'}), 429
     member = find_member_by_name(name)
     if not member:
+        record_failure(ip_key)
+        record_failure(name_key)
         return jsonify({'error': 'Member not found'}), 404
     if not pin:
         return jsonify({'error': 'Password is needed'}), 400
     stored = member.get('password') or ''
     if not stored or not check_password_hash(stored, pin):
+        record_failure(ip_key)
+        record_failure(name_key)
         return jsonify({'error': 'Incorrect password'}), 401
+    record_success(ip_key)
+    record_success(name_key)
     result = strip_sensitive(member)
     if member['is_admin']:
         result['token'] = create_admin_session(member['member_id'])

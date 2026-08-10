@@ -61,17 +61,32 @@ def _admin_headers(client):
 
 
 def _create_member(client, name='Test Member'):
-    resp = client.post('/api/members', json={'name': name})
+    resp = client.post('/api/members', json={'name': name}, headers=_admin_headers(client))
+    assert resp.status_code == 201
     return resp.get_json()['member_id']
 
 
+def _login_member(client, name, password='test-pw'):
+    _set_password(name, password)
+    resp = client.post('/api/login', json={'name': name, 'pin': password})
+    assert resp.status_code == 200
+
+
+def _create_and_login_member(client, name='Test Member', password='test-pw'):
+    mid = _create_member(client, name)
+    _login_member(client, name, password)
+    return mid
+
+
 def _apply_and_approve_loan(client, mid, amount=10000, term_months=12):
+    _login_member(client, 'Test Member')
     r = client.post(f'/api/members/{mid}/apply_loan', json={'amount': amount, 'term_months': term_months})
     req_id = r.get_json()['request']['req_id']
     return client.post(f'/api/admin/approve_loan/{req_id}', headers=_admin_headers(client))
 
 
 def _submit_and_approve_payment(client, mid, payload):
+    _login_member(client, 'Test Member')
     r = client.post(f'/api/members/{mid}/submit_payment_request', json=payload)
     req_id = r.get_json()['request']['req_id']
     return client.post(f'/api/admin/approve_request/{req_id}', headers=_admin_headers(client))
@@ -162,7 +177,9 @@ class TestAPIZero:
 
     def test_get_nonexistent_member(self, client):
         resp = client.get('/api/members/99999')
-        assert resp.status_code == 404
+        assert resp.status_code == 401  # anonymous access is blocked before existence check
+        resp = client.get('/api/members/99999', headers=_admin_headers(client))
+        assert resp.status_code == 404  # authenticated admin gets a proper 404
 
     def test_unauthorized_admin_endpoint(self, client):
         resp = client.get('/api/admin/stats')
@@ -173,7 +190,7 @@ class TestAPIZero:
         assert resp.status_code == 401
 
     def test_apply_loan_zero_amount(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/apply_loan', json={'amount': 0, 'term_months': 12})
         assert resp.status_code == 201
         data = resp.get_json()
@@ -184,6 +201,7 @@ class TestAPIZero:
 
 class TestAPIOne:
     def test_get_one_member(self, client):
+        _admin_headers(client)
         resp = client.get('/api/members/1001')
         assert resp.status_code == 200
         data = resp.get_json()
@@ -192,7 +210,7 @@ class TestAPIOne:
         assert 'payments' in data
 
     def test_apply_one_loan(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/apply_loan', json={'amount': 10000, 'term_months': 12})
         assert resp.status_code == 201
         data = resp.get_json()
@@ -201,7 +219,7 @@ class TestAPIOne:
         assert data['request']['status'] == 'submitted'
 
     def test_approve_one_loan(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/apply_loan', json={'amount': 10000, 'term_months': 12})
         resp = client.post('/api/admin/approve_loan/1', headers=_admin_headers(client),
                            json={'approver_id': 0})
@@ -211,7 +229,7 @@ class TestAPIOne:
         assert data['loan']['status'] == 'active'
 
     def test_submit_payment_request(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/submit_payment_request',
                            json={'amount': 500, 'type': 'share'})
         assert resp.status_code == 201
@@ -225,7 +243,7 @@ class TestAPIOne:
         assert data['member_count'] >= 1
 
     def test_admin_period_summary(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request',
                     json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
@@ -245,7 +263,7 @@ class TestAPIOne:
 class TestAPIMany:
     def test_create_multiple_members(self, client):
         for name in ['M1', 'M2', 'M3']:
-            client.post('/api/members', json={'name': name})
+            client.post('/api/members', json={'name': name}, headers=_admin_headers(client))
         resp = client.get('/api/members')
         data = resp.get_json()
         names = [m['name'] for m in data]
@@ -254,7 +272,7 @@ class TestAPIMany:
         assert 'M3' in names
 
     def test_multiple_loans(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         for i in range(3):
             client.post(f'/api/members/{mid}/apply_loan', json={'amount': (i + 1) * 5000, 'term_months': 12})
         resp = client.get('/api/admin/submitted_requests', headers=_admin_headers(client))
@@ -275,21 +293,21 @@ class TestAPIBoundary:
         assert data['address'] == 'New Address'
 
     def test_self_update_member(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.patch(f'/api/members/{mid}/self', json={'phone': '9876543210'})
         assert resp.status_code == 200
         data = resp.get_json()
         assert data['phone'] == '9876543210'
 
     def test_large_loan_amount(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/apply_loan',
                            json={'amount': 1000000, 'term_months': 12})
         assert resp.status_code == 201
         assert resp.get_json()['request']['loan_principal'] == 1000000
 
     def test_submit_payment_with_note(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/submit_payment_request',
                            json={'amount': 500, 'type': 'share', 'note': 'Test payment'})
         data = resp.get_json()
@@ -310,7 +328,7 @@ class TestAPIEditEntries:
         assert resp.status_code == 401
 
     def test_list_entries(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         resp = client.get('/api/admin/entries', headers=_admin_headers(client))
@@ -321,7 +339,7 @@ class TestAPIEditEntries:
         assert share['split']['share'] == 500
 
     def test_list_entries_filtered(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         resp = client.get(f'/api/admin/entries?member_id={mid}', headers=_admin_headers(client))
@@ -332,7 +350,7 @@ class TestAPIEditEntries:
         assert data and all(e['kind'] == 'share' for e in data)
 
     def test_list_entries_date_filter(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         share = next(e for e in client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
@@ -377,7 +395,7 @@ class TestAPIEditEntries:
         assert split['split']['principal'] == 1000
 
     def test_income_filter_excludes_late_fee_and_fd(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request',
                     json={'amount': 500, 'type': 'share', 'late_fee': 50})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
@@ -397,7 +415,7 @@ class TestAPIEditEntries:
         assert not any(e['kind'] == 'fd' for e in income)
 
     def test_edit_share_entry(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         data = client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
@@ -445,7 +463,7 @@ class TestAPIEditEntries:
         assert edited['amount'] == 1200
 
     def test_delete_share_entry(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         data = client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
@@ -476,7 +494,7 @@ class TestAPIEditEntries:
 
 class TestAPIInterface:
     def test_approve_loan_updates_member_view(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/apply_loan', json={'amount': 10000, 'term_months': 12})
         client.post('/api/admin/approve_loan/1', headers=_admin_headers(client))
         resp = client.get(f'/api/members/{mid}')
@@ -484,7 +502,7 @@ class TestAPIInterface:
         assert any(l['status'] == 'active' for l in data['loans'])
 
     def test_payment_request_appears_in_admin(self, client):
-        mid = _create_member(client, 'Alice')
+        mid = _create_and_login_member(client, 'Alice')
         client.post(f'/api/members/{mid}/submit_payment_request',
                     json={'amount': 500, 'type': 'share'})
         resp = client.get('/api/admin/submitted_requests', headers=_admin_headers(client))
@@ -494,7 +512,7 @@ class TestAPIInterface:
         assert data[0]['item_type'] == 'payment'
 
     def test_rejected_requests_endpoint(self, client):
-        mid = _create_member(client, 'Bob')
+        mid = _create_and_login_member(client, 'Bob')
         client.post(f'/api/members/{mid}/submit_payment_request',
                     json={'amount': 500, 'type': 'share'})
         resp = client.post('/api/admin/reject_request/1', headers=_admin_headers(client),
@@ -504,7 +522,7 @@ class TestAPIInterface:
         assert any(r['req_id'] == 1 and r['reject_reason'] == 'Duplicate entry' for r in data)
 
     def test_approve_payment_creates_payment(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request',
                     json={'amount': 500, 'type': 'share'})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
@@ -514,7 +532,7 @@ class TestAPIInterface:
         assert any(p['total_amount'] == 500 for p in shares)
 
     def test_reject_loan_with_reason(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/apply_loan', json={'amount': 5000, 'term_months': 12})
         resp = client.post('/api/admin/reject_loan/1',
                            headers=_admin_headers(client),
@@ -547,11 +565,12 @@ class TestAPIException:
         assert resp.status_code == 401
 
     def test_upload_photo_no_file(self, client):
-        resp = client.post('/api/members/1001/upload_photo')
+        mid = _create_and_login_member(client)
+        resp = client.post(f'/api/members/{mid}/upload_photo')
         assert resp.status_code == 400
 
     def test_contribute_with_no_data(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/contribute', json={})
         assert resp.status_code == 200  # defaults to 0 amount
 
@@ -560,7 +579,7 @@ class TestAPIException:
         assert resp.status_code == 401
 
     def test_statement_endpoint(self, client):
-        mid = _create_member(client)
+        mid = _create_and_login_member(client)
         resp = client.get(f'/api/members/{mid}/statement')
         assert resp.status_code == 200
         assert resp.content_type == 'text/csv'

@@ -313,6 +313,17 @@ const I18N = {
     'Fill all fields': 'Fill all fields',
     'Failed to change password': 'Failed to change password',
     'Confirm': 'Confirm',
+    '📄 Export Report (PDF)': '📄 Export Report (PDF)',
+    'Download a monthly or custom-period summary PDF to share with members.': 'Download a monthly or custom-period summary PDF to share with members.',
+    'Custom period': 'Custom period',
+    'Month': 'Month',
+    '⬇ Export PDF': '⬇ Export PDF',
+    'Generating...': 'Generating...',
+    'Report downloaded': 'Report downloaded',
+    'Export failed': 'Export failed',
+    'Select a month': 'Select a month',
+    'Select From and To dates': 'Select From and To dates',
+    'To date must be on or after From date': 'To date must be on or after From date',
   },
   kn: {
     'Welcome,': 'ಸ್ವಾಗತ,',
@@ -536,6 +547,17 @@ const I18N = {
     'Fill all fields': 'ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ',
     'Failed to change password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Confirm': 'ಖಚಿತಪಡಿಸಿ',
+    '📄 Export Report (PDF)': '📄 ವರದಿ ರಫ್ತು (PDF)',
+    'Download a monthly or custom-period summary PDF to share with members.': 'ಸದಸ್ಯರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಲು ಮಾಸಿಕ ಅಥವಾ ಆಯ್ದ ಅವಧಿಯ ಸಾರಾಂಶ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.',
+    'Custom period': 'ಆಯ್ದ ಅವಧಿ',
+    'Month': 'ತಿಂಗಳು',
+    '⬇ Export PDF': '⬇ PDF ರಫ್ತು',
+    'Generating...': 'ತಯಾರಿಸಲಾಗುತ್ತಿದೆ...',
+    'Report downloaded': 'ವರದಿ ಡೌನ್‌ಲೋಡ್ ಆಯಿತು',
+    'Export failed': 'ರಫ್ತು ವಿಫಲವಾಗಿದೆ',
+    'Select a month': 'ತಿಂಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
+    'Select From and To dates': 'ಇಂದ ಮತ್ತು ವರೆಗೆ ದಿನಾಂಕಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
+    'To date must be on or after From date': 'ವರೆಗೆ ದಿನಾಂಕವು ಇಂದ ದಿನಾಂಕದ ನಂತರ ಅಥವಾ ಅದೇ ದಿನ ಇರಬೇಕು',
   }
 }
 
@@ -703,6 +725,10 @@ function createDatePicker(input, opts = {}) {
   if (!input.hasAttribute('data-input')) input.setAttribute('data-input', '')
   if (input.style.flex) wrapper.style.flex = input.style.flex
   if (input.style.minWidth) wrapper.style.minWidth = input.style.minWidth
+  if (input.closest('.ee-filters')) {
+    wrapper.style.display = 'inline-flex'
+    wrapper.style.flex = '0 1 auto'
+  }
   let icon = wrapper.querySelector('.cal-icon[data-open]')
   if (!icon) {
     icon = document.createElement('span')
@@ -1196,6 +1222,31 @@ async function renderAdminPanel() {
         </div>
         <div id="ee-list" style="margin-top:12px"></div>
       </div>
+      <div class="panel" style="margin-top:18px">
+        <h3 class="section-heading">${t('📄 Export Report (PDF)')}</h3>
+        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Download a monthly or custom-period summary PDF to share with members.')}</p>
+        <div class="ee-filters" style="align-items:center">
+          <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
+            <input type="radio" name="export-type" value="month" checked onchange="window.toggleExportType()" /> ${t('Monthly')}
+          </label>
+          <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
+            <input type="radio" name="export-type" value="custom" onchange="window.toggleExportType()" /> ${t('Custom period')}
+          </label>
+        </div>
+        <div class="ee-filters" style="margin-top:8px;align-items:center">
+          <div id="export-month-wrap" style="flex:1;min-width:0">
+            <label class="ee-date-label">${t('Month')}:</label>
+            <input type="text" id="export-month" class="admin-input" readonly />
+          </div>
+          <div id="export-custom-wrap" style="display:none;flex:1;min-width:0;align-items:center">
+            <label class="ee-date-label">${t('From')}:</label>
+            <input type="text" id="export-from" class="admin-input" style="flex:1;min-width:0" readonly />
+            <label class="ee-date-label">${t('To')}:</label>
+            <input type="text" id="export-to" class="admin-input" style="flex:1;min-width:0" readonly />
+          </div>
+          <button class="btn primary" id="export-btn" style="justify-content:center;white-space:nowrap">${t('⬇ Export PDF')}</button>
+        </div>
+      </div>
       <div class="panel bank-income-box">
         <div style="margin-top:0">
           <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('Income / Expenses')}</h4>
@@ -1350,10 +1401,91 @@ async function renderAdminPanel() {
     eeQ.oninput = () => { clearTimeout(eeDebounce); eeDebounce = setTimeout(eeLoad, 400) }
     eeLoad()
   }
+  const exportMonth = document.getElementById('export-month')
+  if (exportMonth) {
+    exportMonth.value = isoDateString(new Date())
+    createDatePicker(exportMonth)
+  }
+  const exportFrom = document.getElementById('export-from')
+  if (exportFrom) createDatePicker(exportFrom)
+  const exportTo = document.getElementById('export-to')
+  if (exportTo) createDatePicker(exportTo)
+  const exportBtn = document.getElementById('export-btn')
+  if (exportBtn) exportBtn.onclick = handleExportReport
+  window.toggleExportType = () => {
+    const type = document.querySelector('input[name="export-type"]:checked')
+    if (!type) return
+    const isMonth = type.value === 'month'
+    const mw = document.getElementById('export-month-wrap')
+    const cw = document.getElementById('export-custom-wrap')
+    if (mw) mw.style.display = isMonth ? 'block' : 'none'
+    if (cw) cw.style.display = isMonth ? 'none' : 'flex'
+  }
+  window.toggleExportType()
   window.toggleInvType()
   await renderSubmittedRequests()
   await renderFdEntries()
   await renderIeList()
+}
+
+function dateFromInputValue(v) {
+  if (!v) return null
+  const iso = v.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3])
+  const d = parseSmartDate(v)
+  return d && !isNaN(d.getTime()) ? d : null
+}
+
+function isoDateString(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+async function handleExportReport() {
+  const btn = document.getElementById('export-btn')
+  const setBusy = (b) => {
+    if (!btn) return
+    btn.disabled = b
+    btn.textContent = b ? t('Generating...') : t('⬇ Export PDF')
+  }
+  const typeEl = document.querySelector('input[name="export-type"]:checked')
+  const type = typeEl ? typeEl.value : 'month'
+  let from, to
+  if (type === 'month') {
+    const d = dateFromInputValue(document.getElementById('export-month').value)
+    if (!d) { showToast(t('Select a month'), 'error'); return }
+    from = isoDateString(new Date(d.getFullYear(), d.getMonth(), 1))
+    to = isoDateString(new Date(d.getFullYear(), d.getMonth() + 1, 0))
+  } else {
+    const df = dateFromInputValue(document.getElementById('export-from').value)
+    const dt = dateFromInputValue(document.getElementById('export-to').value)
+    if (!df || !dt) { showToast(t('Select From and To dates'), 'error'); return }
+    if (dt < df) { showToast(t('To date must be on or after From date'), 'error'); return }
+    from = isoDateString(df)
+    to = isoDateString(dt)
+  }
+  setBusy(true)
+  try {
+    const headers = {}
+    if (state.adminToken) headers['X-ADMIN-TOKEN'] = state.adminToken
+    const res = await fetch(`/api/admin/export_report?from=${from}&to=${to}`, {headers})
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}))
+      throw new Error(j.message || t('Export failed'))
+    }
+    const blob = await res.blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `SLV_Finance_Report_${from}_to_${to}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(a.href)
+    showToast(t('Report downloaded'))
+  } catch (err) {
+    showToast(err.message || t('Export failed'), 'error')
+  } finally {
+    setBusy(false)
+  }
 }
 
 
@@ -1723,7 +1855,8 @@ async function renderAllMembers() {
     const avatarHtml = m.photo_url
       ? `<div class="mc-avatar" style="background-image:url('${m.photo_url}')"></div>`
       : `<div class="mc-avatar mc-avatar-placeholder" style="background:${color}">${initials(m.name)}</div>`
-    return `<div class="member-card" onclick="renderMemberProfile(${m.member_id})" style="cursor:pointer">
+    const viewable = state.currentUser && (state.currentUser.is_admin || m.member_id === state.currentUser.member_id)
+    return `<div class="member-card" ${viewable ? `onclick="renderMemberProfile(${m.member_id})" style="cursor:pointer"` : ''}>
       ${avatarHtml}
       <div class="mc-info">
         <div class="mc-name">${m.name}${m.is_admin ? ' ⭐' : ''}</div>
@@ -1875,11 +2008,6 @@ function pbClearColFilter(col) {
 function pbClearAllFilters() {
   pbFilters = {}
   pbCloseFilter()
-  applyPbFilters()
-}
-
-function pbClearFilter(key) {
-  delete pbFilters[key]
   applyPbFilters()
 }
 
