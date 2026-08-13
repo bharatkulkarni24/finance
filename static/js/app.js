@@ -305,6 +305,8 @@ const I18N = {
     'Set member password': 'Set member password',
     'View Profile': 'View Profile',
     'Change Password': 'Change Password',
+    'View details': 'View details',
+    'Hide details': 'Hide details',
     'My Payments & Loans': 'My Payments & Loans',
     'Your payments and active loans.': 'Your payments and active loans.',
     'Change your password': 'Change your password',
@@ -542,6 +544,8 @@ const I18N = {
     'Set member password': 'ಸದಸ್ಯರ ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಸಿ',
     'View Profile': 'ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಿಸಿ',
     'Change Password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
+    'View details': 'ವಿವರಗಳನ್ನು ನೋಡಿ',
+    'Hide details': 'ವಿವರಗಳನ್ನು ಮರೆಮಾಡಿ',
     'My Payments & Loans': 'ನನ್ನ ಪಾವತಿಗಳು ಮತ್ತು ಸಾಲಗಳು',
     'Your payments and active loans.': 'ನಿಮ್ಮ ಪಾವತಿಗಳು ಮತ್ತು ಸಕ್ರಿಯ ಸಾಲಗಳು.',
     'Change your password': 'ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
@@ -1270,12 +1274,47 @@ async function renderAdminPanel() {
     ['all', t('All types')], ['split', t('Share / Loan')],
     ['income', t('Income')], ['expense', t('Expense')], ['fd', t('Hardlock / Investment')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
+  const ieFormFields = (type) => {
+    const isInc = type === 'income'
+    const col = isInc ? 'rgba(52,211,153,0.15)' : 'rgba(239,68,68,0.15)'
+    const txt = isInc ? '#34d399' : '#fca5a5'
+    const bdr = isInc ? 'rgba(52,211,153,0.25)' : 'rgba(239,68,68,0.25)'
+    return `
+      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="${type}-amount" type="text" /></div></div>
+      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="${type}-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="${type}-reason" class="admin-input" placeholder="${t(isInc ? 'e.g. Donation from X' : 'e.g. Meeting snacks')}" /></div>
+      <button class="btn primary" id="save-${type}-btn" style="background:${col};color:${txt};border:1px solid ${bdr}">${t('Save')}</button>`
+  }
+  const ieSection = window.innerWidth <= 640
+    ? `
+      <div class="admin-toggle-row" style="margin-bottom:14px">
+        <button class="btn btn-admin-toggle" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
+        <button class="btn btn-admin-toggle" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
+      </div>
+      <div id="income-form" style="display:none;margin-top:10px">${ieFormFields('income')}</div>
+      <div id="expense-form" style="display:none;margin-top:10px">${ieFormFields('expense')}</div>`
+    : `
+      <div class="grid-2" style="gap:16px;margin-bottom:14px">
+        <div class="panel" style="margin:0">
+          <h4 style="color:#34d399;margin:0 0 8px">${t('Income (Gains)')}</h4>
+          <button class="btn primary btn-shine" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
+          <div id="income-form" style="display:none;margin-top:10px">${ieFormFields('income')}</div>
+        </div>
+        <div class="panel" style="margin:0">
+          <h4 style="color:#fca5a5;margin:0 0 8px">${t('Expenses')}</h4>
+          <button class="btn primary btn-shine" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
+          <div id="expense-form" style="display:none;margin-top:10px">${ieFormFields('expense')}</div>
+        </div>
+      </div>`
   const html = `
-    <div class="panel">
+    <div class="panel admin-panel">
       <div class="grid-2 grid-stretch">
         <div class="panel">
-          <button class="btn btn-admin-toggle" id="toggle-add-member" style="width:100%;justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
-          <div id="add-member-form" style="display:none;margin-top:12px">
+        <div class="admin-toggle-row">
+          <button class="btn btn-admin-toggle" id="toggle-add-member" style="justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
+          <button class="btn btn-admin-toggle" id="toggle-direct-entry" style="justify-content:center;gap:8px;margin-top:0">${t('Direct Entry')}</button>
+        </div>
+        <div id="add-member-form" style="display:none;margin-top:12px">
             <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
             <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
             <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
@@ -1287,7 +1326,6 @@ async function renderAdminPanel() {
             <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
           </div>
           <hr style="border-color:rgba(148,163,184,0.15);margin:16px 0">
-          <button class="btn btn-admin-toggle" id="toggle-direct-entry" style="width:100%;justify-content:center;gap:8px;margin-top:0">${t('Direct Entry')}</button>
           <div id="direct-entry-form" style="display:none;margin-top:12px">
           <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
           <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
@@ -1311,7 +1349,8 @@ async function renderAdminPanel() {
         </div>
       </div>
       <div class="panel" style="margin-top:18px">
-        <h3 class="section-heading">${t('✏️ Edit / Correct Entries')}</h3>
+        <button class="btn btn-admin-toggle" id="toggle-edit-entries" style="width:100%;justify-content:center;gap:8px">${t('✏️ Edit / Correct Entries')} <span class="fd-chevron" id="ee-toggle-chevron">▾</span></button>
+        <div id="edit-entries-body" style="display:none;margin-top:12px">
         <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
         <div class="ee-filters">
           <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
@@ -1325,9 +1364,11 @@ async function renderAdminPanel() {
           <input type="text" id="ee-to" class="admin-input" style="flex:1;min-width:0" readonly />
         </div>
         <div id="ee-list" style="margin-top:12px"></div>
+        </div>
       </div>
       <div class="panel" style="margin-top:18px">
-        <h3 class="section-heading">${t('📄 Export Report (PDF)')}</h3>
+        <button class="btn btn-admin-toggle" id="toggle-export-report" style="width:100%;justify-content:center;gap:8px">${t('📄 Export Report (PDF)')} <span class="fd-chevron" id="export-toggle-chevron">▾</span></button>
+        <div id="export-report-body" style="display:none;margin-top:12px">
         <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Download a monthly or custom-period summary PDF to share with members.')}</p>
         <div class="ee-filters" style="align-items:center">
           <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
@@ -1350,35 +1391,17 @@ async function renderAdminPanel() {
           </div>
           <button class="btn primary" id="export-btn" style="justify-content:center;white-space:nowrap">${t('⬇ Export PDF')}</button>
         </div>
+        </div>
       </div>
       <div class="panel bank-income-box">
         <div style="margin-top:0">
           <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('Income / Expenses')}</h4>
-          <div class="grid-2" style="gap:16px;margin-bottom:14px">
-            <div class="panel" style="margin:0">
-              <h4 style="color:#34d399;margin:0 0 8px">${t('Income (Gains)')}</h4>
-              <button class="btn primary btn-shine" id="toggle-income-form" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('+ Add Income')}</button>
-              <div id="income-form" style="display:none;margin-top:10px">
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="income-amount" type="text" /></div></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="income-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="income-reason" class="admin-input" placeholder="${t('e.g. Donation from X')}" /></div>
-                <button class="btn primary" id="save-income-btn" style="background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.25)">${t('Save')}</button>
-              </div>
-            </div>
-            <div class="panel" style="margin:0">
-              <h4 style="color:#fca5a5;margin:0 0 8px">${t('Expenses')}</h4>
-              <button class="btn primary btn-shine" id="toggle-expense-form" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('+ Add Expense')}</button>
-              <div id="expense-form" style="display:none;margin-top:10px">
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="expense-amount" type="text" /></div></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="expense-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
-                <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="expense-reason" class="admin-input" placeholder="${t('e.g. Meeting snacks')}" /></div>
-                <button class="btn primary" id="save-expense-btn" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Save')}</button>
-              </div>
-            </div>
-          </div>
+          ${ieSection}
           <div id="ie-list"></div>
         </div>
-        <div style="margin-top:22px">
+      </div>
+      <div class="panel bank-income-box">
+        <div style="margin-top:0">
           <button class="btn btn-admin-toggle" id="fd-toggle-btn" style="width:100%;justify-content:center;gap:8px">${t('🔒 Hardlock / Investment')} <span class="fd-chevron" id="fd-toggle-chevron">▾</span></button>
           <div id="fd-form-body" style="display:none;margin-top:12px">
           <div class="fd-card-form">
@@ -1419,7 +1442,7 @@ async function renderAdminPanel() {
             <p id="inv-monthly-note" style="display:none;color:#94a3b8;font-size:0.85rem;margin:8px 0 0">${t('Add monthly installments using the + button in Active section.')}</p>
           </div>
           </div>
-          <div class="fd-sections">
+          <div class="fd-sections" style="margin-top:12px">
           <div class="fd-section">
             <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
             <div id="fd-keeping"></div>
@@ -1443,6 +1466,22 @@ async function renderAdminPanel() {
       toggleAdminSection('fd-toggle-btn', 'fd-form-body')
       const ch = document.getElementById('fd-toggle-chevron')
       if (ch) ch.textContent = fdToggleBtn.classList.contains('active') ? '▴' : '▾'
+    }
+  }
+  const eeToggleBtn = document.getElementById('toggle-edit-entries')
+  if (eeToggleBtn) {
+    eeToggleBtn.onclick = () => {
+      toggleAdminSection('toggle-edit-entries', 'edit-entries-body')
+      const ch = document.getElementById('ee-toggle-chevron')
+      if (ch) ch.textContent = eeToggleBtn.classList.contains('active') ? '▴' : '▾'
+    }
+  }
+  const exportToggleBtn = document.getElementById('toggle-export-report')
+  if (exportToggleBtn) {
+    exportToggleBtn.onclick = () => {
+      toggleAdminSection('toggle-export-report', 'export-report-body')
+      const ch = document.getElementById('export-toggle-chevron')
+      if (ch) ch.textContent = exportToggleBtn.classList.contains('active') ? '▴' : '▾'
     }
   }
   document.getElementById('toggle-income-form').onclick = () => toggleForm('income')
@@ -1775,12 +1814,26 @@ async function eeDelete(id) {
 }
 
 function toggleForm(type) {
-  const id = type === 'income' ? 'income-form' : 'expense-form'
-  const btn = type === 'income' ? 'toggle-income-form' : 'toggle-expense-form'
-  const form = document.getElementById(id)
-  const isVisible = form.style.display !== 'none'
-  form.style.display = isVisible ? 'none' : 'block'
-  document.getElementById(btn).textContent = isVisible ? (type === 'income' ? t('+ Add Income') : t('+ Add Expense')) : t('− Cancel')
+  const mobile = window.innerWidth <= 640
+  const pairs = [
+    ['income', 'income-form', 'toggle-income-form'],
+    ['expense', 'expense-form', 'toggle-expense-form'],
+  ]
+  const label = cur => cur === 'income' ? t('+ Add Income') : t('+ Add Expense')
+  const cancelText = t('− Cancel')
+  for (const [cur, formId, btnId] of pairs) {
+    const form = document.getElementById(formId)
+    const btn = document.getElementById(btnId)
+    if (!form || !btn) continue
+    if (cur === type) {
+      const isVisible = form.style.display !== 'none'
+      form.style.display = isVisible ? 'none' : 'block'
+      btn.textContent = isVisible ? label(cur) : cancelText
+    } else if (mobile) {
+      form.style.display = 'none'
+      btn.textContent = label(cur)
+    }
+  }
 }
 
 window.toggleInvType = function() {
@@ -2463,6 +2516,25 @@ async function renderMemberProfile(memberId, mode) {
   historyHeader += '</div>'
   const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>`
 
+  const compactHeader = !own && window.innerWidth <= 640
+  const compactHeaderHtml = `
+    <div class="profile-card compact-header">
+      <div id="mini-avatar" class="profile-avatar ${avatarUrl ? 'has-photo' : ''}" style="${avatarUrl ? `background-image: url('${avatarUrl}')` : ''}"><span class="avatar-init">${initials(m.name)}</span></div>
+      <div class="profile-copy">
+        <h2>${m.name}</h2>
+        <span class="compact-toggle" id="compact-toggle">${t('View details')} ▾</span>
+        <div class="pc-details" id="compact-details" style="display:none">
+          <div class="pc-left">
+            <p><strong>Phone:</strong> ${m.phone || '-'}</p>
+            <p><strong>DOB:</strong> ${m.dob ? formatDate(m.dob) : '-'}</p>
+            <p><strong>Age:</strong> ${calculateAge(m.dob)}</p>
+            <p><strong>Address:</strong> ${m.address || '-'}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+
   if (mode === 'details') {
     content.innerHTML = `
       <div class="profile-wrapper">
@@ -2485,7 +2557,7 @@ async function renderMemberProfile(memberId, mode) {
   } else {
     content.innerHTML = `
       <div class="profile-wrapper">
-        ${profileFields}
+        ${compactHeader ? compactHeaderHtml : profileFields}
       </div>
 
       <div class="profile-grid">
@@ -2503,6 +2575,24 @@ async function renderMemberProfile(memberId, mode) {
       </div>
     `
   }
+    // Compact header: tap the small photo / card to expand or collapse details
+    const compactToggle = document.getElementById('compact-toggle')
+    if (compactToggle) {
+      const compactDetails = document.getElementById('compact-details')
+      const miniAvatar = document.getElementById('mini-avatar')
+      const toggleCompact = () => {
+        const isOpen = compactDetails.style.display !== 'none'
+        compactDetails.style.display = isOpen ? 'none' : 'block'
+        compactToggle.textContent = isOpen ? (t('View details') + ' ▾') : (t('Hide details') + ' ▴')
+        const header = compactToggle.closest('.compact-header')
+        if (header) header.classList.toggle('expanded', !isOpen)
+      }
+      compactToggle.addEventListener('click', (e) => { e.stopPropagation(); toggleCompact() })
+      if (miniAvatar) miniAvatar.addEventListener('click', (e) => { e.stopPropagation(); toggleCompact() })
+      const header = compactToggle.closest('.compact-header')
+      if (header) header.addEventListener('click', toggleCompact)
+    }
+
     // Attach handlers for inline profile photo and edit/save flow
     const avatar = document.getElementById('profile-avatar')
     const photoInput = document.getElementById('profile-photo-input')
@@ -2912,11 +3002,29 @@ async function handleDirectEntry() {
 }
 
 function toggleAdminSection(btnId, bodyId) {
+  const mobile = window.innerWidth <= 640
+  const pairs = [
+    ['toggle-add-member', 'add-member-form'],
+    ['toggle-direct-entry', 'direct-entry-form'],
+  ]
   const btn = document.getElementById(btnId)
   const body = document.getElementById(bodyId)
-  const open = body.style.display !== 'none'
-  body.style.display = open ? 'none' : 'block'
-  btn.classList.toggle('active', !open)
+  if (!btn || !body) return
+  const on = body.style.display === 'none'
+  body.style.display = on ? 'block' : 'none'
+  btn.classList.toggle('active', on)
+  if (mobile) {
+    const other = pairs.find(p => p[0] === btnId)
+    if (other) {
+      const otherPair = pairs.find(p => p[0] !== btnId)
+      if (otherPair) {
+        const ob = document.getElementById(otherPair[0])
+        const of = document.getElementById(otherPair[1])
+        if (ob) ob.classList.remove('active')
+        if (of) of.style.display = 'none'
+      }
+    }
+  }
 }
 
 function fdSchemeNo(id) { return 'FD' + String(id || 0).padStart(4, '0') }
