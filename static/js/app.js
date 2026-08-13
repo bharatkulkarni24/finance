@@ -668,6 +668,14 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})
 }
 
+function formatDateCompact(d) {
+  if (!d) return '-'
+  const dt = new Date(d)
+  const dd = String(dt.getDate()).padStart(2, '0')
+  const mon = dt.toLocaleDateString('en-IN', {month: 'short'})
+  return `${dd} ${mon}<br>${dt.getFullYear()}`
+}
+
 function formatDateTime(d) {
   if (!d) return '-'
   const dt = new Date(d)
@@ -1308,7 +1316,7 @@ async function renderAdminPanel() {
         </div>
       </div>`
   const html = `
-    <div class="panel admin-panel">
+    <div class="admin-panel">
       <div class="grid-2 grid-stretch">
         <div class="panel">
         <div class="admin-toggle-row">
@@ -1327,18 +1335,24 @@ async function renderAdminPanel() {
             <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
           </div>
           <hr style="border-color:rgba(148,163,184,0.15);margin:16px 0">
-          <div id="direct-entry-form" style="display:none;margin-top:12px">
+          <div id="direct-entry-form" class="de-panel" style="display:none;margin-top:12px">
           <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
           <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
           <div class="input-row" style="display:flex;gap:12px">
-            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Share Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
-            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
+            <div style="flex:1"><label>${t('Share Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
+            <div style="flex:1"><label>${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
           </div>
           <div class="input-row" style="display:flex;gap:12px">
-            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan" type="text" placeholder="0" /></div></div>
-            <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-interest" type="text" placeholder="0" /></div></div>
+            <div style="flex:1"><label>${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan" type="text" placeholder="0" /></div></div>
+            <div style="flex:1"><label>${t('Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-interest" type="text" placeholder="0" /></div></div>
           </div>
-          <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+          <div class="input-row" style="margin-top:4px">
+            <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-weight:600">${t('Total Amount')}</span>
+              <strong id="de-total-amount" style="font-size:1.1rem;color:#34d399">₹0</strong>
+            </div>
+          </div>
+          <div class="input-row"><label>${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
           <div class="input-row"><input id="de-note" placeholder="${t('Note (optional)')}" /></div>
           <button class="btn primary" id="de-submit-btn">${t('Submit & Auto-Approve')}</button>
           </div>
@@ -1513,6 +1527,19 @@ async function renderAdminPanel() {
   if (expDate) createDatePicker(expDate)
   const deDate = document.getElementById('de-date')
   if (deDate) createDatePicker(deDate)
+  const deTotalEl = document.getElementById('de-total-amount')
+  const updateDeTotal = () => {
+    const sum = ['de-share', 'de-fine', 'de-loan', 'de-interest'].reduce((acc, id) => {
+      const el = document.getElementById(id)
+      return acc + (Number((el ? el.value : '').replace(/,/g, '')) || 0)
+    }, 0)
+    if (deTotalEl) deTotalEl.textContent = formatCurrency(sum)
+  }
+  ;['de-share', 'de-fine', 'de-loan', 'de-interest'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.addEventListener('input', updateDeTotal)
+  })
+  updateDeTotal()
   const nmDate = document.getElementById('new-member-date')
   if (nmDate) createDatePicker(nmDate)
   const nmDep = document.getElementById('new-member-deposit')
@@ -2515,7 +2542,7 @@ async function renderMemberProfile(memberId, mode) {
   if (totalInterest > 0) historyHeader += `<span class="ht-chip">${t('Interest')} <strong>${formatCurrency(totalInterest)}</strong></span>`
   if (totalFine > 0) historyHeader += `<span class="ht-chip">${t('Fine')} <strong>${formatCurrency(totalFine)}</strong></span>`
   historyHeader += '</div>'
-  const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>`
+  const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${window.innerWidth <= 640 ? formatDateCompact(r.date) : formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>`
 
   const compactHeader = !own && window.innerWidth <= 640
   const compactHeaderHtml = `
@@ -2545,7 +2572,7 @@ async function renderMemberProfile(memberId, mode) {
   } else if (mode === 'accounts') {
     content.innerHTML = `
       <div class="profile-grid">
-        <div class="panel" style="margin-bottom:12px;">
+        <div class="panel payments-panel" style="margin-bottom:12px;">
           <h3 style="margin:0 0 10px;">📊 Payment History</h3>
           ${historyHeader}
           <div class="table-scroll">
@@ -2565,7 +2592,7 @@ async function renderMemberProfile(memberId, mode) {
       </div>
 
       <div class="profile-grid">
-        <div class="panel" style="margin-bottom:12px;">
+        <div class="panel payments-panel" style="margin-bottom:12px;">
           <h3 style="margin:0 0 10px;">📊 Payment History</h3>
           ${historyHeader}
           <div class="table-scroll">
@@ -2736,17 +2763,16 @@ async function renderSubmitView() {
   const m = await api(`/members/${state.currentUser.member_id}`)
   const today = new Date().toISOString().slice(0, 10)
   content.innerHTML = `
-    <div class="panel">
-      <div class="grid-2" style="gap:20px;">
-        <div class="panel compact-panel">
-          <h3>📤 Submit Proof of Payment</h3>
+    <div class="grid-2" style="gap:20px;">
+      <div class="panel compact-panel submit-panel">
+        <h3>📤 Submit Proof of Payment</h3>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
               <label>Share Amount *</label>
               <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
             </div>
             <div style="flex:1">
-              <label>Fine (₹50/day after 10th)</label>
+              <label>Fine <span class="fine-hint">(₹50/day after 10th)</span></label>
               <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text" value="0" /></div>
             </div>
           </div>
@@ -2811,7 +2837,6 @@ async function renderSubmitView() {
           <button class="btn primary" id="request-loan-btn">Request Loan</button>
         </div>
       </div>
-    </div>
   `
   // Apply Indian number formatting to amount inputs
   ;['share-amount-input', 'loan-amount-input', 'interest-amount-input', 'request-loan-amount', 'fine-amount'].forEach(id => {

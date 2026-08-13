@@ -309,6 +309,32 @@ body {
   font-size: 0.95rem;
 }
 
+/* Submit Proof of Payment — bold, colour-coded field labels */
+.submit-panel .input-row label {
+  color: #c7d2fe;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.submit-panel .input-row:nth-of-type(1) label { color: #6ee7b7; }
+.submit-panel .fine-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #fca5a5;
+  white-space: nowrap;
+}
+.submit-panel .input-row:nth-of-type(2) label { color: #7dd3fc; }
+.submit-panel .input-row.small-row label { color: #fcd34d; }
+
+/* Direct Entry (admin) — same bold, colour-coded field labels as Submit */
+.de-panel .input-row label {
+  color: #c7d2fe;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.de-panel .input-row:nth-of-type(2) label { color: #6ee7b7; }
+.de-panel .input-row:nth-of-type(3) label { color: #7dd3fc; }
+.de-panel .input-row:nth-of-type(5) label { color: #fcd34d; }
+
 .input-row input,
 .input-row select {
   width: 100%;
@@ -2145,6 +2171,15 @@ body {
   .pc-details .pc-left { width: 100%; text-align: left; }
   .profile-grid { grid-template-columns: 1fr; gap: 14px; }
 
+  /* ── My Account: let the Payments table use the full width, no nested box ── */
+  .payments-panel {
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
   /* ── Other member profile: compact collapsible header ── */
   .profile-card.compact-header {
     flex-direction: row;
@@ -2189,7 +2224,7 @@ body {
 
   /* ── Tables scroll sideways instead of stretching the page ── */
   .table th,
-  .table td { padding: 10px 8px; font-size: 0.85rem; }
+  .table td { padding: 10px 5px; font-size: 0.85rem; }
 
   /* ── Bigger icons (were too small on phones) ── */
   .gi-icon { font-size: 2.4rem; }
@@ -2222,6 +2257,8 @@ body {
   .admin-panel > .grid-2 { gap: 14px; }
   .admin-panel .input-row[style*="display:flex"] { flex-direction: column; align-items: stretch; }
   .admin-panel .input-row[style*="display:flex"] > div { flex: none; width: 100%; }
+  .de-panel .input-row[style*="display:flex"] { flex-direction: row; align-items: center; }
+  .de-panel .input-row[style*="display:flex"] > div { flex: 1; width: auto; }
   .admin-panel #export-custom-wrap { flex-direction: column; align-items: stretch !important; gap: 6px; }
   .admin-panel #export-custom-wrap .ee-date-label { align-self: flex-start; }
   .admin-panel #export-btn { width: 100%; justify-content: center; }
