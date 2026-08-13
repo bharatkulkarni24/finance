@@ -81,7 +81,7 @@ def get_admin_stats():
     others_total = txn_others + late_fees_total
     cur.execute("SELECT SUM(amount) FROM group_ledger WHERE debit_credit='debit'")
     expenses_total = cur.fetchone()[0] or 0.0
-    total_collected = deposits_total + shares_total + loan_principal_received + loan_interest_received + others_total - expenses_total
+    total_collected = deposits_total + shares_total + loan_interest_received + others_total - expenses_total
     cur.execute("SELECT COUNT(*) FROM members")
     member_count = cur.fetchone()[0] or 0
     cur.execute("SELECT SUM(outstanding) FROM loans WHERE status='active'")

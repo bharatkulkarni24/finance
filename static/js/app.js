@@ -152,6 +152,7 @@ const I18N = {
     'Edit failed': 'Edit failed',
     'Delete failed': 'Delete failed',
     'Share': 'Share',
+    'Loan Paid': 'Loan Paid',
     'Deposit': 'Deposit',
     'Late Fee': 'Late Fee',
     'Add New Member': 'Add New Member',
@@ -307,7 +308,7 @@ const I18N = {
     'Change Password': 'Change Password',
     'View details': 'View details',
     'Hide details': 'Hide details',
-    'My Payments & Loans': 'My Payments & Loans',
+    'My Account': 'My Account',
     'Your payments and active loans.': 'Your payments and active loans.',
     'Change your password': 'Change your password',
     'Current password': 'Current password',
@@ -393,6 +394,7 @@ const I18N = {
     'Edit failed': 'ಸರಿಪಡಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Delete failed': 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Share': 'ಷೇರು',
+    'Loan Paid': 'ಸಾಲ ಪಾವತಿ',
     'Deposit': 'ಠೇವಣಿ',
     'Late Fee': 'ದಂಡ ಶುಲ್ಕ',
     'Add New Member': 'ಹೊಸ ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
@@ -546,7 +548,7 @@ const I18N = {
     'Change Password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
     'View details': 'ವಿವರಗಳನ್ನು ನೋಡಿ',
     'Hide details': 'ವಿವರಗಳನ್ನು ಮರೆಮಾಡಿ',
-    'My Payments & Loans': 'ನನ್ನ ಪಾವತಿಗಳು ಮತ್ತು ಸಾಲಗಳು',
+    'My Account': 'ನನ್ನ ಖಾತೆ',
     'Your payments and active loans.': 'ನಿಮ್ಮ ಪಾವತಿಗಳು ಮತ್ತು ಸಕ್ರಿಯ ಸಾಲಗಳು.',
     'Change your password': 'ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
     'Current password': 'ಪ್ರಸ್ತುತ ಪಾಸ್‌ವರ್ಡ್',
@@ -910,7 +912,7 @@ function renderMenu() {
   menuLinks.innerHTML = ''
   const viewTitles = {
     'home': t('Dashboard'),
-    'my-accounts': '💳 ' + t('My Payments & Loans'),
+    'my-accounts': '💳 ' + t('My Account'),
     'submit': t('Submit'),
     'my-history': t('📜 My Activity'),
     'all-members': t('All Members'),
@@ -923,7 +925,7 @@ function renderMenu() {
   if (titleEl) titleEl.textContent = viewTitles[state.activeView] || ''
   const items = [
     {id: 'home', label: t('Dashboard')},
-    {id: 'my-accounts', label: '💳 ' + t('My Payments & Loans')},
+    {id: 'my-accounts', label: '💳 ' + t('My Account')},
     {id: 'submit', label: t('Submit')},
     {id: 'my-history', label: t('📜 My Activity')},
     {id: 'all-members', label: t('All Members')},
@@ -1151,7 +1153,6 @@ async function renderHome() {
         <div class="total-box-main">
           <div class="total-box-label">${t('Total Collected')}</div>
           <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
-          <div class="total-box-desc">${t('Sum of all collection sources below (net of expenses).')}</div>
         </div>
         <div class="total-box-breakdown">
           <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>${t('Entry Deposit:')}</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
@@ -2510,9 +2511,9 @@ async function renderMemberProfile(memberId, mode) {
   const totalLoanPaid = allHistory.reduce((s, r) => s + r.loan, 0)
   const totalInterest = allHistory.reduce((s, r) => s + r.interest, 0)
   const totalFine = allHistory.reduce((s, r) => s + r.fine, 0)
-  let historyHeader = `<div style="margin-top:12px;margin-bottom:10px"><strong>Total Share:</strong> ${formatCurrency(totalShare)} &nbsp;|&nbsp; <strong>Total Loan Paid:</strong> ${formatCurrency(totalLoanPaid)}`
-  if (totalInterest > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Interest:</strong> ${formatCurrency(totalInterest)}`
-  if (totalFine > 0) historyHeader += ` &nbsp;|&nbsp; <strong>Total Fine Paid:</strong> ${formatCurrency(totalFine)}`
+  let historyHeader = `<div class="history-totals"><span class="ht-chip ht-label">${t('Total')}</span><span class="ht-chip">${t('Share')} <strong>${formatCurrency(totalShare)}</strong></span><span class="ht-chip">${t('Loan Paid')} <strong>${formatCurrency(totalLoanPaid)}</strong></span>`
+  if (totalInterest > 0) historyHeader += `<span class="ht-chip">${t('Interest')} <strong>${formatCurrency(totalInterest)}</strong></span>`
+  if (totalFine > 0) historyHeader += `<span class="ht-chip">${t('Fine')} <strong>${formatCurrency(totalFine)}</strong></span>`
   historyHeader += '</div>'
   const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>`
 
@@ -2543,15 +2544,18 @@ async function renderMemberProfile(memberId, mode) {
     `
   } else if (mode === 'accounts') {
     content.innerHTML = `
-      <div class="panel" style="margin-bottom:12px;">
-        ${historyHeader}
-        <div class="table-scroll">
-          ${paymentTableHtml}
+      <div class="profile-grid">
+        <div class="panel" style="margin-bottom:12px;">
+          <h3 style="margin:0 0 10px;">📊 Payment History</h3>
+          ${historyHeader}
+          <div class="table-scroll">
+            ${paymentTableHtml}
+          </div>
         </div>
-      </div>
-      <div class="panel compact-panel" id="loans-panel">
-        <h3 style="margin-bottom:10px;">🏦 Loans</h3>
-        ${loansCardsHtml}
+        <div class="panel compact-panel" id="loans-panel">
+          <h3 style="margin-bottom:10px;">🏦 Loans</h3>
+          ${loansCardsHtml}
+        </div>
       </div>
     `
   } else {
@@ -2562,7 +2566,7 @@ async function renderMemberProfile(memberId, mode) {
 
       <div class="profile-grid">
         <div class="panel" style="margin-bottom:12px;">
-          <h3>📊 Payment History</h3>
+          <h3 style="margin:0 0 10px;">📊 Payment History</h3>
           ${historyHeader}
           <div class="table-scroll">
             ${paymentTableHtml}

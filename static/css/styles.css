@@ -1182,6 +1182,30 @@ body {
   gap: 20px;
   margin-top: 18px;
 }
+.history-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+.ht-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+.ht-chip strong { color: #e2e8f0; font-weight: 600; }
+.ht-chip.ht-label {
+  background: rgba(124, 58, 237, 0.18);
+  border-color: rgba(124, 58, 237, 0.35);
+  color: #c4b5fd;
+  font-weight: 600;
+}
 .table-scroll::-webkit-scrollbar { width: 6px }
 .table-scroll::-webkit-scrollbar-track { background: transparent }
 .table-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 3px }
@@ -2018,6 +2042,9 @@ body {
    640px and below.
    ============================================================ */
 @media (max-width: 640px) {
+  /* Slightly larger base font so all rem-based text scales up ~10% on phones */
+  html { font-size: 17.6px; }
+
   /* Prevent iOS auto-zoom when tapping inputs */
   input, select, textarea { font-size: 16px !important; }
 
