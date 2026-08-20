@@ -19,16 +19,16 @@ def get_all_members():
 def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
                   dob: Optional[str] = '', address: Optional[str] = '',
                   photo_url: Optional[str] = '',
-                  deposit_amount: Optional[float] = None,
-                  deposit_date: Optional[str] = None,
+                  entry_deposit_amount: Optional[float] = None,
+                  entry_deposit_date: Optional[str] = None,
                   password: Optional[str] = '') -> dict:
     conn = get_conn()
     cur = conn.cursor()
-    dep_amt = deposit_amount if deposit_amount is not None else 25000
-    joined = (deposit_date or date.today().isoformat())
+    dep_amt = entry_deposit_amount if entry_deposit_amount is not None else 25000
+    joined = (entry_deposit_date or date.today().isoformat())
     pw_hash = generate_password_hash(password) if password else ''
     cur.execute(
-        'INSERT INTO members (name, phone, joined_date, deposit_amount, is_admin, dob, address, photo_url, password) VALUES (?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO members (name, phone, joined_date, entry_deposit_amount, is_admin, dob, address, photo_url, password) VALUES (?,?,?,?,?,?,?,?,?)',
         (name, phone, joined, dep_amt, is_admin, dob, address, photo_url, pw_hash),
     )
     member_id = cur.lastrowid

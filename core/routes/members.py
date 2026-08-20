@@ -53,7 +53,7 @@ def members():
     if not require_admin():
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json
-    dep_amt = data.get('deposit_amount')
+    dep_amt = data.get('entry_deposit_amount')
     if dep_amt is not None:
         dep_amt = float(dep_amt)
     m = create_member(
@@ -63,8 +63,8 @@ def members():
         data.get('dob', ''),
         data.get('address', ''),
         data.get('photo_url', ''),
-        deposit_amount=dep_amt,
-        deposit_date=data.get('deposit_date'),
+        entry_deposit_amount=dep_amt,
+        entry_deposit_date=data.get('entry_deposit_date'),
         password=data.get('password', ''),
     )
     return jsonify(strip_sensitive(m)), 201
@@ -162,10 +162,10 @@ def submit_payment_request(member_id):
         amount = float(request.form.get('amount', 0))
         note = request.form.get('note', '')
         txn_date = request.form.get('txn_date') or None
-        late_fee = float(request.form.get('late_fee', 0) or 0)
+        fine = float(request.form.get('fine', 0) or 0)
         share_amount = float(request.form.get('share_amount', 0) or 0)
-        loan_amount = float(request.form.get('loan_amount', 0) or 0)
-        interest_amount = float(request.form.get('interest_amount', 0) or 0)
+        loan_principal = float(request.form.get('loan_principal', 0) or 0)
+        loan_interest = float(request.form.get('loan_interest', 0) or 0)
     else:
         data = request.get_json(silent=True)
         if data is None:
@@ -174,11 +174,11 @@ def submit_payment_request(member_id):
         note = data.get('note', '')
         screenshot = data.get('screenshot', '')
         txn_date = data.get('txn_date') or None
-        late_fee = float(data.get('late_fee', 0) or 0)
+        fine = float(data.get('fine', 0) or 0)
         share_amount = float(data.get('share_amount', 0) or 0)
-        loan_amount = float(data.get('loan_amount', 0) or 0)
-        interest_amount = float(data.get('interest_amount', 0) or 0)
-    req = create_payment_request(member_id, amount, note, screenshot, txn_date, late_fee, share_amount, loan_amount, interest_amount)
+        loan_principal = float(data.get('loan_principal', 0) or 0)
+        loan_interest = float(data.get('loan_interest', 0) or 0)
+    req = create_payment_request(member_id, amount, note, screenshot, txn_date, fine, share_amount, loan_principal, loan_interest)
     return jsonify({'status': 'submitted', 'request': req}), 201
 
 

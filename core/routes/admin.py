@@ -249,17 +249,17 @@ def admin_direct_entry_route():
     if not member_id:
         return jsonify({'error': 'member_id is required'}), 400
     share_amount = float(data.get('share_amount', 0))
-    late_fee = float(data.get('late_fee', 0))
-    loan_amount = float(data.get('loan_amount', 0))
-    interest_amount = float(data.get('interest_amount', 0))
+    fine = float(data.get('fine', 0))
+    loan_principal = float(data.get('loan_principal', 0))
+    loan_interest = float(data.get('loan_interest', 0))
     entry_date = data.get('entry_date', '')
     note = data.get('note', '')
     admin_direct_entry(
         member_id=member_id,
         share_amount=share_amount,
-        late_fee=late_fee,
-        loan_amount=loan_amount,
-        interest_amount=interest_amount,
+        fine=fine,
+        loan_principal=loan_principal,
+        loan_interest=loan_interest,
         entry_date=entry_date or None,
         note=note,
     )

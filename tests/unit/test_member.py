@@ -13,7 +13,7 @@ class TestMemberSimple:
     def test_create_member(self, setup_db):
         m = create_member('Test User')
         assert m['name'] == 'Test User'
-        assert m['deposit_amount'] == 25000
+        assert m['entry_deposit_amount'] == 25000
         assert m['is_admin'] == 0
 
     def test_get_all_members_empty_after_clean(self, setup_db):
@@ -118,9 +118,9 @@ class TestMemberBoundary:
         m = create_member("O'Brien-Smith-Jones")
         assert m['name'] == "O'Brien-Smith-Jones"
 
-    def test_deposit_amount_default(self, setup_db):
+    def test_entry_deposit_amount_default(self, setup_db):
         m = create_member('Test')
-        assert m['deposit_amount'] == 25000
+        assert m['entry_deposit_amount'] == 25000
 
     def test_update_phone_only(self, setup_db):
         m = create_member('Update Test')
@@ -143,18 +143,18 @@ class TestMemberBoundary:
 class TestMemberInterface:
     def test_create_stores_deposit_on_member_only(self, setup_db):
         m = create_member('Initial Deposit')
-        assert m['deposit_amount'] == 25000
+        assert m['entry_deposit_amount'] == 25000
         full = get_member(m['member_id'], full=True)
-        deposits = [p for p in full['payments'] if not p['share_amount'] and not p['loan_principal'] and not p['loan_interest'] and not p['late_fee']]
+        deposits = [p for p in full['payments'] if not p['share_amount'] and not p['loan_principal'] and not p['loan_interest'] and not p['fine']]
         assert len(deposits) == 0
 
     def test_create_with_custom_deposit(self, setup_db):
-        m = create_member('Custom Dep', deposit_amount=50000, deposit_date='2026-07-15')
-        assert m['deposit_amount'] == 50000
+        m = create_member('Custom Dep', entry_deposit_amount=50000, entry_deposit_date='2026-07-15')
+        assert m['entry_deposit_amount'] == 50000
         assert m['joined_date'] == '2026-07-15'
         conn = get_conn()
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) c FROM member_ledger WHERE member_id=? AND share_amount=0 AND loan_principal=0 AND loan_interest=0 AND late_fee=0", (m['member_id'],))
+        cur.execute("SELECT COUNT(*) c FROM member_ledger WHERE member_id=? AND share_amount=0 AND loan_principal=0 AND loan_interest=0 AND fine=0", (m['member_id'],))
         assert cur.fetchone()['c'] == 0
         conn.close()
 

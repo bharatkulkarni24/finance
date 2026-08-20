@@ -195,7 +195,7 @@ class TestAPIZero:
         resp = client.post(f'/api/members/{mid}/apply_loan', json={'amount': 0, 'term_months': 12})
         assert resp.status_code == 201
         data = resp.get_json()
-        assert data['request']['loan_principal'] == 0
+        assert data['request']['loan_amount'] == 0
 
 
 # ─── Zombies: One ─────────────────────────────────────────────────────────────
@@ -215,7 +215,7 @@ class TestAPIOne:
         resp = client.post(f'/api/members/{mid}/apply_loan', json={'amount': 10000, 'term_months': 12})
         assert resp.status_code == 201
         data = resp.get_json()
-        assert data['request']['loan_principal'] == 10000
+        assert data['request']['loan_amount'] == 10000
         assert data['request']['loan_term_months'] == 12
         assert data['request']['status'] == 'submitted'
 
@@ -255,7 +255,7 @@ class TestAPIOne:
         assert 'monthly' in data and 'yearly' in data
         latest_month = data['months'][-1]
         assert data['monthly'][latest_month]['share'] == 500
-        for key in ('share', 'principal', 'interest', 'fine'):
+        for key in ('share', 'loan_principal', 'loan_interest', 'fine'):
             assert key in data['monthly'][latest_month]
 
 
@@ -305,7 +305,7 @@ class TestAPIBoundary:
         resp = client.post(f'/api/members/{mid}/apply_loan',
                            json={'amount': 1000000, 'term_months': 12})
         assert resp.status_code == 201
-        assert resp.get_json()['request']['loan_principal'] == 1000000
+        assert resp.get_json()['request']['loan_amount'] == 1000000
 
     def test_submit_payment_with_note(self, client):
         mid = _create_and_login_member(client)
@@ -367,38 +367,38 @@ class TestAPIEditEntries:
     def test_list_entries_split_kind(self, client):
         mid = _create_member(client)
         _apply_and_approve_loan(client, mid)
-        _submit_and_approve_payment(client, mid, {'amount': 500, 'type': 'share'})
-        _submit_and_approve_payment(client, mid, {'amount': 700, 'type': 'share', 'late_fee': 200})
+        _submit_and_approve_payment(client, mid, {'amount': 500, 'share_amount': 500})
+        _submit_and_approve_payment(client, mid, {'amount': 700, 'share_amount': 500, 'fine': 200})
         _submit_and_approve_payment(client, mid,
-                                    {'amount': 2000, 'type': 'loan_payment', 'loan_amount': 2000})
+                                    {'amount': 2000, 'loan_principal': 2000})
         data = client.get('/api/admin/entries?type=split', headers=_admin_headers(client)).get_json()
         mine = [e for e in data if e['member_id'] == mid]
         assert len(mine) == 1
         assert mine[0]['kind'] == 'split'
-        assert mine[0]['split']['share'] == 1200
-        assert mine[0]['split']['late_fee'] == 200
+        assert mine[0]['split']['share'] == 1000
+        assert mine[0]['split']['fine'] == 200
 
     def test_resplit_full_split(self, client):
         mid = _create_member(client)
         _apply_and_approve_loan(client, mid)
-        _submit_and_approve_payment(client, mid, {'amount': 500, 'type': 'share'})
+        _submit_and_approve_payment(client, mid, {'amount': 500, 'share_amount': 500})
         share = next(e for e in client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
                      if e['kind'] == 'split' and e['member_name'] == 'Test Member')
         resp = client.post('/api/admin/entries/edit', headers=_admin_headers(client),
                            json={'kind': 'split', 'member_id': mid, 'date': share['date'],
-                                 'share': 500, 'late_fee': 100, 'interest': 50, 'principal': 1000})
+                                 'share': 500, 'fine': 100, 'loan_interest': 50, 'loan_principal': 1000})
         assert resp.status_code == 200
         data = client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
         split = next(e for e in data if e['kind'] == 'split' and e['member_id'] == mid)
         assert split['split']['share'] == 500
-        assert split['split']['late_fee'] == 100
-        assert split['split']['interest'] == 50
-        assert split['split']['principal'] == 1000
+        assert split['split']['fine'] == 100
+        assert split['split']['loan_interest'] == 50
+        assert split['split']['loan_principal'] == 1000
 
     def test_income_filter_excludes_late_fee_and_fd(self, client):
         mid = _create_and_login_member(client)
         client.post(f'/api/members/{mid}/submit_payment_request',
-                    json={'amount': 500, 'type': 'share', 'late_fee': 50})
+                    json={'amount': 550, 'share_amount': 500, 'fine': 50})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         resp = client.post('/api/admin/fd/add', headers=_admin_headers(client),
                            json={'amount': 10000, 'start_date': '2026-01-01', 'term_months': 12,
@@ -409,44 +409,45 @@ class TestAPIEditEntries:
         assert resp.status_code == 200
         fd_data = client.get('/api/admin/entries?type=fd', headers=_admin_headers(client)).get_json()
         assert any(e['kind'] == 'fd' and e['amount'] == 850 for e in fd_data)
-        lf_data = client.get('/api/admin/entries?type=late_fee', headers=_admin_headers(client)).get_json()
-        assert any(e['kind'] == 'late_fee' for e in lf_data)
+        lf_data = client.get('/api/admin/entries?type=fine', headers=_admin_headers(client)).get_json()
+        assert any(e['kind'] == 'fine' for e in lf_data)
         income = client.get('/api/admin/entries?type=income', headers=_admin_headers(client)).get_json()
-        assert not any(e['kind'] == 'late_fee' for e in income)
+        assert not any(e['kind'] == 'fine' for e in income)
         assert not any(e['kind'] == 'fd' for e in income)
 
     def test_edit_share_entry(self, client):
         mid = _create_and_login_member(client)
-        client.post(f'/api/members/{mid}/submit_payment_request', json={'amount': 500, 'type': 'share'})
+        client.post(f'/api/members/{mid}/submit_payment_request',
+                    json={'amount': 500, 'share_amount': 500})
         client.post('/api/admin/approve_request/1', headers=_admin_headers(client))
         data = client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
         share = next(e for e in data if e['kind'] == 'split' and e['member_name'] == 'Test Member')
         resp = client.post('/api/admin/entries/edit', headers=_admin_headers(client),
                            json={'kind': 'split', 'member_id': mid, 'date': share['date'],
-                                 'share': 600, 'late_fee': 0, 'interest': 0, 'principal': 0})
+                                 'share': 600, 'fine': 0, 'loan_interest': 0, 'loan_principal': 0})
         assert resp.status_code == 200
         resp = client.get(f'/api/members/{mid}', headers=_admin_headers(client))
         payments = resp.get_json()['payments']
         assert any(p['share_amount'] == 600 and (p['pay_date'] or '')[:10] == share['date'] for p in payments)
 
-    def test_edit_loan_payment_adjusts_outstanding(self, client):
+    def test_edit_loan_principal_adjusts_outstanding(self, client):
         mid = _create_member(client)
         _apply_and_approve_loan(client, mid)
         _submit_and_approve_payment(client, mid,
-                                    {'amount': 2000, 'type': 'loan_payment', 'loan_amount': 2000})
+                                    {'amount': 2000, 'loan_principal': 2000})
         data = client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
         lp = next(e for e in data if e['kind'] == 'split' and e['member_id'] == mid)
         resp = client.post('/api/admin/entries/edit', headers=_admin_headers(client),
                            json={'kind': 'split', 'member_id': mid, 'date': lp['date'],
-                                 'share': 0, 'late_fee': 0, 'interest': 100, 'principal': 1500})
+                                 'share': 0, 'fine': 0, 'loan_interest': 100, 'loan_principal': 1500})
         assert resp.status_code == 200
         resp = client.get(f'/api/members/{mid}', headers=_admin_headers(client))
         loan = resp.get_json()['loans'][0]
         assert loan['outstanding'] == 10000 - 1500
         resp = client.get('/api/admin/entries', headers=_admin_headers(client))
         lp2 = next(e for e in resp.get_json() if e['id'] == lp['id'])
-        assert lp2['split']['principal'] == 1500
-        assert lp2['split']['interest'] == 100
+        assert lp2['split']['loan_principal'] == 1500
+        assert lp2['split']['loan_interest'] == 100
 
     def test_edit_income_entry(self, client):
         resp = client.post('/api/admin/income-expense/add', headers=_admin_headers(client),
@@ -476,11 +477,11 @@ class TestAPIEditEntries:
         payments = resp.get_json()['payments']
         assert not any(p['share_amount'] and (p['pay_date'] or '')[:10] == share['date'] for p in payments)
 
-    def test_delete_loan_payment_restores_outstanding(self, client):
+    def test_delete_loan_principal_restores_outstanding(self, client):
         mid = _create_member(client)
         _apply_and_approve_loan(client, mid)
         _submit_and_approve_payment(client, mid,
-                                    {'amount': 2000, 'type': 'loan_payment', 'loan_amount': 2000})
+                                    {'amount': 2000, 'loan_principal': 2000})
         data = client.get('/api/admin/entries', headers=_admin_headers(client)).get_json()
         lp = next(e for e in data if e['kind'] == 'split' and e['member_id'] == mid)
         resp = client.post('/api/admin/entries/delete', headers=_admin_headers(client),

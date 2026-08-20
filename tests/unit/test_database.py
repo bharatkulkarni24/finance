@@ -23,6 +23,6 @@ class TestDatabaseMigration:
         rows = conn.execute('PRAGMA table_info(members)').fetchall()
         conn.close()
         names = {r[1] for r in rows}
-        for col in ('member_id', 'name', 'phone', 'joined_date', 'deposit_amount',
+        for col in ('member_id', 'name', 'phone', 'joined_date', 'entry_deposit_amount',
                     'is_admin', 'dob', 'address', 'photo_url', 'password'):
             assert col in names

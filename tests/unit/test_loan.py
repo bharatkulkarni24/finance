@@ -15,7 +15,7 @@ class TestLoanSimple:
     def test_loan_dataclass_defaults(self):
         loan = Loan()
         assert loan.loan_id is None
-        assert loan.principal == 0.0
+        assert loan.loan_principal == 0.0
         assert loan.outstanding == 0.0
         assert loan.rate_monthly == 0.01
         assert loan.term_months == 12
@@ -27,18 +27,18 @@ class TestLoanSimple:
 class TestLoanZero:
     def test_create_zero_amount_loan(self, setup_db):
         req = create_loan(member_id=1, amount=0, term_months=12)
-        assert req['loan_principal'] == 0
+        assert req['loan_amount'] == 0
         assert req['loan_term_months'] == 12
         assert req['status'] == 'submitted'
         assert get_loan(1) is None
 
     def test_interest_no_accrual_on_inactive_loan(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000, status='submitted')
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000, status='submitted')
         interest = compute_interest_accrued(loan, date(2026, 6, 22))
         assert interest == 0.0
 
     def test_interest_zero_outstanding(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=0,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=0,
                     status='active', disbursed_date=date(2026, 1, 1),
                     last_accrual_date=date(2026, 1, 1))
         interest = compute_interest_accrued(loan, date(2026, 6, 22))
@@ -55,7 +55,7 @@ class TestLoanZero:
         assert reject_loan(99999, 0, 'test reason') is None
 
     def test_zero_days_interest(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                     status='active', disbursed_date=date(2026, 6, 22),
                     last_accrual_date=date(2026, 6, 22))
         interest = compute_interest_accrued(loan, date(2026, 6, 22))
@@ -68,7 +68,7 @@ class TestLoanOne:
     def test_create_one_loan_request(self, setup_db):
         req = create_loan(member_id=1, amount=10000, term_months=12)
         assert req['req_id'] is not None
-        assert req['loan_principal'] == 10000
+        assert req['loan_amount'] == 10000
         assert req['loan_term_months'] == 12
         assert req['status'] == 'submitted'
         assert req['item_type'] == 'loan'
@@ -77,7 +77,7 @@ class TestLoanOne:
         req = create_loan(member_id=1, amount=5000, term_months=6)
         loan = approve_loan(req['req_id'], 0)
         assert loan['loan_id'] is not None
-        assert loan['principal'] == 5000
+        assert loan['loan_principal'] == 5000
         assert loan['outstanding'] == 5000
         assert loan['status'] == 'active'
         fetched = get_loan(loan['loan_id'])
@@ -98,7 +98,7 @@ class TestLoanOne:
         assert get_loan(99999) is None
 
     def test_one_period_interest(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                     rate_monthly=0.01, term_months=12,
                     status='active', disbursed_date=date(2026, 1, 1),
                     last_accrual_date=date(2026, 1, 1))
@@ -114,11 +114,11 @@ class TestLoanMany:
         for i in range(5):
             reqs.append(create_loan(member_id=1, amount=(i + 1) * 1000, term_months=12))
         assert len(reqs) == 5
-        assert reqs[0]['loan_principal'] == 1000
-        assert reqs[4]['loan_principal'] == 5000
+        assert reqs[0]['loan_amount'] == 1000
+        assert reqs[4]['loan_amount'] == 5000
 
     def test_multiple_interest_periods(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                     rate_monthly=0.01, term_months=12,
                     status='active', disbursed_date=date(2026, 1, 1),
                     last_accrual_date=date(2026, 1, 1))
@@ -149,7 +149,7 @@ class TestLoanMany:
 
 class TestLoanBoundary:
     def test_interest_exact_30_days(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                     rate_monthly=0.01, term_months=12,
                     status='active', disbursed_date=date(2026, 1, 1),
                     last_accrual_date=date(2026, 1, 1))
@@ -157,7 +157,7 @@ class TestLoanBoundary:
         assert round(interest, 2) == 100.0
 
     def test_interest_1_day(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                     rate_monthly=0.01, term_months=12,
                     status='active', disbursed_date=date(2026, 6, 1),
                     last_accrual_date=date(2026, 6, 1))
@@ -165,7 +165,7 @@ class TestLoanBoundary:
         assert round(interest, 2) == pytest.approx(3.33, rel=0.01)
 
     def test_payment_exact_outstanding(self):
-        loan = Loan(member_id=1, principal=5000, outstanding=5000,
+        loan = Loan(member_id=1, loan_principal=5000, outstanding=5000,
                     status='active', disbursed_date=date(2026, 1, 1),
                     last_accrual_date=date(2026, 1, 1))
         loan_dict = {'loan_id': 1, 'member_id': 1, 'outstanding': 5000}
@@ -185,7 +185,7 @@ class TestLoanBoundary:
 
     def test_loan_amount_boundary_large(self, setup_db):
         req = create_loan(member_id=1, amount=999999, term_months=12)
-        assert req['loan_principal'] == 999999
+        assert req['loan_amount'] == 999999
 
     def test_loan_boundary_zero_term(self, setup_db):
         req = create_loan(member_id=1, amount=5000, term_months=0)
@@ -239,10 +239,10 @@ class TestLoanInterface:
         assert req2['req_no'] == 'L0002'
 
     def test_dict_and_dataclass_interest_consistency(self):
-        dict_loan = {'loan_id': 1, 'member_id': 1, 'principal': 10000, 'outstanding': 10000,
+        dict_loan = {'loan_id': 1, 'member_id': 1, 'loan_principal': 10000, 'outstanding': 10000,
                      'rate_monthly': 0.01, 'term_months': 12, 'status': 'active',
                      'disbursed_date': '2026-01-01', 'last_accrual_date': '2026-01-01'}
-        dc_loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        dc_loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                        rate_monthly=0.01, term_months=12, status='active',
                        disbursed_date=date(2026, 1, 1), last_accrual_date=date(2026, 1, 1))
         interest_dict = compute_interest_accrued(dict_loan, date(2026, 2, 1))
@@ -266,12 +266,12 @@ class TestLoanException:
         assert 'pay_id' in result
 
     def test_interest_on_loan_without_disbursement(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000, status='active')
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000, status='active')
         interest = compute_interest_accrued(loan, date(2026, 6, 22))
         assert interest == 0.0
 
     def test_interest_with_negative_days(self):
-        loan = Loan(member_id=1, principal=10000, outstanding=10000,
+        loan = Loan(member_id=1, loan_principal=10000, outstanding=10000,
                     rate_monthly=0.01, status='active',
                     disbursed_date=date(2026, 6, 22),
                     last_accrual_date=date(2026, 6, 22))

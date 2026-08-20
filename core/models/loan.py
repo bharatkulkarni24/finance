@@ -16,7 +16,7 @@ def _as_datetime(value: str) -> str:
 class Loan:
     loan_id: Optional[int] = None
     member_id: Optional[int] = None
-    principal: float = 0.0
+    loan_principal: float = 0.0
     outstanding: float = 0.0
     rate_monthly: float = 0.01
     term_months: int = 12
@@ -31,7 +31,7 @@ def create_loan(member_id: int, amount: float, term_months: int = 12) -> dict:
     now = datetime.utcnow().isoformat()
     req_no = next_req_no('loan')
     cur.execute(
-        'INSERT INTO requests (req_no, member_id, item_type, date_submitted, loan_principal, loan_term_months, status) VALUES (?,?,?,?,?,?,?)',
+        'INSERT INTO requests (req_no, member_id, item_type, date_submitted, loan_amount, loan_term_months, status) VALUES (?,?,?,?,?,?,?)',
         (req_no, member_id, 'loan', now, amount, term_months, 'submitted'),
     )
     req_id = cur.lastrowid
@@ -64,8 +64,8 @@ def approve_loan(req_id: int, approver_id: int = 0):
         ('approved', approver_id, now, req_id),
     )
     cur.execute(
-        'INSERT INTO loans (member_id, principal, outstanding, rate_monthly, term_months, status, disbursed_date, last_accrual_date, request_id, req_no) VALUES (?,?,?,?,?,?,?,?,?,?)',
-        (req['member_id'], req['loan_principal'], req['loan_principal'], 0.01, req['loan_term_months'], 'active', today, today, req_id, req['req_no']),
+        'INSERT INTO loans (member_id, loan_principal, outstanding, rate_monthly, term_months, status, disbursed_date, last_accrual_date, request_id, req_no) VALUES (?,?,?,?,?,?,?,?,?,?)',
+        (req['member_id'], req['loan_amount'], req['loan_amount'], 0.01, req['loan_term_months'], 'active', today, today, req_id, req['req_no']),
     )
     loan_id = cur.lastrowid
     conn.commit()

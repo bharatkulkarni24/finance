@@ -93,6 +93,7 @@ const I18N = {
     'Welcome,': 'Welcome,',
     '📜 My Activity': '📜 My Activity',
     '📒 Passbook': '📒 Passbook',
+    'Totals': 'Totals',
     'Admin Panel': 'Admin Panel',
     'Login to SLV Finance': 'Login to SLV Finance',
     'Select Member': 'Select Member',
@@ -105,9 +106,8 @@ const I18N = {
     'Total Collected': 'Total Collected',
     'Sum of all collection sources below (net of expenses).': 'Sum of all collection sources below (net of expenses).',
     'Entry Deposit:': 'Entry Deposit:',
-    'Shares:': 'Shares:',
-    'Loan Interest:': 'Loan Interest:',
     'Other Income:': 'Other Income:',
+    'Fine:': 'Fine:',
     'Expenses:': 'Expenses:',
     'Loans Disbursed': 'Loans Disbursed',
     'Hardlock / FD': 'Hardlock / FD',
@@ -115,20 +115,16 @@ const I18N = {
     '📋 Group Information': '📋 Group Information',
     'Started': 'Started',
     'Members': 'Members',
-    'Monthly Share': 'Monthly Share',
-    'One-time Deposit': 'One-time Deposit',
+
+    'Entry Deposit': 'Entry Deposit',
     'Tenure': 'Tenure',
     'Loan Interest': 'Loan Interest',
     '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
     'Monthly': 'Monthly',
     'Yearly': 'Yearly',
-    'Share amount': 'Share amount',
-    'Loan principal': 'Loan principal',
-    'Loan interest': 'Loan interest',
-    'Interest': 'Interest',
-    'Principal': 'Principal',
+
+    'Loan Principal': 'Loan Principal',
     'Fine': 'Fine',
-    'Late fee': 'Late fee',
     'Set the full split for this member on this date.': 'Set the full split for this member on this date.',
     'No data for this period': 'No data for this period',
     '✏️ Edit / Correct Entries': '✏️ Edit / Correct Entries',
@@ -152,9 +148,7 @@ const I18N = {
     'Edit failed': 'Edit failed',
     'Delete failed': 'Delete failed',
     'Share': 'Share',
-    'Loan Paid': 'Loan Paid',
-    'Deposit': 'Deposit',
-    'Late Fee': 'Late Fee',
+    'Entry Deposit': 'Entry Deposit',
     'Add New Member': 'Add New Member',
     'After adding, the member can fill in their details.': 'After adding, the member can fill in their details.',
     'Member name': 'Member name',
@@ -249,8 +243,7 @@ const I18N = {
     'Loan Application': 'Loan Application',
     'Approved on ': 'Approved on ',
     'Submitted': 'Submitted',
-    'Share Payment': 'Share Payment',
-    'Loan Payment': 'Loan Payment',
+
     'Combined Payment': 'Combined Payment',
     'Approved': 'Approved',
     'Cancelled': 'Cancelled',
@@ -300,8 +293,8 @@ const I18N = {
     'These will not be submitted.': 'These will not be submitted.',
     'Are you sure you want to logout?': 'Are you sure you want to logout?',
     'Create Account': 'Create Account',
-    'Deposit Amount': 'Deposit Amount',
-    'Deposit Date': 'Deposit Date',
+    'Entry Deposit Amount': 'Entry Deposit Amount',
+    'Entry Deposit Date': 'Entry Deposit Date',
     'Password': 'Password',
     'Set member password': 'Set member password',
     'View Profile': 'View Profile',
@@ -335,6 +328,7 @@ const I18N = {
     'Welcome,': 'ಸ್ವಾಗತ,',
     '📜 My Activity': '📜 ನನ್ನ ಚಟುವಟಿಕೆ',
     '📒 Passbook': '📒 ಪಾಸ್‌ಬುಕ್',
+    'Totals': 'ಒಟ್ಟು',
     'Admin Panel': 'ಆಡಳಿತ ಫಲಕ',
     'Login to SLV Finance': 'ಎಸ್‌ಎಲ್‌ವಿ ಫೈನಾನ್ಸ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ',
     'Select Member': 'ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
@@ -347,9 +341,8 @@ const I18N = {
     'Total Collected': 'ಒಟ್ಟು ಸಂಗ್ರಹ',
     'Sum of all collection sources below (net of expenses).': 'ಕೆಳಗಿನ ಎಲ್ಲಾ ಸಂಗ್ರಹ ಮೂಲಗಳ ಮೊತ್ತ (ಖರ್ಚು ಕಳೆದು).',
     'Entry Deposit:': 'ಪ್ರವೇಶ ಠೇವಣಿ:',
-    'Shares:': 'ಷೇರುಗಳು:',
-    'Loan Interest:': 'ಸಾಲದ ಬಡ್ಡಿ:',
     'Other Income:': 'ಇತರೆ ಆದಾಯ:',
+    'Fine:': 'ದಂಡ:',
     'Expenses:': 'ಖರ್ಚುಗಳು:',
     'Loans Disbursed': 'ನೀಡಿರುವ ಸಾಲ',
     'Hardlock / FD': 'ಹಾರ್ಡ್‌ಲಾಕ್ / ಎಫ್‌ಡಿ',
@@ -357,20 +350,15 @@ const I18N = {
     '📋 Group Information': '📋 ಗುಂಪಿನ ಮಾಹಿತಿ',
     'Started': 'ಪ್ರಾರಂಭ',
     'Members': 'ಸದಸ್ಯರು',
-    'Monthly Share': 'ತಿಂಗಳ ಷೇರು',
-    'One-time Deposit': 'ಒಂದು ಬಾರಿ ಠೇವಣಿ',
+    'Entry Deposit': 'ಪ್ರವೇಶ ಠೇವಣಿ',
     'Tenure': 'ಅವಧಿ',
     'Loan Interest': 'ಸಾಲದ ಬಡ್ಡಿ',
     '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
     'Monthly': 'ಮಾಸಿಕ',
     'Yearly': 'ವಾರ್ಷಿಕ',
-    'Share amount': 'ಷೇರು ಮೊತ್ತ',
-    'Loan principal': 'ಸಾಲದ ಮೂಲಬಂಡವಾಳ',
-    'Loan interest': 'ಸಾಲದ ಬಡ್ಡಿ',
-    'Interest': 'ಬಡ್ಡಿ',
-    'Principal': 'ಅಸಲು',
+    'Share': 'ಷೇರು',
+    'Loan Principal': 'ಸಾಲದ ಮೂಲಬಂಡವಾಳ',
     'Fine': 'ದಂಡ',
-    'Late fee': 'ವಿಳಂಬ ಶುಲ್ಕ',
     'Set the full split for this member on this date.': 'ಈ ದಿನಾಂಕದ ಈ ಸದಸ್ಯರ ಸಂಪೂರ್ಣ ವಿಭಾಗವನ್ನು ಹೊಂದಿಸಿ.',
     'No data for this period': 'ಈ ಅವಧಿಗೆ ಯಾವುದೇ ದತ್ತಾಂಶವಿಲ್ಲ',
     '✏️ Edit / Correct Entries': '✏️ ನಮೂದುಗಳನ್ನು ಸರಿಪಡಿಸಿ',
@@ -394,9 +382,7 @@ const I18N = {
     'Edit failed': 'ಸರಿಪಡಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Delete failed': 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Share': 'ಷೇರು',
-    'Loan Paid': 'ಸಾಲ ಪಾವತಿ',
-    'Deposit': 'ಠೇವಣಿ',
-    'Late Fee': 'ದಂಡ ಶುಲ್ಕ',
+    'Entry Deposit': 'ಪ್ರವೇಶ ಠೇವಣಿ',
     'Add New Member': 'ಹೊಸ ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
     'After adding, the member can fill in their details.': 'ಸೇರಿಸಿದ ನಂತರ, ಸದಸ್ಯರು ತಮ್ಮ ವಿವರಗಳನ್ನು ತುಂಬಬಹುದು.',
     'Member name': 'ಸದಸ್ಯರ ಹೆಸರು',
@@ -489,8 +475,6 @@ const I18N = {
     'Loan Application': 'ಸಾಲದ ಅರ್ಜಿ',
     'Approved on ': 'ಅನುಮೋದಿಸಿದ ದಿನ ',
     'Submitted': 'ಸಲ್ಲಿಸಲಾಗಿದೆ',
-    'Share Payment': 'ಷೇರು ಪಾವತಿ',
-    'Loan Payment': 'ಸಾಲ ಪಾವತಿ',
     'Combined Payment': 'ಸಂಯೋಜಿತ ಪಾವತಿ',
     'Approved': 'ಅನುಮೋದಿಸಲಾಗಿದೆ',
     'Cancelled': 'ರದ್ದಾಗಿದೆ',
@@ -540,8 +524,8 @@ const I18N = {
     'These will not be submitted.': 'ಇವುಗಳು ಸಲ್ಲಿಕೆಯಾಗುವುದಿಲ್ಲ.',
     'Are you sure you want to logout?': 'ನೀವು ಖಚಿತವಾಗಿ ನಿರ್ಗಮಿಸಲು ಬಯಸುವಿರಾ?',
     'Create Account': 'ಖಾತೆ ರಚಿಸಿ',
-    'Deposit Amount': 'ಠೇವಣಿ ಮೊತ್ತ',
-    'Deposit Date': 'ಠೇವಣಿ ದಿನಾಂಕ',
+    'Entry Deposit Amount': 'ಪ್ರವೇಶ ಠೇವಣಿ ಮೊತ್ತ',
+    'Entry Deposit Date': 'ಪ್ರವೇಶ ಠೇವಣಿ ದಿನಾಂಕ',
     'Password': 'ಪಾಸ್‌ವರ್ಡ್',
     'Set member password': 'ಸದಸ್ಯರ ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಸಿ',
     'View Profile': 'ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಿಸಿ',
@@ -1163,9 +1147,10 @@ async function renderHome() {
           <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
         </div>
         <div class="total-box-breakdown">
-          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>${t('Entry Deposit:')}</strong> ${stats?formatCurrency(stats.deposits_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Shares:')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest:')}</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>${t('Entry Deposit:')}</strong> ${stats?formatCurrency(stats.entry_deposit_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Share')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest')}:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><strong>${t('Fine:')}</strong> ${stats?formatCurrency(stats.fines_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
         </div>
@@ -1212,13 +1197,13 @@ async function renderHome() {
         </div>
         <div class="gi-card gi-share">
           <div class="gi-icon">📊</div>
-          <div class="gi-value">${stats?formatCurrency(stats.share_amount):'-'}</div>
-          <div class="gi-label">${t('Monthly Share')}</div>
+          <div class="gi-value">${stats?formatCurrency(stats.monthly_share):'-'}</div>
+          <div class="gi-label">${t('Share')}</div>
         </div>
         <div class="gi-card gi-onetime">
           <div class="gi-icon">💰</div>
-          <div class="gi-value">${stats?formatCurrency(stats.one_time_amount):'-'}</div>
-          <div class="gi-label">${t('One-time Deposit')}</div>
+          <div class="gi-value">${stats?formatCurrency(stats.entry_deposit_total):'-'}</div>
+          <div class="gi-label">${t('Entry Deposit')}</div>
         </div>
         <div class="gi-card gi-period">
           <div class="gi-icon">📅</div>
@@ -1247,9 +1232,9 @@ function monthLabel(m) {
 function summaryRows(d) {
   d = d || {}
   const items = [
-    ['Share amount', d.share],
-    ['Loan principal', d.principal],
-    ['Loan interest', d.interest],
+    ['Share', d.share],
+    ['Loan Principal', d.loan_principal],
+    ['Loan Interest', d.loan_interest],
     ['Fine', d.fine],
   ]
   if (!items.some(([, v]) => Number(v) > 0)) return '<div class="summary-empty">' + t('No data for this period') + '</div>'
@@ -1328,8 +1313,8 @@ async function renderAdminPanel() {
             <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
             <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
             <div class="input-row" style="display:flex;gap:12px">
-              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" value="25000" /></div></div>
-              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" value="25000" /></div></div>
+              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
             </div>
             <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="new-member-password" type="password" placeholder="${t('Set member password')}" /><span id="new-member-pw-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
             <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
@@ -1339,12 +1324,12 @@ async function renderAdminPanel() {
           <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
           <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
           <div class="input-row" style="display:flex;gap:12px">
-            <div style="flex:1"><label>${t('Share Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
+            <div style="flex:1"><label>${t('Share')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
             <div style="flex:1"><label>${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
           </div>
           <div class="input-row" style="display:flex;gap:12px">
-            <div style="flex:1"><label>${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan" type="text" placeholder="0" /></div></div>
-            <div style="flex:1"><label>${t('Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-interest" type="text" placeholder="0" /></div></div>
+            <div style="flex:1"><label>${t('Loan Principal')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-principal" type="text" placeholder="0" /></div></div>
+            <div style="flex:1"><label>${t('Loan Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-interest" type="text" placeholder="0" /></div></div>
           </div>
           <div class="input-row" style="margin-top:4px">
             <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
@@ -1513,9 +1498,9 @@ async function renderAdminPanel() {
   if (deShare) indianizeInput(deShare)
   const deFine = document.getElementById('de-fine')
   if (deFine) indianizeInput(deFine)
-  const deLoan = document.getElementById('de-loan')
+  const deLoan = document.getElementById('de-loan-principal')
   if (deLoan) indianizeInput(deLoan)
-  const deInterest = document.getElementById('de-interest')
+  const deInterest = document.getElementById('de-loan-interest')
   if (deInterest) indianizeInput(deInterest)
   const deBtn = document.getElementById('de-submit-btn')
   if (deBtn) deBtn.onclick = handleDirectEntry
@@ -1529,13 +1514,13 @@ async function renderAdminPanel() {
   if (deDate) createDatePicker(deDate)
   const deTotalEl = document.getElementById('de-total-amount')
   const updateDeTotal = () => {
-    const sum = ['de-share', 'de-fine', 'de-loan', 'de-interest'].reduce((acc, id) => {
+    const sum = ['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].reduce((acc, id) => {
       const el = document.getElementById(id)
       return acc + (Number((el ? el.value : '').replace(/,/g, '')) || 0)
     }, 0)
     if (deTotalEl) deTotalEl.textContent = formatCurrency(sum)
   }
-  ;['de-share', 'de-fine', 'de-loan', 'de-interest'].forEach(id => {
+  ;['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].forEach(id => {
     const el = document.getElementById(id)
     if (el) el.addEventListener('input', updateDeTotal)
   })
@@ -1662,12 +1647,12 @@ async function handleExportReport() {
 
 let eeEntries = []
 
-const SPLIT_KINDS = ['share', 'late_fee', 'loan_payment', 'split']
+const SPLIT_KINDS = ['share', 'fine', 'loan_principal', 'split']
 function isSplitKind(kind) { return SPLIT_KINDS.includes(kind) }
 
 function eeKindLabel(kind) {
   if (isSplitKind(kind)) return t('Share / Loan')
-  const map = {deposit: 'Deposit', income: 'Income', expense: 'Expense', fd: 'Hardlock / Investment'}
+  const map = {deposit: 'Entry Deposit', share: 'Share', fine: 'Fine', loan_principal: 'Loan Principal', income: 'Income', expense: 'Expense', fd: 'Hardlock / Investment'}
   return t(map[kind] || kind)
 }
 
@@ -1704,8 +1689,8 @@ function eeRowHtml(e) {
   if (isSplitKind(e.kind)) {
     const sp = e.split || {}
     const cell = (label, val, cls) => `<span class="ee-split-cell${cls ? ' ' + cls : ''}"><span class="ee-split-label">${label}</span><span class="ee-split-val">${formatCurrency(val || 0)}</span></span>`
-    const total = (sp.share || 0) + (sp.late_fee || 0) + (sp.interest || 0) + (sp.principal || 0)
-    amountHtml = `<div class="ee-split">${cell(t('Share'), sp.share)}${cell(t('Late fee'), sp.late_fee)}${cell(t('Interest'), sp.interest)}${cell(t('Principal'), sp.principal)}${cell(t('Total'), total, 'ee-split-total')}</div>`
+    const total = (sp.share || 0) + (sp.fine || 0) + (sp.loan_interest || 0) + (sp.loan_principal || 0)
+    amountHtml = `<div class="ee-split">${cell(t('Share'), sp.share)}${cell(t('Fine'), sp.fine)}${cell(t('Loan Interest'), sp.loan_interest)}${cell(t('Loan Principal'), sp.loan_principal)}${cell(t('Total'), total, 'ee-split-total')}</div>`
   } else if (e.description) {
     detail = `<div class="ee-sub">${escHtml(e.description)}</div>`
   }
@@ -1732,13 +1717,13 @@ function eeEdit(id) {
   if (isSplitKind(e.kind)) {
     const sp = e.split || {}
     const num = (k, fallback) => sp[k] != null ? sp[k] : (fallback || 0)
-    const total = (sp.share || 0) + (sp.late_fee || 0) + (sp.interest || 0) + (sp.principal || 0)
+    const total = (sp.share || 0) + (sp.fine || 0) + (sp.loan_interest || 0) + (sp.loan_principal || 0)
     fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
       <div class="ee-edit-total">${t('Total')}: <strong id="ee-edit-total-val">${formatCurrency(total)}</strong></div>
       <div class="input-row"><label>${t('Share')}</label><input id="ee-edit-share" type="text" class="admin-input" value="${num('share', e.amount)}" /></div>
-      <div class="input-row"><label>${t('Late fee')}</label><input id="ee-edit-latefee" type="text" class="admin-input" value="${num('late_fee', e.fine)}" /></div>
-      <div class="input-row"><label>${t('Loan interest')}</label><input id="ee-edit-interest" type="text" class="admin-input" value="${num('interest', e.interest)}" /></div>
-      <div class="input-row"><label>${t('Loan principal')}</label><input id="ee-edit-principal" type="text" class="admin-input" value="${num('principal', e.principal)}" /></div>`
+      <div class="input-row"><label>${t('Fine')}</label><input id="ee-edit-fine" type="text" class="admin-input" value="${num('fine', e.fine)}" /></div>
+      <div class="input-row"><label>${t('Loan Interest')}</label><input id="ee-edit-loan-interest" type="text" class="admin-input" value="${num('loan_interest', e.loan_interest)}" /></div>
+      <div class="input-row"><label>${t('Loan Principal')}</label><input id="ee-edit-loan-principal" type="text" class="admin-input" value="${num('loan_principal', e.loan_principal)}" /></div>`
   } else {
     fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
       <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text" class="admin-input" value="${e.amount}" /></div>`
@@ -1761,20 +1746,20 @@ function eeEdit(id) {
   document.getElementById('ee-cancel-btn').onclick = () => overlay.remove()
   const dateInput = document.getElementById('ee-edit-date')
   if (dateInput) createDatePicker(dateInput)
-  ;['ee-edit-amount', 'ee-edit-share', 'ee-edit-latefee', 'ee-edit-principal', 'ee-edit-interest'].forEach(id2 => {
+  ;['ee-edit-amount', 'ee-edit-share', 'ee-edit-fine', 'ee-edit-loan-principal', 'ee-edit-loan-interest'].forEach(id2 => {
     const el = document.getElementById(id2)
     if (el) indianizeInput(el)
   })
   const totalVal = document.getElementById('ee-edit-total-val')
   if (totalVal) {
     const recalcTotal = () => {
-      const sum = ['ee-edit-share', 'ee-edit-latefee', 'ee-edit-interest', 'ee-edit-principal'].reduce((acc, id2) => {
+      const sum = ['ee-edit-share', 'ee-edit-fine', 'ee-edit-loan-interest', 'ee-edit-loan-principal'].reduce((acc, id2) => {
         const el = document.getElementById(id2)
         return acc + (Number((el && el.value || '').replace(/,/g, '')) || 0)
       }, 0)
       totalVal.textContent = formatCurrency(sum)
     }
-    ;['ee-edit-share', 'ee-edit-latefee', 'ee-edit-interest', 'ee-edit-principal'].forEach(id2 => {
+    ;['ee-edit-share', 'ee-edit-fine', 'ee-edit-loan-interest', 'ee-edit-loan-principal'].forEach(id2 => {
       const el = document.getElementById(id2)
       if (el) el.addEventListener('input', recalcTotal)
     })
@@ -1794,9 +1779,9 @@ async function eeSave(e, overlay) {
   if (isSplitKind(e.kind)) {
     const num = id2 => Number(document.getElementById(id2).value.replace(/,/g, '')) || 0
     payload.share = num('ee-edit-share')
-    payload.late_fee = num('ee-edit-latefee')
-    payload.interest = num('ee-edit-interest')
-    payload.principal = num('ee-edit-principal')
+    payload.fine = num('ee-edit-fine')
+    payload.loan_interest = num('ee-edit-loan-interest')
+    payload.loan_principal = num('ee-edit-loan-principal')
   } else {
     payload.amount = Number(document.getElementById('ee-edit-amount').value.replace(/,/g, '')) || 0
   }
@@ -1950,23 +1935,23 @@ async function renderSubmittedRequests() {
         : '<span class="badge" style="background:rgba(59,130,246,0.15);color:#93c5fd">' + t('Payment') + '</span>'
       let subHtml
       if (isLoan) {
-        subHtml = `${t('Loan')} ${formatCurrency(it.loan_principal || 0)} ${t('for')} ${it.loan_term_months || 0} ${t('mo')}`
+        subHtml = `${t('Loan')} ${formatCurrency(it.loan_amount || 0)} ${t('for')} ${it.loan_term_months || 0} ${t('mo')}`
       } else {
         const sa = Number(it.share_amount || 0)
-        const la = Number(it.loan_payment || 0)
-        const ia = Number(it.interest_amount || 0)
-        const lf = Number(it.late_fee || 0)
-        const total = sa + la + ia + lf
-        const isCombined = sa > 0 && (la > 0 || ia > 0 || lf > 0)
+        const la = Number(it.loan_principal || 0)
+        const li = Number(it.loan_interest || 0)
+        const fn = Number(it.fine || 0)
+        const total = sa + la + li + fn
+        const isCombined = sa > 0 && (la > 0 || li > 0 || fn > 0)
         let details = ''
         if (isCombined) {
           if (sa > 0) details += `<span style="color:#67e8f9">Share: ${formatCurrency(sa)}</span> `
-          if (la > 0) details += `<span style="color:#86efac">Loan: ${formatCurrency(la)}</span> `
-          if (ia > 0) details += `<span style="color:#f59e0b">Interest: ${formatCurrency(ia)}</span> `
-          if (lf > 0) details += `<span style="color:#f97316">Fine: ${formatCurrency(lf)}</span> `
+          if (la > 0) details += `<span style="color:#86efac">${t('Loan Principal')}: ${formatCurrency(la)}</span> `
+          if (li > 0) details += `<span style="color:#f59e0b">${t('Loan Interest')}: ${formatCurrency(li)}</span> `
+          if (fn > 0) details += `<span style="color:#f97316">${t('Fine')}: ${formatCurrency(fn)}</span> `
           details += `<span style="color:#ffffff;font-weight:600">· Total: ${formatCurrency(total)}</span>`
         }
-        const typeLabel = sa > 0 ? t('Share') : (la > 0 ? t('Loan') : (ia > 0 ? t('Loan Interest') : t('Payment')))
+        const typeLabel = sa > 0 ? t('Share') : (la > 0 ? t('Loan Principal') : (li > 0 ? t('Loan Interest') : t('Payment')))
         subHtml = isCombined ? details : `${typeLabel} ${formatCurrency(it.total_amount)}`
       }
       row.innerHTML = `
@@ -1990,7 +1975,7 @@ async function renderSubmittedRequests() {
       const approverId = (state.currentUser && state.currentUser.member_id) || 0
       row.querySelector('.approve-btn').onclick = async () => {
         const confirmMsg = isLoan
-          ? `Approve loan of ${formatCurrency(it.loan_principal)} for ${it.member_name}?`
+          ? `Approve loan of ${formatCurrency(it.loan_amount)} for ${it.member_name}?`
           : `Approve payment of ${formatCurrency(it.total_amount)} from ${it.member_name}?`
         if (!(await showConfirm(t('Approve'), confirmMsg))) return
         const btn = row.querySelector('.approve-btn')
@@ -2063,13 +2048,37 @@ async function renderPassbook() {
 }
 
 let pbData = []
+let pbRows = []
 let pbSortCol = 'ts'
 let pbSortDir = -1
 let pbFilters = {}
 
+const SPLIT_COMPONENTS = [
+  { key: 'share', label: 'Share' },
+  { key: 'fine', label: 'Fine' },
+  { key: 'loan_interest', label: 'Loan Interest' },
+  { key: 'loan_principal', label: 'Loan Principal' },
+]
+
+function pbExpandRows(data) {
+  const out = []
+  data.forEach(r => {
+    if (r.split) {
+      SPLIT_COMPONENTS.forEach(c => {
+        const v = Number(r.split[c.key] || 0)
+        if (v > 0) out.push({ ts: r.ts, category: c.label, member_name: r.member_name, amount: v, debit_credit: 'credit', comp: c.key })
+      })
+    } else {
+      out.push(r)
+    }
+  })
+  return out
+}
+
 async function loadPbData() {
   try {
     pbData = await api('/admin/passbook')
+    pbRows = pbExpandRows(pbData)
     applyPbFilters()
   } catch (e) {
     document.getElementById('pb-list').innerHTML = '<p style="color:#ef4444">Error loading passbook</p>'
@@ -2105,15 +2114,15 @@ function pbToggleFilter(col) {
 
   let filterHtml = ''
   if (col === 'category') {
-    const cats = [...new Set(pbData.map(r => r.category || '(No type)'))].sort()
+    const cats = [...new Set(pbRows.map(r => r.category || '(No type)'))].sort()
     const selected = pbFilters.category || []
-    filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">Filter by Type</div>` +
+    filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">${t('Filter by Type')}</div>` +
       `<div style="max-height:200px;overflow-y:auto;margin-bottom:8px;scrollbar-width:thin">` +
       cats.map(c => `<label class="pb-flabel"><input type="checkbox" class="pb-cat-cb" value="${c}" ${selected.includes(c) ? 'checked' : ''} /> ${c}</label>`).join('') +
       `</div>` +
       `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterCat()">Apply</button>${clearCol}</div>`
   } else if (col === 'member_name') {
-    const names = [...new Set(pbData.map(r => r.member_name || '(No member)'))].sort()
+    const names = [...new Set(pbRows.map(r => r.member_name || '(No member)'))].sort()
     const selected = pbFilters.member_name || []
     filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">Filter by Member</div>` +
       `<div style="max-height:200px;overflow-y:auto;margin-bottom:8px;scrollbar-width:thin">` +
@@ -2245,7 +2254,7 @@ function pbFilterAmount() {
 }
 
 function applyPbFilters() {
-  let filtered = pbData
+  let filtered = pbRows
   Object.entries(pbFilters).forEach(([k, v]) => {
     if (k === 'category' && Array.isArray(v)) filtered = filtered.filter(r => v.includes(r.category || '(No type)'))
     if (k === 'member_name' && Array.isArray(v)) filtered = filtered.filter(r => v.includes(r.member_name || '(No member)'))
@@ -2289,6 +2298,10 @@ function applyPbFilters() {
 
   const listDiv = document.getElementById('pb-list')
   if (!filtered.length) { listDiv.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px 0">' + t('No entries match filters.') + '</p>'; return }
+  const sumByCat = {}
+  filtered.forEach(r => { const c = r.category || '(No type)'; sumByCat[c] = (sumByCat[c] || 0) + parseFloat(r.amount || 0) })
+  const compTotals = Object.keys(sumByCat).sort().map(c => `${c} ${formatCurrency(sumByCat[c])}`).join(' · ')
+  const totalsHtml = compTotals ? `<div style="font-size:0.8rem;color:#e2e8f0;font-weight:600;padding:10px 4px 0;border-top:1px solid rgba(148,163,184,0.12);margin-top:4px">${t('Totals')}: ${compTotals}</div>` : ''
   listDiv.innerHTML = '<p style="font-size:0.78rem;color:#64748b;margin:0 0 6px">' + filtered.length + ' ' + t('entries') + '</p>' +
     '<table class="table"><thead><tr>' +
     '<th class="pb-sortable" data-col="ts" onclick="pbToggleFilter(\'ts\')">' + t('Date & Time') + ' <span class="pb-sort-arr">' + pbSortIcon('ts') + '</span></th>' +
@@ -2300,13 +2313,14 @@ function applyPbFilters() {
       const cls = r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'
       const sign = r.debit_credit === 'credit' ? '+' : '−'
       const dp = formatDateParts(r.ts)
+      const typeHtml = `<span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${r.category}</span>`
       return `<tr>
         <td class="pb-date-cell" style="white-space:nowrap;font-size:0.8rem">${dp.date}<span class="pb-time"> ${dp.time}</span></td>
-        <td><span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${r.category}</span></td>
+        <td>${typeHtml}</td>
         <td style="color:#94a3b8">${r.member_name || '-'}</td>
         <td style="text-align:right;font-weight:700;color:${cls}">${sign} ${formatCurrency(r.amount)}</td>
       </tr>`
-    }).join('') + '</tbody></table>'
+    }).join('') + '</tbody></table>' + totalsHtml
 }
 
 async function renderAllHistory() {
@@ -2321,12 +2335,12 @@ async function renderAllHistory() {
       typeLabel = t('Loan Application')
     } else {
       const sa = Number(r.share_amount || 0)
-      const la = Number(r.loan_payment || 0)
-      const ia = Number(r.interest_amount || 0)
-      const lf = Number(r.late_fee || 0)
-      typeLabel = sa > 0 && (la > 0 || ia > 0 || lf > 0) ? t('Combined Payment') : (sa > 0 ? t('Share Payment') : (la > 0 ? t('Loan Payment') : (ia > 0 ? t('Loan Interest') : t('Payment'))))
+      const la = Number(r.loan_principal || 0)
+      const li = Number(r.loan_interest || 0)
+      const fn = Number(r.fine || 0)
+      typeLabel = sa > 0 && (la > 0 || li > 0 || fn > 0) ? t('Combined Payment') : (sa > 0 ? t('Share') : (la > 0 ? t('Loan Principal') : (li > 0 ? t('Loan Interest') : t('Payment'))))
     }
-    const amount = isLoan ? (r.loan_principal || 0) : (r.total_amount || 0)
+    const amount = isLoan ? (r.loan_amount || 0) : (r.total_amount || 0)
     let info
     if (r.status === 'approved') info = t('Approved') + ' ' + (r.approved_date ? t('on ') + formatDateTime(r.approved_date) : '') + (r.approved_by_name ? ' — ' + r.approved_by_name : '')
     else if (r.status === 'rejected') info = t('Rejected') + (r.reject_reason ? ' — ' + r.reject_reason : '') + (r.rejected_date ? ' ' + t('on') + ' ' + formatDateTime(r.rejected_date) : '')
@@ -2456,7 +2470,7 @@ async function renderMemberProfile(memberId, mode) {
       d.setMonth(d.getMonth() + l.term_months)
       closeDate = formatDate(d.toISOString().slice(0, 10))
     }
-    const pct = l.principal > 0 ? Math.round((repaid / l.principal) * 100) : 0
+    const pct = l.loan_principal > 0 ? Math.round((repaid / l.loan_principal) * 100) : 0
     const displayPct = Math.min(pct, 100)
     const progressClass = displayPct >= 80 ? '' : (displayPct >= 40 ? 'warn' : '')
     const interestRate = l.rate_monthly ? (l.rate_monthly * 100) + '%' : '1%'
@@ -2470,12 +2484,12 @@ async function renderMemberProfile(memberId, mode) {
           </div>
         </div>
         <div class="lc-grid">
-          <div class="lc-cell lc-amount"><span class="lc-label">Loan Amount</span><span class="lc-value lc-value-lg">${formatCurrency(l.principal)}</span></div>
+          <div class="lc-cell lc-amount"><span class="lc-label">${t('Loan Principal')}</span><span class="lc-value lc-value-lg">${formatCurrency(l.loan_principal)}</span></div>
           <div class="lc-cell lc-repaid"><span class="lc-label">Total Paid</span><span class="lc-value lc-value-lg">${formatCurrency(repaid)}</span></div>
           <div class="lc-cell lc-taken"><span class="lc-label">Taken Date</span><span class="lc-value">${takenDate ? formatDate(takenDate) : '-'}</span></div>
           <div class="lc-cell lc-close"><span class="lc-label">Close Date</span><span class="lc-value">${closeDate}</span></div>
           <div class="lc-cell lc-outstanding"><span class="lc-label">Outstanding</span><span class="lc-value">${formatCurrency(l.outstanding)}</span></div>
-          <div class="lc-cell lc-interest"><span class="lc-label">Interest Paid</span><span class="lc-value">${interestPaid > 0 ? formatCurrency(interestPaid) : '-'}</span></div>
+          <div class="lc-cell lc-interest"><span class="lc-label">${t('Loan Interest')} Paid</span><span class="lc-value">${interestPaid > 0 ? formatCurrency(interestPaid) : '-'}</span></div>
           <div class="lc-cell lc-term lc-full"><span class="lc-label">Term</span><span class="lc-value">${paidMonths} / ${l.term_months || '?'} months</span></div>
         </div>
         <div class="lc-progress-row">
@@ -2526,23 +2540,23 @@ async function renderMemberProfile(memberId, mode) {
   const historyByDate = {}
   ;(m.payments || []).forEach(p => {
     const key = (p.pay_date || '').slice(0, 10)
-    if (!historyByDate[key]) historyByDate[key] = { date: key, share: 0, loan: 0, interest: 0, fine: 0 }
+    if (!historyByDate[key]) historyByDate[key] = { date: key, share: 0, loanPrincipal: 0, loanInterest: 0, fine: 0 }
     historyByDate[key].share += (p.share_amount || 0)
-    historyByDate[key].loan += (p.loan_principal || 0)
-    historyByDate[key].interest += (p.loan_interest || 0)
-    historyByDate[key].fine += (p.late_fee || 0)
+    historyByDate[key].loanPrincipal += (p.loan_principal || 0)
+    historyByDate[key].loanInterest += (p.loan_interest || 0)
+    historyByDate[key].fine += (p.fine || 0)
   })
   const allHistory = Object.values(historyByDate).sort((a, b) => b.date.localeCompare(a.date))
-  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loan > 0 || r.interest > 0 || r.fine > 0)
+  const paymentHistory = allHistory.filter(r => r.share > 0 || r.loanPrincipal > 0 || r.loanInterest > 0 || r.fine > 0)
   const totalShare = allHistory.reduce((s, r) => s + r.share, 0)
-  const totalLoanPaid = allHistory.reduce((s, r) => s + r.loan, 0)
-  const totalInterest = allHistory.reduce((s, r) => s + r.interest, 0)
+  const totalLoanPaid = allHistory.reduce((s, r) => s + r.loanPrincipal, 0)
+  const totalInterest = allHistory.reduce((s, r) => s + r.loanInterest, 0)
   const totalFine = allHistory.reduce((s, r) => s + r.fine, 0)
-  let historyHeader = `<div class="history-totals"><span class="ht-chip ht-label">${t('Total')}</span><span class="ht-chip">${t('Share')} <strong>${formatCurrency(totalShare)}</strong></span><span class="ht-chip">${t('Loan Paid')} <strong>${formatCurrency(totalLoanPaid)}</strong></span>`
-  if (totalInterest > 0) historyHeader += `<span class="ht-chip">${t('Interest')} <strong>${formatCurrency(totalInterest)}</strong></span>`
+  let historyHeader = `<div class="history-totals"><span class="ht-chip ht-label">${t('Total')}</span><span class="ht-chip">${t('Share')} <strong>${formatCurrency(totalShare)}</strong></span><span class="ht-chip">${t('Loan Principal')} <strong>${formatCurrency(totalLoanPaid)}</strong></span>`
+  if (totalInterest > 0) historyHeader += `<span class="ht-chip">${t('Loan Interest')} <strong>${formatCurrency(totalInterest)}</strong></span>`
   if (totalFine > 0) historyHeader += `<span class="ht-chip">${t('Fine')} <strong>${formatCurrency(totalFine)}</strong></span>`
   historyHeader += '</div>'
-  const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>Loan Paid</th><th>Interest</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${window.innerWidth <= 640 ? formatDateCompact(r.date) : formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loan ? `<span style="color:#86efac">${formatCurrency(r.loan)}</span>` : '-'}</td><td>${r.interest ? `<span style="color:#f59e0b">${formatCurrency(r.interest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loan + r.interest + r.fine)}</td></tr>`).join('')}</tbody></table>`
+  const paymentTableHtml = `<table class="table"><thead><tr><th>Date</th><th>Share</th><th>${t('Loan Principal')}</th><th>${t('Loan Interest')}</th><th>Fine</th><th>Total</th></tr></thead><tbody>${paymentHistory.map(r => `<tr><td>${window.innerWidth <= 640 ? formatDateCompact(r.date) : formatDate(r.date)}</td><td>${r.share ? `<span style="color:#67e8f9">${formatCurrency(r.share)}</span>` : '-'}</td><td>${r.loanPrincipal ? `<span style="color:#86efac">${formatCurrency(r.loanPrincipal)}</span>` : '-'}</td><td>${r.loanInterest ? `<span style="color:#f59e0b">${formatCurrency(r.loanInterest)}</span>` : '-'}</td><td>${r.fine ? `<span style="color:#f97316">${formatCurrency(r.fine)}</span>` : '-'}</td><td style="color:#e2e8f0;font-weight:600">${formatCurrency(r.share + r.loanPrincipal + r.loanInterest + r.fine)}</td></tr>`).join('')}</tbody></table>`
 
   const compactHeader = !own && window.innerWidth <= 640
   const compactHeaderHtml = `
@@ -2768,7 +2782,7 @@ async function renderSubmitView() {
         <h3>📤 Submit Proof of Payment</h3>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
-              <label>Share Amount *</label>
+              <label>${t('Share')} *</label>
               <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
             </div>
             <div style="flex:1">
@@ -2778,12 +2792,12 @@ async function renderSubmitView() {
           </div>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
-              <label>Loan Amount</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-amount-input" type="text" placeholder="0" /></div>
+              <label>${t('Loan Principal')}</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-principal-input" type="text" placeholder="0" /></div>
             </div>
             <div style="flex:1">
-              <label>Interest</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="interest-amount-input" type="text" placeholder="0" /></div>
+              <label>${t('Loan Interest')}</label>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-interest-input" type="text" placeholder="0" /></div>
             </div>
           </div>
           <div class="input-row" style="margin-top:4px;">
@@ -2839,19 +2853,19 @@ async function renderSubmitView() {
       </div>
   `
   // Apply Indian number formatting to amount inputs
-  ;['share-amount-input', 'loan-amount-input', 'interest-amount-input', 'request-loan-amount', 'fine-amount'].forEach(id => {
+  ;['share-amount-input', 'loan-principal-input', 'loan-interest-input', 'request-loan-amount', 'fine-amount'].forEach(id => {
     const el = document.getElementById(id)
     if (el) indianizeInput(el)
   })
   const submitTotalEl = document.getElementById('submit-total-amount')
   const updateSubmitTotal = () => {
-    const sum = ['share-amount-input', 'fine-amount', 'loan-amount-input', 'interest-amount-input'].reduce((acc, id) => {
+    const sum = ['share-amount-input', 'fine-amount', 'loan-principal-input', 'loan-interest-input'].reduce((acc, id) => {
       const el = document.getElementById(id)
       return acc + (Number((el ? el.value : '').replace(/,/g, '')) || 0)
     }, 0)
     if (submitTotalEl) submitTotalEl.textContent = formatCurrency(sum)
   }
-  ;['share-amount-input', 'fine-amount', 'loan-amount-input', 'interest-amount-input'].forEach(id => {
+  ;['share-amount-input', 'fine-amount', 'loan-principal-input', 'loan-interest-input'].forEach(id => {
     const el = document.getElementById(id)
     if (el) el.addEventListener('input', updateSubmitTotal)
   })
@@ -2966,7 +2980,7 @@ async function handleAddMember() {
     await api('/members', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name, phone, deposit_amount: depositAmount, deposit_date: depositDate, password}),
+      body: JSON.stringify({name, phone, entry_deposit_amount: depositAmount, entry_deposit_date: depositDate, password}),
     })
     await loadMembers()
     renderAdminPanel()
@@ -2980,21 +2994,21 @@ async function handleDirectEntry() {
   const memberId = Number(document.getElementById('de-member').value)
   const shareRaw = document.getElementById('de-share').value.replace(/,/g, '')
   const fineRaw = document.getElementById('de-fine').value.replace(/,/g, '')
-  const loanRaw = document.getElementById('de-loan').value.replace(/,/g, '')
-  const interestRaw = document.getElementById('de-interest').value.replace(/,/g, '')
+  const loanPrincipalRaw = document.getElementById('de-loan-principal').value.replace(/,/g, '')
+  const loanInterestRaw = document.getElementById('de-loan-interest').value.replace(/,/g, '')
   const shareAmount = Number(shareRaw) || 0
-  const loanAmount = Number(loanRaw) || 0
-  const interestAmount = Number(interestRaw) || 0
-  const lateFee = Number(fineRaw) || 0
+  const loanPrincipal = Number(loanPrincipalRaw) || 0
+  const loanInterest = Number(loanInterestRaw) || 0
+  const fine = Number(fineRaw) || 0
   const entryDate = document.getElementById('de-date').value
   const note = document.getElementById('de-note').value
   if (!memberId) { showToast(t('Select a member'), 'error'); return }
-  if (!shareAmount && !loanAmount && !interestAmount) { showToast(t('Enter at least share or loan amount'), 'error'); return }
+  if (!shareAmount && !loanPrincipal && !loanInterest) { showToast(t('Enter at least share or loan amount'), 'error'); return }
   let msg = ''
   if (shareAmount > 0) msg += `Share: ${formatCurrency(shareAmount)} `
-  if (lateFee > 0) msg += `Fine: ${formatCurrency(lateFee)} `
-  if (loanAmount > 0) msg += `Loan: ${formatCurrency(loanAmount)} `
-  if (interestAmount > 0) msg += `Interest: ${formatCurrency(interestAmount)} `
+  if (fine > 0) msg += `${t('Fine')}: ${formatCurrency(fine)} `
+  if (loanPrincipal > 0) msg += `${t('Loan Principal')}: ${formatCurrency(loanPrincipal)} `
+  if (loanInterest > 0) msg += `${t('Loan Interest')}: ${formatCurrency(loanInterest)} `
   if (!(await showConfirm('Direct Entry', msg.trim()))) return
   setLoading(btn, true)
   try {
@@ -3004,9 +3018,9 @@ async function handleDirectEntry() {
       body: JSON.stringify({
         member_id: memberId,
         share_amount: shareAmount,
-        late_fee: lateFee,
-        loan_amount: loanAmount,
-        interest_amount: interestAmount,
+        fine: fine,
+        loan_principal: loanPrincipal,
+        loan_interest: loanInterest,
         entry_date: entryDate || undefined,
         note: note || '',
       }),
@@ -3019,8 +3033,8 @@ async function handleDirectEntry() {
     showToast(t('Entry recorded successfully'), 'success')
     document.getElementById('de-share').value = '500'
     document.getElementById('de-fine').value = '0'
-    document.getElementById('de-loan').value = ''
-    document.getElementById('de-interest').value = ''
+    document.getElementById('de-loan-principal').value = ''
+    document.getElementById('de-loan-interest').value = ''
     document.getElementById('de-note').value = ''
     await renderAdminPanel()
   } catch (err) {
@@ -3383,34 +3397,34 @@ window.setView = setView
 async function handleSubmitPayment(memberId) {
   const btn = document.getElementById('submit-payment-btn-top')
   const shareRaw = document.getElementById('share-amount-input').value.replace(/,/g, '')
-  const loanRaw = document.getElementById('loan-amount-input').value.replace(/,/g, '')
-  const interestRaw = document.getElementById('interest-amount-input').value.replace(/,/g, '')
+  const loanPrincipalRaw = document.getElementById('loan-principal-input').value.replace(/,/g, '')
+  const loanInterestRaw = document.getElementById('loan-interest-input').value.replace(/,/g, '')
   const shareAmount = Number(shareRaw) || 0
-  const loanAmount = Number(loanRaw) || 0
-  const interestAmount = Number(interestRaw) || 0
+  const loanPrincipal = Number(loanPrincipalRaw) || 0
+  const loanInterest = Number(loanInterestRaw) || 0
   const txnDate = document.getElementById('pay-txn-date').value
   const note = document.getElementById('pay-note').value
   const fineRaw = document.getElementById('fine-amount').value.replace(/,/g, '')
-  const lateFee = Number(fineRaw) || 0
+  const fine = Number(fineRaw) || 0
   if (!txnDate) { showToast('Select a payment date', 'error'); return }
   if (new Date(txnDate) > new Date()) { showToast('Date cannot be in the future', 'error'); return }
-  if (!shareAmount || shareAmount <= 0) { showToast('Share amount is required', 'error'); return }
+  if (!shareAmount || shareAmount <= 0) { showToast('Share is required', 'error'); return }
   let msg = `Share: ${formatCurrency(shareAmount)}`
-  if (loanAmount > 0) msg += `<br>Loan: ${formatCurrency(loanAmount)}`
-  if (interestAmount > 0) msg += `<br>Interest: ${formatCurrency(interestAmount)}`
-  if (lateFee > 0) msg += `<br>Fine: ${formatCurrency(lateFee)}`
+  if (loanPrincipal > 0) msg += `<br>${t('Loan Principal')}: ${formatCurrency(loanPrincipal)}`
+  if (loanInterest > 0) msg += `<br>${t('Loan Interest')}: ${formatCurrency(loanInterest)}`
+  if (fine > 0) msg += `<br>${t('Fine')}: ${formatCurrency(fine)}`
   if (!(await showConfirm('Submit Payment', msg))) return
   setLoading(btn, true)
   const screenshotInput = document.getElementById('screenshot-input')
   const screenshotFile = screenshotInput?.files?.[0]
-  const total = shareAmount + loanAmount + interestAmount + lateFee
+  const total = shareAmount + loanPrincipal + loanInterest + fine
   try {
     const fd = new FormData()
     fd.append('amount', total)
     fd.append('share_amount', shareAmount)
-    fd.append('loan_amount', loanAmount)
-    fd.append('interest_amount', interestAmount)
-    fd.append('late_fee', lateFee)
+    fd.append('loan_principal', loanPrincipal)
+    fd.append('loan_interest', loanInterest)
+    fd.append('fine', fine)
     fd.append('note', note)
     fd.append('txn_date', txnDate)
     if (screenshotFile) fd.append('screenshot', screenshotFile)

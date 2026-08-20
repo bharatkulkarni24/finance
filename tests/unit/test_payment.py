@@ -110,18 +110,18 @@ class TestPaymentBoundary:
 
     def test_approve_share_with_late_fee_splits(self, setup_db):
         m = create_member('Test')
-        req = create_payment_request(m['member_id'], 900, late_fee=200, share_amount=700)
+        req = create_payment_request(m['member_id'], 900, fine=200, share_amount=700)
         approve_payment_request(req['req_id'], 0)
         member = get_member(m['member_id'], full=True)
         pay = next(p for p in member['payments'] if p['share_amount'] == 700)
-        assert pay['late_fee'] == 200
+        assert pay['fine'] == 200
         assert pay['total_amount'] == 900
 
     def test_approve_loan_request_updates_loan(self, setup_db):
         m = create_member('Test')
         req = create_loan(m['member_id'], 10000, 12)
         loan = approve_loan(req['req_id'], 0)
-        pay_req = create_payment_request(m['member_id'], 3000, loan_amount=3000)
+        pay_req = create_payment_request(m['member_id'], 3000, loan_principal=3000)
         approve_payment_request(pay_req['req_id'], 0)
         updated_loan = get_loan(loan['loan_id'])
         assert updated_loan['outstanding'] == pytest.approx(7000, abs=5)
@@ -160,7 +160,7 @@ class TestPaymentInterface:
         m = create_member('Test')
         req = create_loan(m['member_id'], 10000, 12)
         approve_loan(req['req_id'], 0)
-        pay_req = create_payment_request(m['member_id'], 3000, loan_amount=3000)
+        pay_req = create_payment_request(m['member_id'], 3000, loan_principal=3000)
         approve_payment_request(pay_req['req_id'], 0)
         conn = get_conn()
         cur = conn.cursor()
@@ -171,10 +171,10 @@ class TestPaymentInterface:
 
     def test_admin_direct_entry_split(self, setup_db):
         m = create_member('Test')
-        admin_direct_entry(m['member_id'], share_amount=500, late_fee=100, entry_date='2026-06-10')
+        admin_direct_entry(m['member_id'], share_amount=500, fine=100, entry_date='2026-06-10')
         member = get_member(m['member_id'], full=True)
         pay = next(p for p in member['payments'] if p['share_amount'] == 500)
-        assert pay['late_fee'] == 100
+        assert pay['fine'] == 100
         assert pay['total_amount'] == 600
 
 

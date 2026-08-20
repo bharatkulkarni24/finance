@@ -93,7 +93,7 @@ class TestTransactionBoundary:
     def test_passbook_contains_initial_deposit(self, setup_db):
         m = create_member('Passbook Test')
         entries = get_passbook_entries()
-        deposit_entries = [e for e in entries if e['category'] == 'Deposit' and e['member_name'] == 'Passbook Test']
+        deposit_entries = [e for e in entries if e['category'] == 'Entry Deposit' and e['member_name'] == 'Passbook Test']
         assert len(deposit_entries) == 1
         assert deposit_entries[0]['amount'] == 25000
         assert deposit_entries[0]['debit_credit'] == 'credit'
@@ -111,7 +111,7 @@ class TestTransactionBoundary:
         add_contribution(m['member_id'], dt_date(2026, 6, 1), 500, 'share')
         entries = get_passbook_entries()
         member_entries = [e for e in entries if e['member_name'] == 'Dedup Test']
-        assert len(member_entries) == 2  # initial deposit + share
+        assert len(member_entries) == 2  # entry deposit + share
         assert len([e for e in member_entries if e['category'] == 'Share']) == 1
 
     def test_passbook_includes_fd_entries(self, setup_db):
@@ -119,6 +119,22 @@ class TestTransactionBoundary:
         entries = get_passbook_entries()
         fd_deposits = [e for e in entries if e['category'] == 'FD Deposit']
         assert len(fd_deposits) >= 1
+
+    def test_passbook_split_on_combined_entry(self, setup_db):
+        from core.models.payment import admin_direct_entry
+        m = create_member('Split Test')
+        admin_direct_entry(m['member_id'], share_amount=500, fine=50, loan_principal=1000, loan_interest=200, entry_date='2026-07-01')
+        entries = get_passbook_entries()
+        member_entries = [e for e in entries if e['member_name'] == 'Split Test']
+        combined = [e for e in member_entries if e.get('split')]
+        assert len(combined) == 1
+        assert combined[0]['split'] == {'share': 500, 'fine': 50, 'loan_interest': 200, 'loan_principal': 1000}
+        assert combined[0]['category'] == 'Payment'
+
+    def test_passbook_no_split_on_non_member_entries(self, setup_db):
+        add_transaction('credit', 5000, 'Rental Income', '2026-07-01T12:00:00')
+        entries = get_passbook_entries()
+        assert all('split' not in e for e in entries if e['category'] == 'Income')
 
     def test_add_income_transaction_large(self, setup_db):
         t = add_transaction('credit', 1000000, 'Large deposit')
@@ -145,7 +161,7 @@ class TestTransactionInterface:
         loan_dict = get_loan(loan['loan_id'])
         apply_payment_to_loan(loan_dict, 2000)
         csv = get_member_statement(m['member_id'])
-        assert 'loan_payment' in csv
+        assert 'loan_principal' in csv
 
 
 # ─── Zombies: Exception ───────────────────────────────────────────────────────

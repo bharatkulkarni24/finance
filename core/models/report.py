@@ -61,18 +61,18 @@ def get_report_data(from_date: str, to_date: str) -> dict:
 
     cur.execute('''SELECT m.member_id, m.name,
         COALESCE(SUM(p.share_amount),0) s, COALESCE(SUM(p.loan_principal),0) pr,
-        COALESCE(SUM(p.loan_interest),0) i, COALESCE(SUM(p.late_fee),0) lf
+        COALESCE(SUM(p.loan_interest),0) i, COALESCE(SUM(p.fine),0) fn
         FROM member_ledger p JOIN members m ON m.member_id=p.member_id
         WHERE substr(p.pay_date,1,10)>=? AND substr(p.pay_date,1,10)<=?
         GROUP BY m.member_id ORDER BY m.name''', (f, t))
     contrib_rows = [dict(r) for r in cur.fetchall()]
-    contributions = [r for r in contrib_rows if (r['s'] or r['pr'] or r['i'] or r['lf']) > 0]
+    contributions = [r for r in contrib_rows if (r['s'] or r['pr'] or r['i'] or r['fn']) > 0]
     contrib_total = {
         's': sum(r['s'] for r in contributions),
         'pr': sum(r['pr'] for r in contributions),
         'i': sum(r['i'] for r in contributions),
-        'lf': sum(r['lf'] for r in contributions),
-        'total': sum(r['s'] + r['pr'] + r['i'] + r['lf'] for r in contributions),
+        'fn': sum(r['fn'] for r in contributions),
+        'total': sum(r['s'] + r['pr'] + r['i'] + r['fn'] for r in contributions),
     }
 
     cur.execute('SELECT COUNT(*) c FROM members')
@@ -224,13 +224,13 @@ def _draw_page(pdf, data):
     pdf.ln(6.5)
 
     if contrib['rows']:
-        headers = ['#', 'Member', 'Share', 'Principal', 'Interest', 'Late Fee', 'Total']
+        headers = ['#', 'Member', 'Share', 'Loan Principal', 'Loan Interest', 'Fine', 'Total']
         widths = [8, 66, 22, 25, 22, 24, 25]
         rows = []
         for idx, r in enumerate(contrib['rows'], 1):
-            rows.append([idx, r['name'], inr(r['s']), inr(r['pr']), inr(r['i']), inr(r['lf']), inr(r['s'] + r['pr'] + r['i'] + r['lf'])])
+            rows.append([idx, r['name'], inr(r['s']), inr(r['pr']), inr(r['i']), inr(r['fn']), inr(r['s'] + r['pr'] + r['i'] + r['fn'])])
         t = contrib['totals']
-        rows.append(['', 'Total', inr(t['s']), inr(t['pr']), inr(t['i']), inr(t['lf']), inr(t['total'])])
+        rows.append(['', 'Total', inr(t['s']), inr(t['pr']), inr(t['i']), inr(t['fn']), inr(t['total'])])
         fonts = ['EN'] * 7
         aligns = ['C', 'L', 'R', 'R', 'R', 'R', 'R']
         _table(pdf, widths, headers, rows, fonts, aligns, bold_rows=(len(rows) - 1,))
