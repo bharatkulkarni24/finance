@@ -73,15 +73,18 @@ def get_admin_stats():
     cur.execute("SELECT SUM(loan_interest) FROM member_ledger")
     loan_interest_received = cur.fetchone()[0] or 0.0
     cur.execute(
-        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND (description LIKE 'FD Interest%' OR member_id IS NULL)",
+        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND description LIKE 'FD Interest%'",
     )
-    txn_others = cur.fetchone()[0] or 0.0
+    scheme_income_total = cur.fetchone()[0] or 0.0
+    cur.execute(
+        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND member_id IS NULL AND description NOT LIKE 'FD Interest%'",
+    )
+    others_total = cur.fetchone()[0] or 0.0
     cur.execute("SELECT COALESCE(SUM(fine),0) FROM member_ledger")
     fine_total = cur.fetchone()[0] or 0.0
-    others_total = txn_others
     cur.execute("SELECT SUM(amount) FROM group_ledger WHERE debit_credit='debit'")
     expenses_total = cur.fetchone()[0] or 0.0
-    total_collected = entry_deposit_total + shares_total + loan_interest_received + others_total + fine_total - expenses_total
+    total_collected = entry_deposit_total + shares_total + loan_interest_received + scheme_income_total + others_total + fine_total - expenses_total
     cur.execute("SELECT COUNT(*) FROM members")
     member_count = cur.fetchone()[0] or 0
     cur.execute("SELECT SUM(outstanding) FROM loans WHERE status='active'")
@@ -99,6 +102,7 @@ def get_admin_stats():
         'loan_principal_received': loan_principal_received,
         'loan_interest_received': loan_interest_received,
         'others_total': others_total,
+        'scheme_income_total': scheme_income_total,
         'fines_total': fine_total,
         'expenses_total': expenses_total,
         'total_lent': total_lent,
@@ -178,8 +182,7 @@ def get_passbook_entries():
         UNION ALL
         SELECT t.timestamp,
             CASE
-                WHEN t.description LIKE 'FD Interest%' THEN 'FD Interest'
-                WHEN t.debit_credit='credit' THEN 'Income'
+                WHEN t.debit_credit='credit' THEN 'Other Income'
                 ELSE 'Expense'
             END as category,
             m.name as member_name, t.amount, t.debit_credit, NULL, NULL, NULL, NULL

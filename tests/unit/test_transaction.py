@@ -134,7 +134,7 @@ class TestTransactionBoundary:
     def test_passbook_no_split_on_non_member_entries(self, setup_db):
         add_transaction('credit', 5000, 'Rental Income', '2026-07-01T12:00:00')
         entries = get_passbook_entries()
-        assert all('split' not in e for e in entries if e['category'] == 'Income')
+        assert all('split' not in e for e in entries if e['category'] == 'Other Income')
 
     def test_add_income_transaction_large(self, setup_db):
         t = add_transaction('credit', 1000000, 'Large deposit')

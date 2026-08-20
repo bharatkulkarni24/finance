@@ -1151,7 +1151,7 @@ async function renderHome() {
           <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Share')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest')}:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><strong>${t('Fine:')}</strong> ${stats?formatCurrency(stats.fines_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(((stats?.scheme_income_total||0)+(stats?.others_total||0))):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
         </div>
       </div>

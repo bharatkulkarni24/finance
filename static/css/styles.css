@@ -1759,8 +1759,7 @@ body {
 .pb-badge.loan-disbursed { background: rgba(239,68,68,0.15); color: #fca5a5 }
 .pb-badge.fd-deposit { background: rgba(245,158,11,0.15); color: #fcd34d }
 .pb-badge.fd-matured { background: rgba(6,182,212,0.15); color: #67e8f9 }
-.pb-badge.fd-interest { background: rgba(236,72,153,0.15); color: #f9a8d4 }
-.pb-badge.income { background: rgba(52,211,153,0.15); color: #6ee7b7 }
+.pb-badge.other-income { background: rgba(52,211,153,0.15); color: #6ee7b7 }
 .pb-badge.expense { background: rgba(239,68,68,0.15); color: #fca5a5 }
 .pb-badge.payment { background: rgba(251,146,60,0.15); color: #fdba74 }
 .pb-badge.fine { background: rgba(244,63,94,0.15); color: #fda4af }
