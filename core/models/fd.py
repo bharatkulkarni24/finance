@@ -79,11 +79,6 @@ def close_fd(fd_id: int, end_date: str, interest_earned: float):
         conn.close()
         return None
 
-    if interest_earned > 0:
-        cur.execute(
-            'INSERT INTO group_ledger (member_id, timestamp, description, debit_credit, amount) VALUES (?,?,?,?,?)',
-            (None, datetime.utcnow().isoformat(), f'FD Interest - {fd_dict["notes"] or fd_id}', 'credit', interest_earned),
-        )
     conn.commit()
     cur.execute('SELECT * FROM fixed_deposits WHERE fd_id=?', (fd_id,))
     result = row_to_dict(cur.fetchone())

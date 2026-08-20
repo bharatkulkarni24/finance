@@ -117,16 +117,14 @@ class TestFDBoundary:
 # ─── Zombies: Interface ───────────────────────────────────────────────────────
 
 class TestFDInterface:
-    def test_close_fd_creates_interest_transaction(self, setup_db):
+    def test_close_fd_includes_interest_in_matured(self, setup_db):
         fd = add_fd(50000, '2026-01-01', 12, 7, 'SBI')
         close_fd(fd['fd_id'], '2026-06-22', 2500)
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM group_ledger WHERE description LIKE 'FD Interest%'")
-        txns = [dict(r) for r in cur.fetchall()]
-        conn.close()
-        assert len(txns) == 1
-        assert txns[0]['amount'] == 2500
+        from core.models.transaction import get_passbook_entries
+        entries = get_passbook_entries()
+        matured = [e for e in entries if e['category'] == 'FD Matured']
+        assert len(matured) == 1
+        assert matured[0]['amount'] == 52500
 
     def test_active_fd_excludes_closed(self, setup_db):
         add_fd(50000, '2026-01-01', 12, 7, 'SBI')

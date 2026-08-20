@@ -1151,7 +1151,7 @@ async function renderHome() {
           <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Share')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest')}:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><strong>${t('Fine:')}</strong> ${stats?formatCurrency(stats.fines_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(((stats?.scheme_income_total||0)+(stats?.others_total||0))):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
         </div>
       </div>
@@ -1266,7 +1266,7 @@ async function renderAdminPanel() {
     .flatMap(member => member.member_id ? [member] : [])
   const eeTypeOptions = [
     ['all', t('All types')], ['split', t('Share / Loan')],
-    ['income', t('Income')], ['expense', t('Expense')], ['fd', t('Hardlock / Investment')],
+    ['income', t('Income')], ['expense', t('Expense')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   const ieFormFields = (type) => {
     const isInc = type === 'income'
@@ -1951,7 +1951,7 @@ async function renderSubmittedRequests() {
           if (fn > 0) details += `<span style="color:#f97316">${t('Fine')}: ${formatCurrency(fn)}</span> `
           details += `<span style="color:#ffffff;font-weight:600">· Total: ${formatCurrency(total)}</span>`
         }
-        const typeLabel = sa > 0 ? t('Share') : (la > 0 ? t('Loan Principal') : (li > 0 ? t('Loan Interest') : t('Payment')))
+        const typeLabel = t('Payment')
         subHtml = isCombined ? details : `${typeLabel} ${formatCurrency(it.total_amount)}`
       }
       row.innerHTML = `
@@ -2330,22 +2330,24 @@ async function renderAllHistory() {
   const requestRows = []
   ;(m.requests || []).forEach(r => {
     const isLoan = r.item_type === 'loan'
-    let typeLabel
-    if (isLoan) {
-      typeLabel = t('Loan Application')
-    } else {
-      const sa = Number(r.share_amount || 0)
-      const la = Number(r.loan_principal || 0)
-      const li = Number(r.loan_interest || 0)
-      const fn = Number(r.fine || 0)
-      typeLabel = sa > 0 && (la > 0 || li > 0 || fn > 0) ? t('Combined Payment') : (sa > 0 ? t('Share') : (la > 0 ? t('Loan Principal') : (li > 0 ? t('Loan Interest') : t('Payment'))))
-    }
+    const typeLabel = isLoan ? t('Loan Application') : t('Payment')
     const amount = isLoan ? (r.loan_amount || 0) : (r.total_amount || 0)
-    let info
-    if (r.status === 'approved') info = t('Approved') + ' ' + (r.approved_date ? t('on ') + formatDateTime(r.approved_date) : '') + (r.approved_by_name ? ' — ' + r.approved_by_name : '')
-    else if (r.status === 'rejected') info = t('Rejected') + (r.reject_reason ? ' — ' + r.reject_reason : '') + (r.rejected_date ? ' ' + t('on') + ' ' + formatDateTime(r.rejected_date) : '')
-    else info = t('Submitted')
-    requestRows.push({ sortKey: normDate(r.date_submitted), date: r.date_submitted, type: typeLabel, amount, status: r.status, info })
+    let statusColor, statusText, statusDate, statusTime, comment
+    if (r.status === 'approved') {
+      statusColor = '#34d399'; statusText = t('Approved')
+      const sp = r.approved_date ? formatDateParts(r.approved_date) : {date:'',time:''}
+      statusDate = sp.date; statusTime = sp.time
+      comment = ''
+    } else if (r.status === 'rejected') {
+      statusColor = '#f87171'; statusText = t('Rejected')
+      const sp = r.rejected_date ? formatDateParts(r.rejected_date) : {date:'',time:''}
+      statusDate = sp.date; statusTime = sp.time
+      comment = r.reject_reason || ''
+    } else {
+      statusColor = '#94a3b8'; statusText = t('Submitted')
+      statusDate = ''; statusTime = ''; comment = ''
+    }
+    requestRows.push({ sortKey: normDate(r.date_submitted), date: r.date_submitted, type: typeLabel, amount, statusColor, statusText, statusDate, statusTime, comment })
   })
   requestRows.sort((a, b) => b.sortKey.localeCompare(a.sortKey))
   const rowsHtml = requestRows.length ? requestRows.map(r => {
@@ -2354,8 +2356,8 @@ async function renderAllHistory() {
       <td class="act-date-cell" style="white-space:nowrap;font-size:0.8rem">${dp.date}<span class="act-time"> ${dp.time}</span></td>
       <td class="act-type-cell">${r.type}</td>
       <td style="white-space:nowrap">${formatCurrency(r.amount)}</td>
-      <td>${r.status}</td>
-      <td>${r.info}</td>
+      <td class="act-status-cell"><span style="color:${r.statusColor};font-weight:600">${r.statusText}</span><br/><span class="act-status-dt"><span class="act-status-date">${r.statusDate}</span> <span class="act-status-time">${r.statusTime}</span></span></td>
+      <td class="act-comment-cell" style="font-size:0.82rem;color:#94a3b8">${r.comment}</td>
     </tr>`
   }).join('') : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;">${t('No history yet')}</td></tr>`
   content.innerHTML = `

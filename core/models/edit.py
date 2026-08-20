@@ -138,16 +138,14 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
                 entry['fine'] = d['fine']
             out.append(entry)
 
-    if etype in ('all', 'income', 'expense', 'fd'):
+    if etype in ('all', 'income', 'expense'):
         sql = ("SELECT t.*, m.name AS member_name FROM group_ledger t LEFT JOIN members m ON m.member_id=t.member_id "
-               "WHERE (t.description LIKE 'FD Interest%' OR t.member_id IS NULL)")
+               "WHERE t.member_id IS NULL")
         params = []
         if etype == 'income':
-            sql += " AND t.debit_credit='credit' AND t.description NOT LIKE 'FD Interest%'"
+            sql += " AND t.debit_credit='credit'"
         elif etype == 'expense':
-            sql += " AND t.debit_credit='debit' AND t.description NOT LIKE 'FD Interest%'"
-        elif etype == 'fd':
-            sql += " AND t.description LIKE 'FD Interest%'"
+            sql += " AND t.debit_credit='debit'"
         if member_id:
             sql += ' AND t.member_id=?'
             params.append(member_id)
@@ -166,9 +164,7 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
         cur.execute(sql, params)
         for r in cur.fetchall():
             d = dict(r)
-            if d['description'] and d['description'].startswith('FD Interest'):
-                kind = 'fd'
-            elif d['debit_credit'] == 'credit':
+            if d['debit_credit'] == 'credit':
                 kind = 'income'
             else:
                 kind = 'expense'

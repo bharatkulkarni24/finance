@@ -23,7 +23,7 @@ def get_recent_transactions(limit=50):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute(
-        "SELECT * FROM group_ledger WHERE member_id IS NULL AND description NOT LIKE 'FD Interest%' ORDER BY timestamp DESC LIMIT ?", (limit,),
+        "SELECT * FROM group_ledger WHERE member_id IS NULL ORDER BY timestamp DESC LIMIT ?", (limit,),
     )
     rows = cur.fetchall()
     conn.close()
@@ -73,18 +73,16 @@ def get_admin_stats():
     cur.execute("SELECT SUM(loan_interest) FROM member_ledger")
     loan_interest_received = cur.fetchone()[0] or 0.0
     cur.execute(
-        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND description LIKE 'FD Interest%'",
-    )
-    scheme_income_total = cur.fetchone()[0] or 0.0
-    cur.execute(
-        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND member_id IS NULL AND description NOT LIKE 'FD Interest%'",
+        "SELECT COALESCE(SUM(amount),0) FROM group_ledger WHERE debit_credit='credit' AND member_id IS NULL",
     )
     others_total = cur.fetchone()[0] or 0.0
     cur.execute("SELECT COALESCE(SUM(fine),0) FROM member_ledger")
     fine_total = cur.fetchone()[0] or 0.0
+    cur.execute("SELECT COALESCE(SUM(interest_earned),0) FROM fixed_deposits WHERE status='matured'")
+    fd_interest_returned = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(amount) FROM group_ledger WHERE debit_credit='debit'")
     expenses_total = cur.fetchone()[0] or 0.0
-    total_collected = entry_deposit_total + shares_total + loan_interest_received + scheme_income_total + others_total + fine_total - expenses_total
+    total_collected = entry_deposit_total + shares_total + loan_interest_received + others_total + fine_total + fd_interest_returned - expenses_total
     cur.execute("SELECT COUNT(*) FROM members")
     member_count = cur.fetchone()[0] or 0
     cur.execute("SELECT SUM(outstanding) FROM loans WHERE status='active'")
@@ -102,7 +100,6 @@ def get_admin_stats():
         'loan_principal_received': loan_principal_received,
         'loan_interest_received': loan_interest_received,
         'others_total': others_total,
-        'scheme_income_total': scheme_income_total,
         'fines_total': fine_total,
         'expenses_total': expenses_total,
         'total_lent': total_lent,
@@ -192,8 +189,8 @@ def get_passbook_entries():
         SELECT f.start_date || 'T12:00:00', 'FD Deposit', NULL, f.amount, 'debit', NULL, NULL, NULL, NULL
         FROM fixed_deposits f WHERE f.amount > 0
         UNION ALL
-        SELECT f.maturity_date || 'T12:00:00', 'FD Matured', NULL, f.amount, 'credit', NULL, NULL, NULL, NULL
-        FROM fixed_deposits f WHERE f.status='matured' AND f.amount > 0
+        SELECT f.maturity_date || 'T12:00:00', 'FD Matured', NULL, f.amount + COALESCE(f.interest_earned, 0), 'credit', NULL, NULL, NULL, NULL
+        FROM fixed_deposits f WHERE f.status='matured' AND (f.amount + COALESCE(f.interest_earned, 0)) > 0
     ) ORDER BY ts DESC
     """)
     rows = []

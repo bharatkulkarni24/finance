@@ -751,6 +751,19 @@ body {
   color: #e2e8f0;
 }
 
+/* ── Activity table: vertical column borders ── */
+.activity-scroll .table th,
+.activity-scroll .table td {
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
+}
+.activity-scroll .table th:last-child,
+.activity-scroll .table td:last-child {
+  border-right: none;
+}
+.act-status-dt { display: inline; }
+.act-status-dt .act-status-date,
+.act-status-dt .act-status-time { font-size: 0.72rem; color: #64748b; }
+
 /* small tweaks for loan request inputs */
 .panel input[type="file"] { color: #cbd5e1 }
 
@@ -1197,6 +1210,7 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.08);
   scroll-behavior: smooth;
 }
+.activity-scroll { max-height: 480px; }
 
 #ie-list {
   overflow-x: auto;
@@ -2226,6 +2240,9 @@ body {
   .activity-scroll .act-date-cell { white-space: normal; }
   .activity-scroll .act-time { display: block; white-space: nowrap; font-size: 0.7rem; color: #64748b; }
   .activity-scroll .act-type-cell { white-space: normal; }
+  .act-status-dt { display: block; }
+  .act-status-dt .act-status-date,
+  .act-status-dt .act-status-time { display: block; }
 
   /* ── Tables scroll sideways instead of stretching the page ── */
   .table th,
