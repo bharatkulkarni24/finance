@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from core.database import strip_sensitive
 from core.models.member import get_all_members, create_member, get_member, update_member
-from core.models.payment import add_contribution, create_payment_request
+from core.models.payment import create_payment_request
 from core.models.transaction import get_member_statement
 from core.models.loan import compute_interest_accrued
 from core.session import require_admin, require_self_or_admin
@@ -146,9 +146,10 @@ def contribute(member_id):
         return jsonify({'error': 'unauthorized'}), 401
     data = request.json
     amount = float(data.get('amount', 0))
-    when = date.today()
-    add_contribution(member_id, when, amount, 'share')
-    return jsonify({'status': 'ok'})
+    if amount <= 0:
+        return jsonify({'error': 'amount must be greater than 0'}), 400
+    req = create_payment_request(member_id, amount, share_amount=amount)
+    return jsonify({'status': 'submitted', 'request': req}), 201
 
 
 @members_bp.route('/api/members/<int:member_id>/submit_payment_request', methods=['POST'])

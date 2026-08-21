@@ -40,10 +40,40 @@ def create_payment_request(member_id: int, amount: float, note: str = '', screen
     return req
 
 
-def _active_loan(cur, member_id):
-    cur.execute('SELECT * FROM loans WHERE member_id=? AND status=?', (member_id, 'active'))
-    row = cur.fetchone()
-    return row_to_dict(row) if row else None
+def _active_loans(cur, member_id):
+    cur.execute(
+        "SELECT * FROM loans WHERE member_id=? AND status='active' ORDER BY loan_id ASC",
+        (member_id,),
+    )
+    return [row_to_dict(r) for r in cur.fetchall()]
+
+
+def _apply_loan_payment(cur, active_loans, loan_amt, interest_amt):
+    """Apply loan principal and interest to active loans (oldest first).
+
+    Returns (loan_id, remaining_loan_amt) where loan_id is the last loan
+    that received principal (for ledger linkage).
+    """
+    loan_id = None
+    remaining = loan_amt or 0
+    for loan in active_loans:
+        compute_interest_accrued(loan, date.today(), cur)
+        if remaining > 0:
+            to_apply = min(remaining, loan['outstanding'] or 0)
+            new_out = round((loan['outstanding'] or 0) - to_apply, 2)
+            if new_out <= 0:
+                cur.execute(
+                    'UPDATE loans SET outstanding=?, status=? WHERE loan_id=?',
+                    (0, 'repaid', loan['loan_id']),
+                )
+            else:
+                cur.execute(
+                    'UPDATE loans SET outstanding=? WHERE loan_id=?',
+                    (new_out, loan['loan_id']),
+                )
+            remaining -= to_apply
+            loan_id = loan['loan_id']
+    return loan_id
 
 
 def approve_payment_request(request_id: int, approver_id: int):
@@ -69,13 +99,9 @@ def approve_payment_request(request_id: int, approver_id: int):
 
     loan_id = None
     if loan_amt > 0 or interest_amt > 0:
-        active_loan = _active_loan(cur, req['member_id'])
-        if active_loan:
-            compute_interest_accrued(active_loan, date.today(), cur)
-            to_apply = min(loan_amt or 0, active_loan['outstanding'] or 0)
-            new_out = round((active_loan['outstanding'] or 0) - to_apply, 2)
-            cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, active_loan['loan_id']))
-            loan_id = active_loan['loan_id']
+        active_loans = _active_loans(cur, req['member_id'])
+        if active_loans:
+            loan_id = _apply_loan_payment(cur, active_loans, loan_amt, interest_amt)
 
     cur.execute(
         'INSERT INTO member_ledger (member_id, pay_date, total_amount, share_amount, loan_principal, loan_interest, fine, request_id, loan_id, req_no, created_at, modified_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
@@ -115,13 +141,9 @@ def admin_direct_entry(member_id: int, share_amount: float = 0, fine: float = 0,
 
     loan_id = None
     if loan_principal > 0:
-        active_loan = _active_loan(cur, member_id)
-        if active_loan:
-            compute_interest_accrued(active_loan, date.today(), cur)
-            to_apply = min(loan_principal, active_loan['outstanding'] or 0)
-            new_out = round((active_loan['outstanding'] or 0) - to_apply, 2)
-            cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, active_loan['loan_id']))
-            loan_id = active_loan['loan_id']
+        active_loans = _active_loans(cur, member_id)
+        if active_loans:
+            loan_id = _apply_loan_payment(cur, active_loans, loan_principal, 0)
 
     total = round((share_amount or 0) + (loan_principal or 0) + (loan_interest or 0) + (fine or 0), 2)
     if total > 0:

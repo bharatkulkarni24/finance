@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash
 from core.database import strip_sensitive
 from core.models.member import get_all_members, find_member_by_name, get_member
 from core.rate_limit import too_many, record_failure, record_success
-from core.session import create_admin_session
+from core.session import create_admin_session, destroy_admin_session
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -61,13 +61,14 @@ def me():
         session.clear()
         return jsonify({'error': 'not logged in'}), 401
     result = strip_sensitive(member)
-    if member['is_admin']:
-        result['token'] = create_admin_session(member['member_id'])
     return jsonify(result)
 
 
 @auth_bp.route('/api/logout', methods=['POST'])
 def logout():
+    token = request.headers.get('X-ADMIN-TOKEN', '')
+    if token:
+        destroy_admin_session(token)
     session.clear()
     return jsonify({'status': 'ok'})
 

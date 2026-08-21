@@ -132,7 +132,6 @@ class TestAPISession:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data['name'] == ADMIN_NAME
-        assert data.get('token')
 
     def test_me_unauthorized_when_not_logged_in(self, client):
         resp = client.get('/api/me')
@@ -589,7 +588,15 @@ class TestAPIException:
     def test_contribute_with_no_data(self, client):
         mid = _create_and_login_member(client)
         resp = client.post(f'/api/members/{mid}/contribute', json={})
-        assert resp.status_code == 200  # defaults to 0 amount
+        assert resp.status_code == 400  # amount must be > 0
+
+    def test_contribute_creates_payment_request(self, client):
+        mid = _create_and_login_member(client)
+        resp = client.post(f'/api/members/{mid}/contribute', json={'amount': 500})
+        assert resp.status_code == 201
+        data = resp.get_json()
+        assert data['status'] == 'submitted'
+        assert data['request']['share_amount'] == 500
 
     def test_admin_fd_add_unauthorized(self, client):
         resp = client.post('/api/admin/fd/add', json={'amount': 50000})

@@ -261,15 +261,24 @@ def _revert_loan_principal(cur, member_id, date):
 def _apply_new_principal(cur, member_id, loan_principal):
     if not loan_principal or loan_principal <= 0:
         return None
-    cur.execute("SELECT * FROM loans WHERE member_id=? AND status='active' ORDER BY loan_id DESC LIMIT 1", (member_id,))
-    active = cur.fetchone()
-    if not active:
+    cur.execute("SELECT * FROM loans WHERE member_id=? AND status='active' ORDER BY loan_id ASC", (member_id,))
+    active_loans = [row_to_dict(r) for r in cur.fetchall()]
+    if not active_loans:
         return None
-    loan_dict = row_to_dict(active)
-    compute_interest_accrued(loan_dict, dt_date.today(), cur)
-    to_apply = min(loan_principal, loan_dict['outstanding'] or 0)
-    cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (round((loan_dict['outstanding'] or 0) - to_apply, 2), loan_dict['loan_id']))
-    return loan_dict['loan_id']
+    remaining = loan_principal
+    loan_id = None
+    for loan in active_loans:
+        compute_interest_accrued(loan, dt_date.today(), cur)
+        if remaining > 0:
+            to_apply = min(remaining, loan['outstanding'] or 0)
+            new_out = round((loan['outstanding'] or 0) - to_apply, 2)
+            if new_out <= 0:
+                cur.execute('UPDATE loans SET outstanding=?, status=? WHERE loan_id=?', (0, 'repaid', loan['loan_id']))
+            else:
+                cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, loan['loan_id']))
+            remaining -= to_apply
+            loan_id = loan['loan_id']
+    return loan_id
 
 
 def _log_audit(cur, pay_id, action, changed_by, old, new):

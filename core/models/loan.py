@@ -155,7 +155,10 @@ def apply_payment_to_loan(loan: dict, amount: float) -> dict:
     now = datetime.utcnow().isoformat()
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, loan['loan_id']))
+    if new_out <= 0:
+        cur.execute('UPDATE loans SET outstanding=?, status=? WHERE loan_id=?', (0, 'repaid', loan['loan_id']))
+    else:
+        cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, loan['loan_id']))
     cur.execute(
         'INSERT INTO member_ledger (member_id, pay_date, total_amount, loan_principal, loan_id, created_at, modified_at) VALUES (?,?,?,?,?,?,?)',
         (loan['member_id'], _as_datetime(date.today().isoformat()), amount, to_apply, loan['loan_id'], now, now),
@@ -166,4 +169,6 @@ def apply_payment_to_loan(loan: dict, amount: float) -> dict:
     pay = row_to_dict(cur.fetchone())
     conn.close()
     loan['outstanding'] = new_out
+    if new_out <= 0:
+        loan['status'] = 'repaid'
     return pay
