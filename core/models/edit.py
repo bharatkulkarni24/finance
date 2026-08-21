@@ -180,6 +180,40 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
                 'payment_id': None,
             })
 
+    if etype == 'fd':
+        sql = "SELECT f.* FROM fixed_deposits f WHERE f.status='matured' AND f.interest_earned > 0"
+        params = []
+        if q:
+            sql += ' AND f.notes LIKE ?'
+            params.append(like)
+        if date_from:
+            sql += ' AND substr(f.maturity_date,1,10) >= ?'
+            params.append(date_from)
+        if date_to:
+            sql += ' AND substr(f.maturity_date,1,10) <= ?'
+            params.append(date_to)
+        sql += ' ORDER BY f.maturity_date DESC, f.fd_id DESC LIMIT ?'
+        params.append(limit)
+        cur.execute(sql, params)
+        for r in cur.fetchall():
+            d = dict(r)
+            out.append({
+                'id': 'f' + str(d['fd_id']),
+                'kind': 'fd',
+                'member_id': None,
+                'member_name': d['notes'] or 'Hardlock / Investment',
+                'date': (d['maturity_date'] or '')[:10],
+                'amount': d['interest_earned'] or 0,
+                'description': 'Principal {}, {}% for {} months'.format(d['amount'], d['interest_rate'], d['term_months']),
+                'debit_credit': 'credit',
+                'loan_principal': None,
+                'loan_interest': None,
+                'fine': None,
+                'contribution_id': None,
+                'transaction_id': None,
+                'payment_id': None,
+            })
+
     attach_split(cur, out)
     if etype in ('all', 'split'):
         out = _group_split_rows(out)

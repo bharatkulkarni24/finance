@@ -139,7 +139,7 @@ const I18N = {
     'Entry Deposit': 'Entry Deposit',
     'Tenure': 'Tenure',
     'Loan Interest': 'Loan Interest',
-    'FD Matured': 'FD Matured',
+    'FD Gain': 'FD Gain',
     '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
     'Monthly': 'Monthly',
     'Yearly': 'Yearly',
@@ -395,7 +395,7 @@ const I18N = {
     'Entry Deposit': 'ಪ್ರವೇಶ ಠೇವಣಿ',
     'Tenure': 'ಅವಧಿ',
     'Loan Interest': 'ಸಾಲದ ಬಡ್ಡಿ',
-    'FD Matured': 'ಎಫ್‌ಡಿ ಮುಕ್ತಾಯ',
+    'FD Gain': 'ಎಫ್‌ಡಿ ಲಾಭ',
     '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
     'Monthly': 'ಮಾಸಿಕ',
     'Yearly': 'ವಾರ್ಷಿಕ',
@@ -1281,7 +1281,7 @@ async function renderHome() {
           <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Share')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest')}:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><strong>${t('Fine:')}</strong> ${stats?formatCurrency(stats.fines_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot fdm-dot"></span><strong>${t('FD Matured')}:</strong> ${stats?formatCurrency(stats.fd_interest_returned || 0):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot fdm-dot"></span><strong>${t('FD Gain')}:</strong> ${stats?formatCurrency(stats.fd_interest_returned || 0):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
         </div>
@@ -1543,7 +1543,7 @@ function renderAdminPending() {
 function renderAdminEditEntries() {
   const eeTypeOptions = [
     ['all', t('All types')], ['split', t('Share / Loan')],
-    ['income', t('Income')], ['expense', t('Expense')],
+    ['income', t('Income')], ['expense', t('Expense')], ['fd', t('FD Gain')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   adminSubPage(`
     <h3 class="section-heading">✏️ ${t('Edit / Correct Entries')}</h3>
@@ -1899,8 +1899,8 @@ function eeRowHtml(e) {
     </div>
     ${amountHtml}
     <div class="ee-actions">
-      <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem" onclick="eeEdit('${e.id}')">✏️ ${t('Edit')}</button>
-      <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem;color:#fca5a5" onclick="eeDelete('${e.id}')">🗑 ${t('Delete')}</button>
+      ${e.kind === 'fd' ? '' : `<button class="btn secondary" style="padding:5px 12px;font-size:0.8rem" onclick="eeEdit('${e.id}')">✏️ ${t('Edit')}</button>
+      <button class="btn secondary" style="padding:5px 12px;font-size:0.8rem;color:#fca5a5" onclick="eeDelete('${e.id}')">🗑 ${t('Delete')}</button>`}
     </div>
     ${detail}
   </div>`

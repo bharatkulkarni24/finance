@@ -122,7 +122,7 @@ class TestFDInterface:
         close_fd(fd['fd_id'], '2026-06-22', 2500)
         from core.models.transaction import get_passbook_entries
         entries = get_passbook_entries()
-        matured = [e for e in entries if e['category'] == 'FD Matured']
+        matured = [e for e in entries if e['category'] == 'FD Gain']
         assert len(matured) == 1
         assert matured[0]['amount'] == 52500
 

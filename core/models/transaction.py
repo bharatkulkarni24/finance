@@ -190,7 +190,7 @@ def get_passbook_entries():
         SELECT f.start_date || 'T12:00:00', 'FD Deposit', NULL, f.amount, 'debit', NULL, NULL, NULL, NULL
         FROM fixed_deposits f WHERE f.amount > 0
         UNION ALL
-        SELECT f.maturity_date || 'T12:00:00', 'FD Matured', NULL, f.amount + COALESCE(f.interest_earned, 0), 'credit', NULL, NULL, NULL, NULL
+        SELECT f.maturity_date || 'T12:00:00', 'FD Gain', NULL, f.amount + COALESCE(f.interest_earned, 0), 'credit', NULL, NULL, NULL, NULL
         FROM fixed_deposits f WHERE f.status='matured' AND (f.amount + COALESCE(f.interest_earned, 0)) > 0
     ) ORDER BY ts DESC
     """)
