@@ -1236,6 +1236,8 @@ function renderMenu() {
 async function loadMembers() {
   state.members = await api('/members')
   memberSelect.innerHTML = state.members.map(m => `<option value="${m.name}">${m.name}${m.is_admin ? ' (Admin)' : ''}</option>`).join('')
+  const last = localStorage.getItem('finance_last_user')
+  if (last && state.members.some(m => m.name === last)) memberSelect.value = last
 }
 
 async function init() {
@@ -1286,6 +1288,7 @@ async function handleLogin() {
       body: JSON.stringify({name, pin}),
     })
     state.currentUser = user
+    try { localStorage.setItem('finance_last_user', user.name) } catch (e) {}
     state.adminToken = user.token || ''
     state.activeView = 'home'
     persistActiveView()
