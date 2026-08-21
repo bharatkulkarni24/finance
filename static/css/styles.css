@@ -599,6 +599,10 @@ body {
   background: transparent;
   overflow: visible;
   cursor: pointer;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .lang-loop-svg {
   position: absolute;
@@ -2338,7 +2342,12 @@ body {
     align-self: center;
     background: transparent;
     border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
   }
+  #menu-links .lang-toggle .lang-loop-label { font-size: 0.72rem; }
   #menu-links .lang-toggle:hover { background: transparent; border: none; box-shadow: none; transform: none; }
   #user-menu .user-menu-item { background: rgba(124, 58, 237, 0.16); border: 1px solid rgba(148, 163, 184, 0.16); }
   #user-menu .user-menu-item.danger { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); }

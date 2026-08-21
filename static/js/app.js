@@ -1156,8 +1156,8 @@ function renderMenu() {
           <stop offset="100%" stop-color="#22c55e" />
         </linearGradient>
       </defs>
-      <path class="lang-loop-arc" d="M32 4 H44 Q52 4 52 14 V32 Q52 42 44 42 H12 Q4 42 4 32 V14 Q4 4 12 4 H24" />
-      <path class="lang-loop-arrow" d="M29.5 4 L23.5 0.9 L23.5 7.1 Z" />
+      <path class="lang-loop-arc" d="M34 4 H44 Q52 4 52 14 V32 Q52 42 44 42 H12 Q4 42 4 32 V14 Q4 4 12 4 H22" />
+      <path class="lang-loop-arrow" d="M31.5 4 L21.5 0.8 L21.5 7.2 Z" />
     </svg>
     <span class="lang-loop-label">${state.lang === 'kn' ? 'EN' : 'ಕನ್ನಡ'}</span>`
   menuLinks.appendChild(langBtn)
