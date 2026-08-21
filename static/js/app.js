@@ -139,6 +139,7 @@ const I18N = {
     'Entry Deposit': 'Entry Deposit',
     'Tenure': 'Tenure',
     'Loan Interest': 'Loan Interest',
+    'FD Matured': 'FD Matured',
     '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
     'Monthly': 'Monthly',
     'Yearly': 'Yearly',
@@ -394,6 +395,7 @@ const I18N = {
     'Entry Deposit': 'ಪ್ರವೇಶ ಠೇವಣಿ',
     'Tenure': 'ಅವಧಿ',
     'Loan Interest': 'ಸಾಲದ ಬಡ್ಡಿ',
+    'FD Matured': 'ಎಫ್‌ಡಿ ಮುಕ್ತಾಯ',
     '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
     'Monthly': 'ಮಾಸಿಕ',
     'Yearly': 'ವಾರ್ಷಿಕ',
@@ -1279,6 +1281,7 @@ async function renderHome() {
           <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Share')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest')}:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><strong>${t('Fine:')}</strong> ${stats?formatCurrency(stats.fines_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot fdm-dot"></span><strong>${t('FD Matured')}:</strong> ${stats?formatCurrency(stats.fd_interest_returned || 0):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
           <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
         </div>

@@ -99,6 +99,7 @@ def get_admin_stats():
         'shares_total': shares_total,
         'loan_principal_received': loan_principal_received,
         'loan_interest_received': loan_interest_received,
+        'fd_interest_returned': fd_interest_returned,
         'others_total': others_total,
         'fines_total': fine_total,
         'expenses_total': expenses_total,
