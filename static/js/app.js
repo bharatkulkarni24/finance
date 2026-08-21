@@ -349,6 +349,11 @@ const I18N = {
     'Password changed': 'Password changed',
     'Passwords do not match': 'Passwords do not match',
     'Fill all fields': 'Fill all fields',
+    'Reset Password': 'Reset Password',
+    'Set a new password if a member forgets theirs.': 'Set a new password if a member forgets theirs.',
+    'Select member': 'Select member',
+    'Reset': 'Reset',
+    'Password reset': 'Password reset',
     'Failed to change password': 'Failed to change password',
     'Confirm': 'Confirm',
     '📄 Export Report (PDF)': '📄 Export Report (PDF)',
@@ -682,6 +687,11 @@ const I18N = {
     'Password changed': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಗಿದೆ',
     'Passwords do not match': 'ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ',
     'Fill all fields': 'ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ',
+    'Reset Password': 'ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ',
+    'Set a new password if a member forgets theirs.': 'ಯಾವುದಾದರೂ ಸದಸ್ಯರು ತಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದರೆ ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಸಿ.',
+    'Select member': 'ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+    'Reset': 'ಮರುಹೊಂದಿಸಿ',
+    'Password reset': 'ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಾಣಿಕೆಯಾಗಿದೆ',
     'Failed to change password': 'ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಲು ವಿಫಲವಾಗಿದೆ',
     'Confirm': 'ಖಚಿತಪಡಿಸಿ',
     '📄 Export Report (PDF)': '📄 ವರದಿ ರಫ್ತು (PDF)',
@@ -1129,6 +1139,7 @@ function renderMenu() {
     'admin-export': '📄 ' + t('Export Report (PDF)'),
     'admin-income-expense': '💰 ' + t('Income / Expenses'),
     'admin-hardlock': '🔒 ' + t('Hardlock / Investment'),
+    'admin-reset-password': '🔑 ' + t('Reset Password'),
     'passbook': t('Passbook'),
     'my-profile': t('View Profile'),
     'change-password': t('Change Password'),
@@ -1428,6 +1439,7 @@ function renderView() {
   if (view === 'admin-export') return renderAdminExport()
   if (view === 'admin-income-expense') return renderAdminIncomeExpense()
   if (view === 'admin-hardlock') return renderAdminHardlock()
+  if (view === 'admin-reset-password') return renderAdminResetPassword()
   if (view === 'my-profile') return renderMemberProfile(state.currentUser.member_id, 'details')
   if (view === 'my-accounts') return renderMemberProfile(state.currentUser.member_id, 'accounts')
   if (view === 'change-password') return renderChangePassword()
@@ -1578,22 +1590,24 @@ function setView(view) {
 
 const ADMIN_SUB_VIEWS = [
   'admin-pending',
-  'admin-add-member',
   'admin-direct-entry',
-  'admin-edit-entries',
-  'admin-export',
   'admin-income-expense',
   'admin-hardlock',
+  'admin-edit-entries',
+  'admin-export',
+  'admin-reset-password',
+  'admin-add-member',
 ]
 
 const ADMIN_HUB_CARDS = [
   {id: 'admin-pending', icon: '⏳', label: 'Pending Requests', desc: 'Approve or reject member requests.', rgb: '245,158,11'},
-  {id: 'admin-add-member', icon: '➕', label: 'Add New Member', desc: 'Create a new member account.', rgb: '16,185,129'},
   {id: 'admin-direct-entry', icon: '⚡', label: 'Direct Entry', desc: 'Record an auto-approved payment.', rgb: '139,92,246'},
   {id: 'admin-income-expense', icon: '💰', label: 'Income / Expenses', desc: 'Add income & expense records.', rgb: '52,211,153'},
   {id: 'admin-hardlock', icon: '🔒', label: 'Hardlock / Investment', desc: 'Active investments, schemes & history.', rgb: '244,114,182'},
   {id: 'admin-edit-entries', icon: '✏️', label: 'Edit / Correct Entries', desc: 'Fix or delete a wrong entry.', rgb: '96,165,250'},
   {id: 'admin-export', icon: '📄', label: 'Export Report (PDF)', desc: 'Download monthly or period summary PDF.', rgb: '34,211,238'},
+  {id: 'admin-reset-password', icon: '🔑', label: 'Reset Password', desc: 'Set a new password if a member forgets theirs.', rgb: '251,113,133'},
+  {id: 'admin-add-member', icon: '➕', label: 'Add New Member', desc: 'Create a new member account.', rgb: '16,185,129'},
 ]
 
 async function renderAdminPanel() {
@@ -1678,6 +1692,54 @@ function renderAdminAddMember() {
     nmPwToggle.onclick = () => {
       nmPwInput.type = nmPwInput.type === 'password' ? 'text' : 'password'
       nmPwToggle.textContent = nmPwInput.type === 'password' ? '👁' : '🙈'
+    }
+  }
+}
+
+// ── Admin ▸ Reset Password ──
+function renderAdminResetPassword() {
+  const memberOptions = state.members.map(m => `<option value="${m.member_id}">${escHtml(m.name)}</option>`).join('')
+  adminSubPage(`
+    <h3 class="section-heading">🔑 ${t('Reset Password')}</h3>
+    <p style="color:#94a3b8;font-size:0.85rem">${t('Set a new password if a member forgets theirs.')}</p>
+    <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Select member')}</label><select id="arp-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${memberOptions}</select></div>
+    <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('New password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="arp-new" type="password" placeholder="${t('New password')}" autocomplete="new-password" /><span id="arp-new-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
+    <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Confirm new password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="arp-confirm" type="password" placeholder="${t('Confirm new password')}" autocomplete="new-password" /><span id="arp-confirm-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
+    <button class="btn primary" id="arp-save">${t('Reset')}</button>
+  `)
+  const wireToggle = (toggleId, inputId) => {
+    const tog = document.getElementById(toggleId)
+    const inp = document.getElementById(inputId)
+    if (tog && inp) {
+      tog.onclick = () => {
+        inp.type = inp.type === 'password' ? 'text' : 'password'
+        tog.textContent = inp.type === 'password' ? '👁' : '🙈'
+      }
+    }
+  }
+  wireToggle('arp-new-toggle', 'arp-new')
+  wireToggle('arp-confirm-toggle', 'arp-confirm')
+  document.getElementById('arp-save').onclick = async () => {
+    const sel = document.getElementById('arp-member')
+    const nw = document.getElementById('arp-new').value
+    const conf = document.getElementById('arp-confirm').value
+    if (!sel.value || !nw || !conf) { showToast(t('Fill all fields'), 'error'); return }
+    if (nw !== conf) { showToast(t('Passwords do not match'), 'error'); return }
+    const btn = document.getElementById('arp-save')
+    setLoading(btn, true)
+    try {
+      await api(`/members/${sel.value}/reset_password`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({new_password: nw}),
+      })
+      document.getElementById('arp-new').value = ''
+      document.getElementById('arp-confirm').value = ''
+      showToast(t('Password reset'), 'success')
+    } catch (err) {
+      showToast(err.error || 'Failed to reset password', 'error')
+    } finally {
+      setLoading(btn, false)
     }
   }
 }

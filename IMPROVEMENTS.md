@@ -37,16 +37,17 @@ Status legend: `Pending` → `Approved` → `Done` / `Declined`
 - **Fix:** "Export CSV" button in Edit Entries / Export view producing entries table as CSV (opens in Excel).
 - **Status:** Declined Aug 2026 — user wants to plan/redo export later
 
-### 6. Admin password reset for members
+### 6. Admin password reset for members ✅
 - **Problem:** If a member forgets password, unclear if admin can reset it anywhere except scripts/set_password.py on the laptop.
 - **Fix:** Verify current capability; if missing, add "Reset Password" action in All Members → member profile (admin only).
-- **Status:** Pending
+- **Implemented Aug 2026:** `POST /api/members/<id>/reset_password` (admin token only, min 4 chars, logged server-side); "🔑 Reset Password" lives in the **Admin Panel menu** (second-last card; Add New Member moved to last per user request) — pick member from dropdown + new/confirm password with show/hide toggles; bilingual toasts; 5 unit tests incl. login-with-new-password verification.
+- **Status:** Done
 
 ## Tier 3 — Later / optional
 
 ### 7. GitHub Actions CI
 - Run unit+integration tests automatically on every push.
-- **Status:** Pending
+- **Status:** Postponed Aug 2026 — tests already run manually before every change; revisit if more developers join
 
 ### 8. Upgrade Flask 2.2.5 → current
 - Works today; do it some day with full test run. Also bump Werkzeug accordingly.
