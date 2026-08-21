@@ -1,6 +1,8 @@
-from datetime import date
+from datetime import date, datetime
 
-from flask import Blueprint, jsonify, request, Response
+import os
+
+from flask import Blueprint, jsonify, request, Response, send_file, send_file
 
 from core.models.payment import approve_payment_request, reject_payment_request, admin_direct_entry
 from core.models.loan import approve_loan, reject_loan
@@ -185,6 +187,21 @@ def admin_audit_log_route():
     if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(list_audit_log())
+
+
+@admin_bp.route('/api/admin/backup/download', methods=['GET'])
+def admin_backup_download():
+    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+        return jsonify({'error': 'unauthorized'}), 401
+    from core.backup import create_snapshot, BACKUP_DIR, _prune
+    stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    path = os.path.join(BACKUP_DIR, f'finance-backup-{stamp}.db')
+    try:
+        create_snapshot(path)
+        _prune()
+    except Exception:
+        return jsonify({'error': 'backup_failed'}), 500
+    return send_file(path, as_attachment=True, download_name=f'finance-backup-{stamp}.db')
 
 
 @admin_bp.route('/api/admin/stats', methods=['GET'])

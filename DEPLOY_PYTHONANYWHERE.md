@@ -152,3 +152,15 @@ site breaking mid-entry), and you already do entry locally today.
 1. Back up `finance.db` + `static/uploads/` before every change.
 2. One change at a time, then test.
 3. Never copy `.secret_key` between machines.
+
+## Backups (added Aug 2026)
+
+- **Automatic:** the app saves a full copy of `finance.db` once a day into
+  `backups/finance-YYYY-MM-DD.db` (first request after midnight triggers it).
+  Keeps the newest **14** dated copies, older ones are removed automatically.
+- **Manual download:** Admin Panel → "Download Backup" button gives you the
+  file to keep on your phone/PC. Keep at least one copy outside PythonAnywhere.
+- **View on PythonAnywhere:** Files tab → open your project folder → `backups/`.
+- **Restore:** Files tab → rename current `finance.db` to `finance-broken.db`,
+  then upload/rename the chosen `finance-YYYY-MM-DD.db` back to `finance.db`
+  and reload the web app.

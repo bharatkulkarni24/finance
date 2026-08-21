@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, send_from_directory
 from flask import session as flask_session
 import logging
 import time
@@ -10,6 +10,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from core.database import init_db, seed_db
 from core.session import destroy_admin_session
+from core.backup import maybe_backup
 import core.config
 
 # Session security limits
@@ -53,6 +54,12 @@ def create_app():
     @app.before_request
     def log_request_info():
         app.logger.info(f"REQUEST {request.method} {request.path} from {request.remote_addr}")
+
+    @app.before_request
+    def daily_backup():
+        if request.path.startswith('/static'):
+            return
+        maybe_backup()
 
     @app.before_request
     def enforce_session_inactivity():
@@ -108,6 +115,11 @@ def create_app():
     app.register_blueprint(members_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(loans_bp)
+
+    @app.route('/sw.js')
+    def service_worker():
+        # Must be served from the root scope for PWA install + full-site control.
+        return send_from_directory(app.static_folder, 'sw.js', mimetype='application/javascript')
 
     with app.app_context():
         init_db()

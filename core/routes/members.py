@@ -127,6 +127,25 @@ def self_update_member(member_id):
     return jsonify(strip_sensitive(member))
 
 
+@members_bp.route('/api/members/<int:member_id>/reset_password', methods=['POST'])
+def admin_reset_password(member_id):
+    """Admin-only: replace a member's forgotten password without the old one."""
+    if not require_admin():
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json or {}
+    password = (data.get('new_password') or '').strip()
+    if len(password) < 4:
+        return jsonify({'error': 'Password must be at least 4 characters'}), 400
+    member = get_member(member_id)
+    if not member:
+        return jsonify({'error': 'not found'}), 404
+    update_member(member_id, password_hash=generate_password_hash(password))
+    current_app.logger.info(
+        f"PASSWORD RESET for member {member_id} ({member.get('name')}) by admin"
+    )
+    return jsonify({'status': 'ok'})
+
+
 @members_bp.route('/api/members/<int:member_id>/upload_photo', methods=['POST'])
 def upload_member_photo(member_id):
     if not require_self_or_admin(member_id):

@@ -152,6 +152,10 @@ const I18N = {
     'Available': 'Available',
     'Requested': 'Requested',
     'Add failed': 'Add failed',
+    'Download Backup': 'Download Backup',
+    'Backup downloaded': 'Backup downloaded',
+    'Download failed': 'Download failed',
+    'Safety copies of all data are made daily. Download one to keep it outside the server.': 'Safety copies of all data are made daily. Download one to keep it outside the server.',
     '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
     'Monthly': 'Monthly',
     'Yearly': 'Yearly',
@@ -484,6 +488,10 @@ const I18N = {
     'Available': 'ಲಭ್ಯವಿರುವ ಹಣ',
     'Requested': 'ಕೇಳಿದ ಹಣ',
     'Add failed': 'ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ',
+    'Download Backup': 'ಬ್ಯಾಕಪ್ ಡೌನ್‌ಲೋಡ್',
+    'Backup downloaded': 'ಬ್ಯಾಕಪ್ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ',
+    'Download failed': 'ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ',
+    'Safety copies of all data are made daily. Download one to keep it outside the server.': 'ಎಲ್ಲಾ ದತ್ತಾಂಶದ ಸುರಕ್ಷಿತ ಪ್ರತಿಗಳು ದೈನಂದಿನ ಮಾಡಲಾಗುತ್ತದೆ. ಸರ್ವರ್ ಹೊರಗೆ ಇಡಲು ಒಂದನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.',
     '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
     'Monthly': 'ಮಾಸಿಕ',
     'Yearly': 'ವಾರ್ಷಿಕ',
@@ -1604,7 +1612,32 @@ async function renderAdminPanel() {
   content.innerHTML = `
     <div class="panel">
       <div class="admin-hub-grid">${cards}</div>
+    </div>
+    <div class="panel" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font-size:0.85rem;color:#94a3b8">💾 ${t('Safety copies of all data are made daily. Download one to keep it outside the server.')}</div>
+      <button type="button" class="btn secondary" id="admin-download-backup">⬇️ ${t('Download Backup')}</button>
     </div>`
+  const dlBtn = document.getElementById('admin-download-backup')
+  if (dlBtn) dlBtn.onclick = () => downloadBackup()
+}
+
+async function downloadBackup() {
+  try {
+    const res = await fetch('/api/admin/backup/download', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
+    if (!res.ok) throw new Error('failed')
+    const blob = await res.blob()
+    const m = (res.headers.get('Content-Disposition') || '').match(/filename="?([^"]+)"?/)
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = (m && m[1]) || 'finance-backup.db'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+    showToast(t('Backup downloaded'), 'success')
+  } catch (e) {
+    showToast(t('Download failed'), 'error')
+  }
 }
 
 // Shared shell for admin sub-pages: back button on top, one panel below.
@@ -3845,6 +3878,13 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 
+
+// PWA: register service worker (fullscreen "Add to Home Screen" support)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}
 
 // Client-side error reporting: send errors to server for inspection
 window.addEventListener('error', function (ev) {

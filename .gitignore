@@ -10,3 +10,4 @@ __pycache__/
 .secret_key
 logs/
 static/uploads/
+backups/
