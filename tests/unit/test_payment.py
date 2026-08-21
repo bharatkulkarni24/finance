@@ -1,8 +1,7 @@
-from datetime import date
 import pytest
 
 from core.models.payment import (
-    add_contribution, create_payment_request,
+    create_payment_request,
     approve_payment_request,
     reject_payment_request,
     admin_direct_entry,
@@ -181,10 +180,6 @@ class TestPaymentInterface:
 # ─── Zombies: Exception ───────────────────────────────────────────────────────
 
 class TestPaymentException:
-    def test_add_contribution_invalid_member(self, setup_db):
-        result = add_contribution(99999, date.today(), 500, 'share')
-        assert result is None
-
     def test_create_payment_request_no_member(self, setup_db):
         result = create_payment_request(99999, 500)
         assert result is not None

@@ -3,13 +3,7 @@ from typing import Optional, Union
 from dataclasses import dataclass
 
 from core.database import get_conn, row_to_dict
-from core.models.requests import next_req_no, _fetch
-
-
-def _as_datetime(value: str) -> str:
-    if not value:
-        return datetime.utcnow().isoformat()
-    return value if 'T' in value else value + 'T00:00:00'
+from core.models.requests import _as_datetime, next_req_no, _fetch
 
 
 @dataclass

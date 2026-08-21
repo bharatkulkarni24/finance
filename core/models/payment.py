@@ -5,25 +5,6 @@ from core.models.loan import compute_interest_accrued
 from core.models.requests import _as_datetime, next_req_no, _fetch
 
 
-def add_contribution(member_id: int, when: date, amount: float, type: str = 'share'):
-    conn = get_conn()
-    cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
-    pay_date = _as_datetime(when.isoformat())
-    if type == 'share':
-        cur.execute(
-            'INSERT INTO member_ledger (member_id, pay_date, total_amount, share_amount, created_at, modified_at) VALUES (?,?,?,?,?,?)',
-            (member_id, pay_date, amount, amount, now, now),
-        )
-    else:
-        cur.execute(
-            'INSERT INTO member_ledger (member_id, pay_date, total_amount, created_at, modified_at) VALUES (?,?,?,?,?)',
-            (member_id, pay_date, amount, now, now),
-        )
-    conn.commit()
-    conn.close()
-
-
 def create_payment_request(member_id: int, amount: float, note: str = '', screenshot: str = '', txn_date: str = None, fine: float = 0.0, share_amount: float = 0.0, loan_principal: float = 0.0, loan_interest: float = 0.0) -> dict:
     conn = get_conn()
     cur = conn.cursor()

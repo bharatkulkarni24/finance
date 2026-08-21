@@ -15,8 +15,6 @@ admin_bp = Blueprint('admin', __name__)
 
 
 
-
-
 @admin_bp.route('/api/admin/submitted_requests', methods=['GET'])
 def admin_submitted_requests():
     if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):

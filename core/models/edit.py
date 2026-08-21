@@ -2,17 +2,12 @@ from datetime import date as dt_date, datetime
 
 from core.database import get_conn, row_to_dict
 from core.models.loan import compute_interest_accrued
+from core.models.requests import _as_datetime
 
 VALID_KINDS = ('share', 'loan_principal', 'income', 'expense', 'fine', 'fd', 'split')
 SPLIT_KINDS = ('share', 'fine', 'loan_principal', 'split')
 GROUP_KINDS = ('share', 'fine', 'loan_principal', 'split')
 DEPOSIT_FILTER = 'share_amount=0 AND loan_principal=0 AND loan_interest=0 AND fine=0'
-
-
-def _as_datetime(value: str) -> str:
-    if not value:
-        return datetime.utcnow().isoformat()
-    return value if 'T' in value else value + 'T00:00:00'
 
 
 def _payment_kind(share, loan, interest, fine):

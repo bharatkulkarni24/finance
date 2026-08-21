@@ -2,11 +2,10 @@ from core.models.transaction import (
     add_transaction, get_recent_transactions,
     get_member_statement, get_admin_stats, get_passbook_entries,
 )
-from datetime import date as dt_date
 from core.models.member import create_member
 from core.models.loan import create_loan, approve_loan, apply_payment_to_loan, get_loan
 from core.models.fd import add_fd
-from core.models.payment import add_contribution
+from core.models.payment import admin_direct_entry
 
 
 # ─── Zombies: Simple ──────────────────────────────────────────────────────────
@@ -100,15 +99,15 @@ class TestTransactionBoundary:
 
     def test_passbook_descending_order(self, setup_db):
         m = create_member('Order Test')
-        add_contribution(m['member_id'], dt_date(2026, 6, 1), 100, 'share')
-        add_contribution(m['member_id'], dt_date(2026, 6, 2), 200, 'share')
+        admin_direct_entry(m['member_id'], share_amount=100, entry_date='2026-06-01')
+        admin_direct_entry(m['member_id'], share_amount=200, entry_date='2026-06-02')
         entries = get_passbook_entries()
         ts_filtered = [e['ts'] for e in entries if e['member_name'] == 'Order Test']
         assert ts_filtered == sorted(ts_filtered, reverse=True)
 
     def test_passbook_no_duplicate_entries(self, setup_db):
         m = create_member('Dedup Test')
-        add_contribution(m['member_id'], dt_date(2026, 6, 1), 500, 'share')
+        admin_direct_entry(m['member_id'], share_amount=500, entry_date='2026-06-01')
         entries = get_passbook_entries()
         member_entries = [e for e in entries if e['member_name'] == 'Dedup Test']
         assert len(member_entries) == 2  # entry deposit + share
