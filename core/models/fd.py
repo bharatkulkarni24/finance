@@ -6,6 +6,11 @@ from core.database import get_conn, row_to_dict
 
 def add_fd(amount: float, start_date: str, term_months: int, interest_rate: float, notes: str = '',
            investment_type: str = 'one_time'):
+    from core.models.transaction import get_available_to_lend
+    from core import config
+    avail = get_available_to_lend()
+    if not getattr(config, 'ALLOW_OVERLEND', False) and round(amount or 0, 2) > avail:
+        return {'error': 'insufficient_funds', 'available': avail, 'requested': round(amount or 0, 2)}
     conn = get_conn()
     cur = conn.cursor()
     now = datetime.utcnow().isoformat()
@@ -29,6 +34,11 @@ def add_fd(amount: float, start_date: str, term_months: int, interest_rate: floa
 
 
 def add_fd_installment(parent_id: int, amount: float, installment_date: str, notes: str = ''):
+    from core.models.transaction import get_available_to_lend
+    from core import config
+    avail = get_available_to_lend()
+    if not getattr(config, 'ALLOW_OVERLEND', False) and round(amount or 0, 2) > avail:
+        return {'error': 'insufficient_funds', 'available': avail, 'requested': round(amount or 0, 2)}
     conn = get_conn()
     cur = conn.cursor()
     cur.execute('SELECT * FROM fixed_deposits WHERE fd_id=?', (parent_id,))

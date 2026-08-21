@@ -53,6 +53,13 @@ def approve_loan(req_id: int, approver_id: int = 0):
     if not req or req['item_type'] != 'loan' or req['status'] != 'submitted':
         conn.close()
         return None
+    from core.models.transaction import get_available_to_lend
+    from core import config
+    amount = round(float(req['loan_amount'] or 0), 2)
+    avail = get_available_to_lend()
+    if not getattr(config, 'ALLOW_OVERLEND', False) and amount > avail:
+        conn.close()
+        return {'error': 'insufficient_funds', 'available': avail, 'requested': amount}
     cur.execute(
         'UPDATE requests SET status=?, approved_by=?, approved_date=? WHERE req_id=?',
         ('approved', approver_id, now, req_id),

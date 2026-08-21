@@ -61,9 +61,9 @@ def get_member_statement(member_id: int) -> str:
     return out
 
 
-def get_admin_stats():
-    conn = get_conn()
-    cur = conn.cursor()
+def _cash_snapshot(cur):
+    """Compute collected totals and cash available to lend/lock. Shared by
+    dashboard stats and the insufficient-funds guards."""
     cur.execute("SELECT COALESCE(SUM(entry_deposit_amount),0) FROM members")
     entry_deposit_total = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(share_amount) FROM member_ledger")
@@ -83,16 +83,12 @@ def get_admin_stats():
     cur.execute("SELECT SUM(amount) FROM group_ledger WHERE debit_credit='debit'")
     expenses_total = cur.fetchone()[0] or 0.0
     total_collected = entry_deposit_total + shares_total + loan_interest_received + others_total + fine_total + fd_interest_returned - expenses_total
-    cur.execute("SELECT COUNT(*) FROM members")
-    member_count = cur.fetchone()[0] or 0
     cur.execute("SELECT SUM(outstanding) FROM loans WHERE status='active'")
     total_outstanding = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(loan_principal) FROM loans WHERE status='active'")
     total_lent = cur.fetchone()[0] or 0.0
-    conn.close()
     hardlocked_fd = get_active_fd_total()
     cash_on_hand = total_collected - total_lent - hardlocked_fd
-    available_to_lend = cash_on_hand
     return {
         'total_collected': total_collected,
         'entry_deposit_total': entry_deposit_total,
@@ -107,13 +103,31 @@ def get_admin_stats():
         'total_outstanding': total_outstanding,
         'hardlocked_fd': hardlocked_fd,
         'cash_on_hand': cash_on_hand,
-        'available_to_lend': available_to_lend,
-        'member_count': member_count,
-        'group_start_date': 'April 2025',
-        'monthly_share': 500,
-        'total_period_months': 36,
-        'loan_interest_rate': 1,
+        'available_to_lend': cash_on_hand,
     }
+
+
+def get_admin_stats():
+    conn = get_conn()
+    cur = conn.cursor()
+    snap = _cash_snapshot(cur)
+    cur.execute("SELECT COUNT(*) FROM members")
+    snap['member_count'] = cur.fetchone()[0] or 0
+    snap['group_start_date'] = 'April 2025'
+    snap['monthly_share'] = 500
+    snap['total_period_months'] = 36
+    snap['loan_interest_rate'] = 1
+    conn.close()
+    return snap
+
+
+def get_available_to_lend():
+    """Current cash available for new loans or locking into investments."""
+    conn = get_conn()
+    try:
+        return round(_cash_snapshot(conn.cursor())['available_to_lend'], 2)
+    finally:
+        conn.close()
 
 
 def get_period_summary():

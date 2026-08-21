@@ -4,7 +4,7 @@ from core.database import get_conn, row_to_dict
 from core.models.loan import compute_interest_accrued
 from core.models.requests import _as_datetime
 
-VALID_KINDS = ('share', 'loan_principal', 'income', 'expense', 'fine', 'fd', 'split')
+VALID_KINDS = ('share', 'loan_principal', 'income', 'expense', 'fine', 'fd', 'split', 'entry_deposit', 'loan_disbursed')
 SPLIT_KINDS = ('share', 'fine', 'loan_principal', 'split')
 GROUP_KINDS = ('share', 'fine', 'loan_principal', 'split')
 DEPOSIT_FILTER = 'share_amount=0 AND loan_principal=0 AND loan_interest=0 AND fine=0'
@@ -211,6 +211,84 @@ def list_entries(etype='all', member_id=None, q='', date_from=None, date_to=None
                 'fine': None,
                 'contribution_id': None,
                 'transaction_id': None,
+                'payment_id': None,
+            })
+
+    if etype in ('all', 'entry_deposit'):
+        sql = "SELECT m.member_id, m.name AS member_name, m.entry_deposit_amount, m.joined_date FROM members m WHERE m.entry_deposit_amount > 0"
+        params = []
+        if member_id:
+            sql += ' AND m.member_id=?'
+            params.append(member_id)
+        if q:
+            sql += ' AND m.name LIKE ?'
+            params.append(like)
+        if date_from:
+            sql += ' AND substr(m.joined_date,1,10) >= ?'
+            params.append(date_from)
+        if date_to:
+            sql += ' AND substr(m.joined_date,1,10) <= ?'
+            params.append(date_to)
+        sql += ' ORDER BY m.joined_date DESC, m.member_id DESC LIMIT ?'
+        params.append(limit)
+        cur.execute(sql, params)
+        for r in cur.fetchall():
+            d = dict(r)
+            out.append({
+                'id': 'm' + str(d['member_id']),
+                'kind': 'entry_deposit',
+                'member_id': d['member_id'],
+                'member_name': d['member_name'],
+                'date': (d['joined_date'] or '')[:10],
+                'amount': d['entry_deposit_amount'],
+                'description': '',
+                'debit_credit': 'credit',
+                'loan_principal': None,
+                'loan_interest': None,
+                'fine': None,
+                'contribution_id': None,
+                'transaction_id': None,
+                'payment_id': None,
+            })
+
+    if etype in ('all', 'loan_disbursed'):
+        sql = ("SELECT l.*, m.name AS member_name FROM loans l JOIN members m ON m.member_id=l.member_id "
+               "WHERE l.disbursed_date IS NOT NULL AND l.status IN ('active','repaid')")
+        params = []
+        if member_id:
+            sql += ' AND l.member_id=?'
+            params.append(member_id)
+        if q:
+            sql += ' AND m.name LIKE ?'
+            params.append(like)
+        if date_from:
+            sql += ' AND substr(l.disbursed_date,1,10) >= ?'
+            params.append(date_from)
+        if date_to:
+            sql += ' AND substr(l.disbursed_date,1,10) <= ?'
+            params.append(date_to)
+        sql += ' ORDER BY l.disbursed_date DESC, l.loan_id DESC LIMIT ?'
+        params.append(limit)
+        cur.execute(sql, params)
+        for r in cur.fetchall():
+            d = dict(r)
+            desc = ''
+            if d.get('term_months'):
+                desc = '{} months @ {}%/month'.format(int(d['term_months']), d.get('rate_monthly') or 0)
+            out.append({
+                'id': 'l' + str(d['loan_id']),
+                'kind': 'loan_disbursed',
+                'member_id': d['member_id'],
+                'member_name': d['member_name'],
+                'date': (d['disbursed_date'] or '')[:10],
+                'amount': d['loan_principal'] or 0,
+                'description': desc,
+                'debit_credit': 'debit',
+                'loan_principal': d['loan_principal'],
+                'loan_interest': None,
+                'fine': None,
+                'contribution_id': None,
+                'transaction_id': d['loan_id'],
                 'payment_id': None,
             })
 
@@ -454,6 +532,61 @@ def edit_entry(data):
         conn.close()
         return {'status': 'ok'}
 
+    if kind == 'entry_deposit':
+        if not member_id:
+            conn.close()
+            return {'error': 'member required'}
+        cur.execute('SELECT entry_deposit_amount FROM members WHERE member_id=?', (member_id,))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'error': 'member not found'}
+        old_amount = row['entry_deposit_amount'] or 0
+        if date:
+            cur.execute('UPDATE members SET entry_deposit_amount=?, joined_date=? WHERE member_id=?', (amount, date, member_id))
+        else:
+            cur.execute('UPDATE members SET entry_deposit_amount=? WHERE member_id=?', (amount, member_id))
+        _log_audit(cur, None, 'update', changed_by, {'total_amount': old_amount}, {'total_amount': amount})
+        conn.commit()
+        conn.close()
+        return {'status': 'ok'}
+
+    if kind == 'loan_disbursed':
+        loan_id = data.get('transaction_id')
+        if not loan_id:
+            conn.close()
+            return {'error': 'missing loan id'}
+        cur.execute('SELECT * FROM loans WHERE loan_id=?', (int(loan_id),))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'error': 'not found'}
+        d = dict(row)
+        old_principal = d.get('loan_principal') or 0
+        paid = cur.execute(
+            'SELECT COALESCE(SUM(loan_principal),0) AS s FROM member_ledger WHERE loan_id=?', (int(loan_id),)
+        ).fetchone()['s'] or 0
+        if amount < paid:
+            conn.close()
+            return {'error': 'new amount is below the repayments already made'}
+        delta = round(amount - old_principal, 2)
+        new_outstanding = max(round((d.get('outstanding') or 0) + delta, 2), 0)
+        status = d.get('status')
+        if new_outstanding <= 0:
+            status = 'repaid'
+        elif status == 'repaid':
+            status = 'active'
+        if date:
+            cur.execute('UPDATE loans SET loan_principal=?, outstanding=?, status=?, disbursed_date=? WHERE loan_id=?',
+                        (amount, new_outstanding, status, date, int(loan_id)))
+        else:
+            cur.execute('UPDATE loans SET loan_principal=?, outstanding=?, status=? WHERE loan_id=?',
+                        (amount, new_outstanding, status, int(loan_id)))
+        _log_audit(cur, None, 'update', changed_by, {'total_amount': old_principal}, {'total_amount': amount})
+        conn.commit()
+        conn.close()
+        return {'status': 'ok'}
+
     tid = int(data.get('transaction_id'))
     ts = (date + 'T12:00:00') if date else None
     if ts:
@@ -507,6 +640,47 @@ def delete_entry(data):
         _log_audit(cur, pay_id, 'delete', changed_by, old, {
             'share_amount': 0, 'fine': 0, 'loan_interest': 0, 'loan_principal': 0, 'total_amount': 0,
         })
+        conn.commit()
+        conn.close()
+        return {'status': 'ok'}
+
+    if kind == 'entry_deposit':
+        member_id = data.get('member_id')
+        if not member_id:
+            conn.close()
+            return {'error': 'member required'}
+        cur.execute('SELECT entry_deposit_amount FROM members WHERE member_id=?', (int(member_id),))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'error': 'member not found'}
+        old_amount = row['entry_deposit_amount'] or 0
+        cur.execute('UPDATE members SET entry_deposit_amount=0 WHERE member_id=?', (int(member_id),))
+        _log_audit(cur, None, 'delete', changed_by, {'total_amount': old_amount}, {'total_amount': 0})
+        conn.commit()
+        conn.close()
+        return {'status': 'ok'}
+
+    if kind == 'loan_disbursed':
+        loan_id = data.get('transaction_id')
+        if not loan_id:
+            conn.close()
+            return {'error': 'missing loan id'}
+        cur.execute('SELECT * FROM loans WHERE loan_id=?', (int(loan_id),))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return {'error': 'not found'}
+        d = dict(row)
+        paid = cur.execute(
+            'SELECT COALESCE(SUM(loan_principal),0) AS s FROM member_ledger WHERE loan_id=?', (int(loan_id),)
+        ).fetchone()['s'] or 0
+        if paid > 0:
+            conn.close()
+            return {'error': 'loan has repayments; edit it instead of deleting'}
+        cur.execute('DELETE FROM loans WHERE loan_id=?', (int(loan_id),))
+        _log_audit(cur, None, 'delete', changed_by,
+                   {'total_amount': d.get('loan_principal') or 0}, {'total_amount': 0})
         conn.commit()
         conn.close()
         return {'status': 'ok'}

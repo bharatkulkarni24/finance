@@ -1175,6 +1175,8 @@ body {
 .ee-badge-expense { background: rgba(239,68,68,0.15); color: #fca5a5 }
 .ee-badge-fine { background: rgba(244,63,94,0.15); color: #fda4af }
 .ee-badge-fd { background: rgba(251,146,60,0.15); color: #fdba74 }
+.ee-badge-entry_deposit { background: rgba(167,139,250,0.15); color: #c4b5fd }
+.ee-badge-loan_disbursed { background: rgba(251,191,36,0.15); color: #fcd34d }
 .ee-badge-split { background: rgba(52,211,153,0.15); color: #6ee7b7 }
 .ee-split {
   display: flex;

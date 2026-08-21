@@ -67,6 +67,8 @@ def admin_fd_add():
         notes=data.get('notes', ''),
         investment_type=data.get('investment_type', 'one_time'),
     )
+    if isinstance(fd, dict) and fd.get('error'):
+        return jsonify(fd), 400
     return jsonify(fd)
 
 
@@ -84,6 +86,8 @@ def admin_fd_installment():
     installment_date = data.get('installment_date', '')
     notes = data.get('notes', '')
     inst = add_fd_installment(parent_id, amount, installment_date, notes)
+    if isinstance(inst, dict) and inst.get('error'):
+        return jsonify(inst), 400
     if not inst:
         return jsonify({'error': 'parent scheme not found'}), 404
     return jsonify(inst)
@@ -199,6 +203,8 @@ def approve_loan_route(req_id):
     loan = approve_loan(req_id, approver_id)
     if not loan:
         return jsonify({'error': 'not found'}), 404
+    if isinstance(loan, dict) and loan.get('error'):
+        return jsonify(loan), 400
     return jsonify({'status': 'approved', 'loan': loan})
 
 

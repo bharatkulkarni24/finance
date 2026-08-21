@@ -19,6 +19,9 @@ def setup_db(tmp_path):
     db_path = str(tmp_path / 'test.db')
     import core.config
     core.config.DB_PATH = db_path
+    # Mechanics tests run on tiny seeded books; suspend the insufficient-funds
+    # guard so loan approvals / FD operations in fixtures aren't blocked.
+    core.config.ALLOW_OVERLEND = True
     from core.database import init_db, seed_db
     init_db()
     seed_db()

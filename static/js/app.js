@@ -148,6 +148,10 @@ const I18N = {
     'Other Income': 'Other Income',
     'FD Deposit': 'FD Deposit',
     'Group Fund': 'Group Fund',
+    'Insufficient funds': 'Insufficient funds',
+    'Available': 'Available',
+    'Requested': 'Requested',
+    'Add failed': 'Add failed',
     '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
     'Monthly': 'Monthly',
     'Yearly': 'Yearly',
@@ -476,6 +480,10 @@ const I18N = {
     'Other Income': 'ಇತರ ಆದಾಯ',
     'FD Deposit': 'ಎಫ್‌ಡಿ ಠೇವಣಿ',
     'Group Fund': 'ಗುಂಪು ನಿಧಿ',
+    'Insufficient funds': 'ಹಣ ಸಾಲದು',
+    'Available': 'ಲಭ್ಯವಿರುವ ಹಣ',
+    'Requested': 'ಕೇಳಿದ ಹಣ',
+    'Add failed': 'ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ',
     '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
     'Monthly': 'ಮಾಸಿಕ',
     'Yearly': 'ವಾರ್ಷಿಕ',
@@ -1701,6 +1709,7 @@ function renderAdminPending() {
 function renderAdminEditEntries() {
   const eeTypeOptions = [
     ['all', t('All types')], ['split', t('Share / Loan')],
+    ['entry_deposit', t('Entry Deposit')], ['loan_disbursed', t('Loan Disbursed')],
     ['income', t('Income')], ['expense', t('Expense')], ['fd', t('FD Gain')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   adminSubPage(`
@@ -2004,9 +2013,16 @@ let eeEntries = []
 const SPLIT_KINDS = ['share', 'fine', 'loan_principal', 'split']
 function isSplitKind(kind) { return SPLIT_KINDS.includes(kind) }
 
+function fundErrMsg(e) {
+  if (e && e.error === 'insufficient_funds' && e.available != null) {
+    return t('Insufficient funds') + ': ' + t('Available') + ' ' + formatCurrency(e.available) + ', ' + t('Requested') + ' ' + formatCurrency(e.requested)
+  }
+  return ''
+}
+
 function eeKindLabel(kind) {
   if (isSplitKind(kind)) return t('Share / Loan')
-  const map = {deposit: 'Entry Deposit', share: 'Share', fine: 'Fine', loan_principal: 'Loan Principal', income: 'Income', expense: 'Expense', fd: 'Hardlock / Investment'}
+  const map = {deposit: 'Entry Deposit', entry_deposit: 'Entry Deposit', loan_disbursed: 'Loan Disbursed', share: 'Share', fine: 'Fine', loan_principal: 'Loan Principal', income: 'Income', expense: 'Expense', fd: 'Hardlock / Investment'}
   return t(map[kind] || kind)
 }
 
@@ -2163,16 +2179,18 @@ async function eeDelete(id) {
       ? {kind: 'split', member_id: e.member_id, date: e.date, changed_by: (state.currentUser && state.currentUser.member_id) || null}
       : {
           kind: e.kind,
+          member_id: e.member_id,
           contribution_id: e.contribution_id,
           transaction_id: e.transaction_id,
           payment_id: e.payment_id,
           changed_by: (state.currentUser && state.currentUser.member_id) || null,
         }
-    await api('/admin/entries/delete', {
+    const res = await api('/admin/entries/delete', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
       body: JSON.stringify(payload),
     })
+    if (res.error) throw new Error(res.error)
     showToast(t('Entry deleted'), 'success')
     eeLoad()
   } catch (err) {
@@ -2337,7 +2355,7 @@ async function renderSubmittedRequests() {
         try {
           const url = isLoan ? `/api/admin/approve_loan/${it.req_id}` : `/api/admin/approve_request/${it.req_id}`
           const res = await fetch(url, {method:'POST', headers: {'Content-Type':'application/json','X-ADMIN-TOKEN': (state.adminToken || '')}, body: JSON.stringify({approver_id: approverId})})
-          if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Approve failed') }
+          if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(fundErrMsg(e) || e.error || t('Approve failed')) }
           showToast(isLoan ? t('Loan approved') : t('Payment approved'), 'success')
           await renderSubmittedRequests()
         } catch (e) { showToast(e.message, 'error') } finally { setLoading(btn, false) }
@@ -3586,6 +3604,8 @@ async function handleAddFd() {
     await renderFdEntries()
     document.getElementById('fd-amount').value = ''
     document.getElementById('fd-bank').value = ''
+  } catch (e) {
+    showToast(fundErrMsg(e) || e.error || t('Add failed'), 'error')
   } finally {
     setLoading(btn, false)
   }
@@ -3634,7 +3654,7 @@ window.handleAddInstallment = async function(schemeId) {
     })
     if (!res.ok) {
       const e = await res.json().catch(() => ({error: 'failed'}))
-      showToast(e.error || 'Failed', 'error')
+      showToast(fundErrMsg(e) || e.error || t('Add failed'), 'error')
       return
     }
     showToast(t('Installment added'), 'success')
