@@ -9,7 +9,7 @@ from core.models.fd import add_fd, add_fd_installment, close_fd, get_fd_entries
 from core.models.transaction import add_transaction, get_recent_transactions, get_admin_stats, get_passbook_entries, get_period_summary
 from core.models.report import get_report_data, build_report_pdf
 from core.models.edit import list_entries, edit_entry, delete_entry, list_audit_log
-from core.session import check_admin_token
+from core.session import check_admin_token, require_member_or_admin
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -132,14 +132,14 @@ def admin_transactions():
 
 @admin_bp.route('/api/admin/passbook', methods=['GET'])
 def admin_passbook():
-    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+    if not require_member_or_admin():
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_passbook_entries())
 
 
 @admin_bp.route('/api/admin/period_summary', methods=['GET'])
 def admin_period_summary():
-    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+    if not require_member_or_admin():
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_period_summary())
 
@@ -185,7 +185,7 @@ def admin_audit_log_route():
 
 @admin_bp.route('/api/admin/stats', methods=['GET'])
 def admin_stats():
-    if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
+    if not require_member_or_admin():
         return jsonify({'error': 'unauthorized'}), 401
     return jsonify(get_admin_stats())
 

@@ -159,7 +159,7 @@ def get_passbook_entries():
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("""
-    SELECT ts, category, member_name, amount, debit_credit, share, fine, loan_interest, loan_principal FROM (
+    SELECT ts, category, COALESCE(member_name, 'Group Fund') as member_name, amount, debit_credit, share, fine, loan_interest, loan_principal FROM (
         SELECT m.joined_date || 'T12:00:00' as ts, 'Entry Deposit' as category, m.name as member_name, m.entry_deposit_amount as amount, 'credit' as debit_credit, NULL as share, NULL as fine, NULL as loan_interest, NULL as loan_principal
         FROM members m WHERE m.entry_deposit_amount > 0
         UNION ALL
