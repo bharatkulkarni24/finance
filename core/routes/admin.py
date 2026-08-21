@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 import os
 
-from flask import Blueprint, jsonify, request, Response, send_file, send_file
+from flask import Blueprint, jsonify, request, Response, send_file
 
 from core.models.payment import approve_payment_request, reject_payment_request, admin_direct_entry
 from core.models.loan import approve_loan, reject_loan

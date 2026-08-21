@@ -49,9 +49,10 @@ Status legend: `Pending` → `Approved` → `Done` / `Declined`
 - Run unit+integration tests automatically on every push.
 - **Status:** Postponed Aug 2026 — tests already run manually before every change; revisit if more developers join
 
-### 8. Upgrade Flask 2.2.5 → current
+### 8. Upgrade Flask 2.2.5 → current ✅
 - Works today; do it some day with full test run. Also bump Werkzeug accordingly.
-- **Status:** Pending
+- **Implemented Aug 2026:** Flask 2.2.5 → 3.1.3, Werkzeug 2.3.8 → 3.1.5 (requirements.txt only; zero code changes needed — verified no removed APIs in use). Removed unused Flask-Cors/Flask-SQLAlchemy from venv. Fixed duplicate send_file import in admin.py. All 214 tests pass; integration suite 3x faster (155s → 50s) and deprecation warnings down 310 → 86.
+- **Status:** Done
 
 ## Small cleanups
 
