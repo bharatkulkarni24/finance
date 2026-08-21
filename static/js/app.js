@@ -40,7 +40,7 @@ const KN_NAME_MAP = {
   'suchiket bhenki': 'ಸುಚಿಕೇತ ಭೇಂಕಿ',
   'sanjeev joshi': 'ಸಂಜೀವ ಜೋಷಿ',
   'indira sarnad': 'ಇಂದಿರಾ ಸರನಾಡ್',
-  'bhimbhatt bhenki': 'ಭೀಮ್ಭಟ್ಟ್ ಭೇಂಕಿ',
+  'bhimbhatt bhenki': 'ಭೀಮಭಟ್ ಭೇಂಕಿ',
 }
 
 function kanName(name) {
@@ -398,6 +398,27 @@ const I18N = {
     'Submit': 'Submit',
     'Submit & Auto-Approve': 'Submit & Auto-Approve',
     'Total Amount': 'Total Amount',
+    'Submit Proof of Payment': 'Submit Proof of Payment',
+    '₹50/day after 10th': '₹50/day after 10th',
+    'Payment Date': 'Payment Date',
+    'Submit Payment for Approval': 'Submit Payment for Approval',
+    'Submit Payment': 'Submit Payment',
+    'Request Loan': 'Request Loan',
+    'Loan Amount': 'Loan Amount',
+    'Years': 'Years',
+    'Months': 'Months',
+    'year': 'year',
+    'years': 'years',
+    'month': 'month',
+    'months': 'months',
+    'Tap to upload receipt / proof': 'Tap to upload receipt / proof',
+    'Image only': 'Image only',
+    'Enter loan amount': 'Enter loan amount',
+    'Select at least 1 month term': 'Select at least 1 month term',
+    'Loan request submitted': 'Loan request submitted',
+    'Select a payment date': 'Select a payment date',
+    'Date cannot be in the future': 'Date cannot be in the future',
+    'Share is required': 'Share is required',
     'Total Invested': 'Total Invested',
     'installments': 'installments',
   },
@@ -701,6 +722,27 @@ const I18N = {
     'Submit': 'ಸಲ್ಲಿಸಿ',
     'Submit & Auto-Approve': 'ಸಲ್ಲಿಸಿ ಮತ್ತು ಸ್ವಯಂ ಅಂಗೀಕರಿಸಿ',
     'Total Amount': 'ಒಟ್ಟು ಮೊತ್ತ',
+    'Submit Proof of Payment': 'ಪಾವತಿಯ ಪುರಾವೆ ಸಲ್ಲಿಸಿ',
+    '₹50/day after 10th': '10 ನೇ ದಿನಾಂಕದ ನಂತರ ದಿನಕ್ಕೆ ₹50',
+    'Payment Date': 'ಪಾವತಿ ದಿನಾಂಕ',
+    'Submit Payment for Approval': 'ಅನುಮೋದನೆಗಾಗಿ ಪಾವತಿ ಸಲ್ಲಿಸಿ',
+    'Submit Payment': 'ಪಾವತಿ ಸಲ್ಲಿಸಿ',
+    'Request Loan': 'ಸಾಲ ಕೋರಿ',
+    'Loan Amount': 'ಸಾಲದ ಮೊತ್ತ',
+    'Years': 'ವರ್ಷಗಳು',
+    'Months': 'ತಿಂಗಳುಗಳು',
+    'year': 'ವರ್ಷ',
+    'years': 'ವರ್ಷಗಳು',
+    'month': 'ತಿಂಗಳು',
+    'months': 'ತಿಂಗಳುಗಳು',
+    'Tap to upload receipt / proof': 'ರಶೀದಿ / ಪುರಾವೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ',
+    'Image only': 'ಚಿತ್ರ ಮಾತ್ರ',
+    'Enter loan amount': 'ಸಾಲದ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ',
+    'Select at least 1 month term': 'ಕನಿಷ್ಠ 1 ತಿಂಗಳ ಅವಧಿ ಆಯ್ಕೆಮಾಡಿ',
+    'Loan request submitted': 'ಸಾಲದ ವಿನಂತಿ ಸಲ್ಲಿಸಲಾಗಿದೆ',
+    'Select a payment date': 'ಪಾವತಿ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+    'Date cannot be in the future': 'ದಿನಾಂಕವು ಭವಿಷ್ಯದ್ದಾಗಿರಬಾರದು',
+    'Share is required': 'ಷೇರು ಕಡ್ಡಾಯ',
     'Total Invested': 'ಒಟ್ಟು ಹೂಡಿಕೆ',
     'installments': 'ಕಂತುಗಳು',
     'Withdraw': 'ಹಿಂತೆಗೆದುಕೊಳ್ಳಿ',
@@ -720,9 +762,11 @@ function t(key) { return (I18N[state.lang] && I18N[state.lang][key]) || key }
 
 // Language toggle
 document.addEventListener('click', (e) => {
-  if (e.target && e.target.id === 'lang-toggle') {
+  const lt = e.target && e.target.closest ? e.target.closest('#lang-toggle') : null
+  if (lt) {
     state.lang = state.lang === 'en' ? 'kn' : 'en'
-    e.target.textContent = state.lang === 'kn' ? 'EN' : 'KN'
+    const label = lt.querySelector('.lang-loop-label')
+    if (label) label.textContent = state.lang === 'kn' ? 'EN' : 'ಕನ್ನಡ'
     translatePage()
     if (state.currentUser) renderView()
   }
@@ -1103,11 +1147,19 @@ function renderMenu() {
   const langBtn = document.createElement('button')
   langBtn.type = 'button'
   langBtn.id = 'lang-toggle'
-  langBtn.className = 'nav-link'
-  langBtn.textContent = state.lang === 'kn' ? 'EN' : 'KN'
-  langBtn.style.border = 'none'
-  langBtn.style.cursor = 'pointer'
-  langBtn.style.font = 'inherit'
+  langBtn.className = 'nav-link lang-toggle'
+  langBtn.innerHTML = `
+    <svg class="lang-loop-svg" viewBox="0 0 56 46" aria-hidden="true">
+      <defs>
+        <linearGradient id="lang-loop-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#22c55e" />
+        </linearGradient>
+      </defs>
+      <path class="lang-loop-arc" d="M32 4 H44 Q52 4 52 14 V32 Q52 42 44 42 H12 Q4 42 4 32 V14 Q4 4 12 4 H24" />
+      <path class="lang-loop-arrow" d="M29.5 4 L23.5 0.9 L23.5 7.1 Z" />
+    </svg>
+    <span class="lang-loop-label">${state.lang === 'kn' ? 'EN' : 'ಕನ್ನಡ'}</span>`
   menuLinks.appendChild(langBtn)
 
   // Mobile hamburger menu: open/close the dropdown
@@ -1538,8 +1590,6 @@ async function renderAdminPanel() {
     </div>`).join('')
   content.innerHTML = `
     <div class="panel">
-      <h3 class="section-heading">${t('Admin Panel')}</h3>
-      <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 4px">${t('Choose a section')}:</p>
       <div class="admin-hub-grid">${cards}</div>
     </div>`
 }
@@ -3083,14 +3133,14 @@ async function renderSubmitView() {
   content.innerHTML = `
     <div class="grid-2" style="gap:20px;">
       <div class="panel compact-panel submit-panel">
-        <h3>📤 Submit Proof of Payment</h3>
+        <h3>📤 ${t('Submit Proof of Payment')}</h3>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
               <label>${t('Share')} *</label>
               <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
             </div>
             <div style="flex:1">
-              <label>Fine <span class="fine-hint">(₹50/day after 10th)</span></label>
+              <label>${t('Fine')} <span class="fine-hint">(${t('₹50/day after 10th')})</span></label>
               <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text" value="0" /></div>
             </div>
           </div>
@@ -3106,21 +3156,21 @@ async function renderSubmitView() {
           </div>
           <div class="input-row" style="margin-top:4px;">
             <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-weight:600">Total Amount</span>
+              <span style="font-weight:600">${t('Total Amount')}</span>
               <strong id="submit-total-amount" style="font-size:1.1rem;color:#34d399">₹0</strong>
             </div>
           </div>
           <div class="input-row small-row">
-            <label style="flex-basis:100%">Payment Date</label>
+            <label style="flex-basis:100%">${t('Payment Date')}</label>
             <input id="pay-txn-date" type="text" value="${today}" data-max="${today}" readonly />
           </div>
-          <div class="input-row small-row"><input id="pay-note" placeholder="Note (optional)" /></div>
+          <div class="input-row small-row"><input id="pay-note" placeholder="${t('Note (optional)')}" /></div>
           <div class="upload-area" id="upload-area">
             <input id="screenshot-input" type="file" accept="image/*" hidden />
             <div class="upload-placeholder">
               <span class="upload-icon">📎</span>
-              <span class="upload-text">Tap to upload receipt / proof</span>
-              <span class="upload-hint">Image only</span>
+              <span class="upload-text">${t('Tap to upload receipt / proof')}</span>
+              <span class="upload-hint">${t('Image only')}</span>
             </div>
             <div class="upload-preview hidden">
               <img id="upload-preview-img" />
@@ -3128,14 +3178,14 @@ async function renderSubmitView() {
               <button class="upload-remove" id="upload-remove-btn" type="button">✕</button>
             </div>
           </div>
-          <button class="btn primary" id="submit-payment-btn-top">Submit Payment for Approval</button>
+          <button class="btn primary" id="submit-payment-btn-top">${t('Submit Payment for Approval')}</button>
         </div>
         <div class="panel compact-panel">
-          <h3>💰 Request Loan</h3>
-          <div class="input-row"><label style="flex-basis:100%">Loan Amount</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
+          <h3>💰 ${t('Request Loan')}</h3>
+          <div class="input-row"><label style="flex-basis:100%">${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
-              <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Years</label>
+              <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">${t('Years')}</label>
               <div class="stepper">
                 <button class="stepper-btn" id="loan-years-down">−</button>
                 <span class="stepper-value" id="loan-years-display">1</span>
@@ -3143,7 +3193,7 @@ async function renderSubmitView() {
               </div>
             </div>
             <div style="flex:1">
-              <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">Months</label>
+              <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">${t('Months')}</label>
               <div class="stepper">
                 <button class="stepper-btn" id="loan-months-down">−</button>
                 <span class="stepper-value" id="loan-months-display">0</span>
@@ -3235,8 +3285,8 @@ async function renderSubmitView() {
       if (yearsDisplay) yearsDisplay.textContent = loanYears
       if (monthsDisplay) monthsDisplay.textContent = loanMonths
       if (periodDisplay) {
-        const y = loanYears + ' year' + (loanYears !== 1 ? 's' : '')
-        const m = loanMonths + ' month' + (loanMonths !== 1 ? 's' : '')
+        const y = loanYears + ' ' + t(loanYears !== 1 ? 'years' : 'year')
+        const m = loanMonths + ' ' + t(loanMonths !== 1 ? 'months' : 'month')
         periodDisplay.textContent = y + ' ' + m
       }
     }
@@ -3249,10 +3299,11 @@ async function renderSubmitView() {
     requestLoanBtn.onclick = async () => {
       const raw = document.getElementById('request-loan-amount').value.replace(/,/g, '')
       const amt = Number(raw) || 0
-      if (!amt || amt <= 0) { showToast('Enter loan amount', 'error'); return }
+      if (!amt || amt <= 0) { showToast(t('Enter loan amount'), 'error'); return }
       const totalMonths = loanYears * 12 + loanMonths
-      if (totalMonths < 1) { showToast('Select at least 1 month term', 'error'); return }
-      if (!(await showConfirm('Request Loan', `Request loan of ${formatCurrency(amt)} for ${loanYears}y ${loanMonths}m?`))) return
+      if (totalMonths < 1) { showToast(t('Select at least 1 month term'), 'error'); return }
+      const period = `${loanYears} ${t(loanYears !== 1 ? 'years' : 'year')}, ${loanMonths} ${t(loanMonths !== 1 ? 'months' : 'month')}`
+      if (!(await showConfirm(t('Request Loan'), `${formatCurrency(amt)} — ${period}?`))) return
       setLoading(requestLoanBtn, true)
       try {
         await api(`/members/${m.member_id}/apply_loan`, {
@@ -3260,7 +3311,7 @@ async function renderSubmitView() {
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({amount: amt, term_months: totalMonths}),
         })
-        showToast('Loan request submitted', 'success')
+        showToast(t('Loan request submitted'), 'success')
         renderSubmitView()
       } finally {
         setLoading(requestLoanBtn, false)
@@ -3692,14 +3743,14 @@ async function handleSubmitPayment(memberId) {
   const note = document.getElementById('pay-note').value
   const fineRaw = document.getElementById('fine-amount').value.replace(/,/g, '')
   const fine = Number(fineRaw) || 0
-  if (!txnDate) { showToast('Select a payment date', 'error'); return }
-  if (new Date(txnDate) > new Date()) { showToast('Date cannot be in the future', 'error'); return }
-  if (!shareAmount || shareAmount <= 0) { showToast('Share is required', 'error'); return }
-  let msg = `Share: ${formatCurrency(shareAmount)}`
+  if (!txnDate) { showToast(t('Select a payment date'), 'error'); return }
+  if (new Date(txnDate) > new Date()) { showToast(t('Date cannot be in the future'), 'error'); return }
+  if (!shareAmount || shareAmount <= 0) { showToast(t('Share is required'), 'error'); return }
+  let msg = `${t('Share')}: ${formatCurrency(shareAmount)}`
   if (loanPrincipal > 0) msg += `<br>${t('Loan Principal')}: ${formatCurrency(loanPrincipal)}`
   if (loanInterest > 0) msg += `<br>${t('Loan Interest')}: ${formatCurrency(loanInterest)}`
   if (fine > 0) msg += `<br>${t('Fine')}: ${formatCurrency(fine)}`
-  if (!(await showConfirm('Submit Payment', msg))) return
+  if (!(await showConfirm(t('Submit Payment'), msg))) return
   setLoading(btn, true)
   const screenshotInput = document.getElementById('screenshot-input')
   const screenshotFile = screenshotInput?.files?.[0]

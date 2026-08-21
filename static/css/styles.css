@@ -589,19 +589,46 @@ body {
   transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
 
-.nav-link::before {
-  content: '';
+/* Language toggle: circular loop-arrow button (ಕನ್ನಡ / EN) */
+.lang-toggle {
+  width: 56px;
+  height: 46px;
+  min-width: 56px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: visible;
+  cursor: pointer;
+}
+.lang-loop-svg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s ease;
+  width: 100%;
+  height: 100%;
+}
+.lang-loop-arc {
+  fill: none;
+  stroke: url(#lang-loop-grad);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.lang-loop-arrow { fill: #22c55e; }
+.lang-loop-label {
+  position: relative;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #e2e8f0;
   pointer-events: none;
 }
-
-.nav-link:hover::before {
-  transform: translateX(100%);
+@keyframes lang-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
+.lang-toggle:hover .lang-loop-svg,
+.lang-toggle:focus-visible .lang-loop-svg { animation: lang-spin 0.9s ease; }
+.lang-toggle:hover .lang-loop-label { color: #fff; }
 
 .nav-link.active,
 .nav-link:hover {
@@ -611,11 +638,6 @@ body {
 
 .nav-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
-}
-
-.nav-link.active {
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2);
 }
 
 .stats-grid,
@@ -2307,7 +2329,17 @@ body {
   #menu-links .nav-link { background: rgba(124, 58, 237, 0.16); border: 1px solid rgba(148, 163, 184, 0.16); }
   #menu-links .nav-link.active,
   #menu-links .nav-link:hover { background: rgba(34, 197, 94, 0.22); border-color: rgba(34, 197, 94, 0.4); }
-  #menu-links .nav-link:hover { transform: none; box-shadow: 0 8px 24px rgba(34, 197, 94, 0.25); }
+  #menu-links .nav-link:hover { transform: none; }
+  #menu-links .lang-toggle {
+    width: 56px;
+    min-width: 56px;
+    height: 46px;
+    padding: 0;
+    align-self: center;
+    background: transparent;
+    border: none;
+  }
+  #menu-links .lang-toggle:hover { background: transparent; border: none; box-shadow: none; transform: none; }
   #user-menu .user-menu-item { background: rgba(124, 58, 237, 0.16); border: 1px solid rgba(148, 163, 184, 0.16); }
   #user-menu .user-menu-item.danger { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); }
   #user-menu .user-menu-item.danger:hover { background: rgba(239, 68, 68, 0.22); }
