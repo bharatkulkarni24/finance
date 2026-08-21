@@ -1187,6 +1187,17 @@ function renderMenu() {
       e.stopPropagation()
       menuBtn.classList.toggle('open')
       menuLinks.classList.toggle('open')
+      // Mobile has no hover: play the loop-arrow animation once each time the
+      // menu opens so users notice the Kannada/English toggle.
+      if (menuLinks.classList.contains('open')) {
+        const lt = document.getElementById('lang-toggle')
+        if (lt) {
+          lt.classList.remove('lang-loop-demo')
+          void lt.offsetWidth
+          lt.classList.add('lang-loop-demo')
+          setTimeout(() => lt.classList.remove('lang-loop-demo'), 1000)
+        }
+      }
     }
   }
   // Selecting any item (incl. Sign Out / language) closes the menu

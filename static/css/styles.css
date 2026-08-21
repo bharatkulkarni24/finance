@@ -28,6 +28,32 @@ body {
   color: #e2e8f0;
 }
 
+/* App-like behaviour: UI chrome (headings, buttons, menus, images) cannot be
+   selected or dragged; real data (tables, profile values, passbook) stays copyable. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img,
+.side-img,
+.mc-avatar,
+.profile-avatar {
+  -webkit-user-drag: none;
+}
+
+input,
+textarea,
+select,
+.table,
+.table *,
+.input-readonly,
+#pb-list,
+.toast {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 .app {
   max-width: 1120px;
   margin: 0 auto;
@@ -631,8 +657,10 @@ body {
   to { transform: rotate(360deg); }
 }
 .lang-toggle:hover .lang-loop-svg,
-.lang-toggle:focus-visible .lang-loop-svg { animation: lang-spin 0.9s ease; }
-.lang-toggle:hover .lang-loop-label { color: #fff; }
+.lang-toggle:focus-visible .lang-loop-svg,
+.lang-toggle.lang-loop-demo .lang-loop-svg { animation: lang-spin 0.9s ease; }
+.lang-toggle:hover .lang-loop-label,
+.lang-toggle.lang-loop-demo .lang-loop-label { color: #fff; }
 
 .nav-link.active,
 .nav-link:hover {
@@ -904,7 +932,9 @@ body {
   gap: 16px;
 }
 
-@media (max-width: 960px) {
+/* Single responsive switch-point: everything above 640px is the laptop
+   layout (browser zoom = pure magnification), below is the phone layout. */
+@media (max-width: 640px) {
   .stats-grid,
   .grid-2 {
     grid-template-columns: 1fr;
