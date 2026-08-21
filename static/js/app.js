@@ -1613,9 +1613,9 @@ function renderAdminAddMember() {
     <h3 class="section-heading">➕ ${t('Add New Member')}</h3>
     <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
     <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
-    <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
+    <div class="input-row"><input id="new-member-phone" placeholde inputmode="tel"r="${t('Phone (optional)')}" /></div>
     <div class="input-row" style="display:flex;gap:12px">
-      <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" value="25000" /></div></div>
+      <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text inputmode="decimal"" value="25000" /></div></div>
       <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
     </div>
     <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="new-member-password" type="password" placeholder="${t('Set member password')}" /><span id="new-member-pw-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
@@ -1644,12 +1644,12 @@ function renderAdminDirectEntry() {
     <div class="de-panel">
       <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
       <div class="input-row" style="display:flex;gap:12px">
-        <div style="flex:1"><label>${t('Share')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
-        <div style="flex:1"><label>${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
+        <div style="flex:1"><label>${t('Share')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text inputmode="decimal"" value="500" /></div></div>
+        <div style="flex:1"><label>${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text inputmode="decimal"" value="0" /></div></div>
       </div>
       <div class="input-row" style="display:flex;gap:12px">
-        <div style="flex:1"><label>${t('Loan Principal')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-principal" type="text" placeholder="0" /></div></div>
-        <div style="flex:1"><label>${t('Loan Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-interest" type="text" placeholder="0" /></div></div>
+        <div style="flex:1"><label>${t('Loan Principal')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-principal" type="text inputmode="decimal"" placeholder="0" /></div></div>
+        <div style="flex:1"><label>${t('Loan Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-interest" type="text inputmode="decimal"" placeholder="0" /></div></div>
       </div>
       <div class="input-row" style="margin-top:4px">
         <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
@@ -1793,7 +1793,7 @@ function renderAdminIncomeExpense() {
     const txt = isInc ? '#34d399' : '#fca5a5'
     const bdr = isInc ? 'rgba(52,211,153,0.25)' : 'rgba(239,68,68,0.25)'
     return `
-      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="${type}-amount" type="text" /></div></div>
+      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="${type}-amount" type="text inputmode="decimal"" /></div></div>
       <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="${type}-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
       <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="${type}-reason" class="admin-input" placeholder="${t(isInc ? 'e.g. Donation from X' : 'e.g. Meeting snacks')}" /></div>
       <button class="btn primary" id="save-${type}-btn" style="background:${col};color:${txt};border:1px solid ${bdr}">${t('Save')}</button>`
@@ -1859,7 +1859,7 @@ function renderAdminHardlock() {
         <div class="fd-form-grid">
           <div class="fd-field" id="inv-amount-field">
             <label>${t('Amount')}</label>
-            <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
+            <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text inputmode="decimal"" placeholder="0" /></div>
           </div>
           <div class="fd-field">
             <label>${t('Start Date')}</label>
@@ -1871,7 +1871,7 @@ function renderAdminHardlock() {
           </div>
           <div class="fd-field" id="inv-rate-field">
             <label>${t('Interest Rate')}</label>
-            <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
+            <div class="input-group"><input id="fd-rate" type="text inputmode="decimal"" value="7" /><span class="input-suffix">%</span></div>
           </div>
           <div class="fd-field">
             <label id="inv-provider-label">${t('Bank / Scheme')}</label>
@@ -2072,13 +2072,13 @@ function eeEdit(id) {
     const total = (sp.share || 0) + (sp.fine || 0) + (sp.loan_interest || 0) + (sp.loan_principal || 0)
     fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
       <div class="ee-edit-total">${t('Total')}: <strong id="ee-edit-total-val">${formatCurrency(total)}</strong></div>
-      <div class="input-row"><label>${t('Share')}</label><input id="ee-edit-share" type="text" class="admin-input" value="${num('share', e.amount)}" /></div>
-      <div class="input-row"><label>${t('Fine')}</label><input id="ee-edit-fine" type="text" class="admin-input" value="${num('fine', e.fine)}" /></div>
-      <div class="input-row"><label>${t('Loan Interest')}</label><input id="ee-edit-loan-interest" type="text" class="admin-input" value="${num('loan_interest', e.loan_interest)}" /></div>
-      <div class="input-row"><label>${t('Loan Principal')}</label><input id="ee-edit-loan-principal" type="text" class="admin-input" value="${num('loan_principal', e.loan_principal)}" /></div>`
+      <div class="input-row"><label>${t('Share')}</label><input id="ee-edit-share" type="text inputmode="decimal"" class="admin-input" value="${num('share', e.amount)}" /></div>
+      <div class="input-row"><label>${t('Fine')}</label><input id="ee-edit-fine" type="text inputmode="decimal"" class="admin-input" value="${num('fine', e.fine)}" /></div>
+      <div class="input-row"><label>${t('Loan Interest')}</label><input id="ee-edit-loan-interest" type="text inputmode="decimal"" class="admin-input" value="${num('loan_interest', e.loan_interest)}" /></div>
+      <div class="input-row"><label>${t('Loan Principal')}</label><input id="ee-edit-loan-principal" type="text inputmode="decimal"" class="admin-input" value="${num('loan_principal', e.loan_principal)}" /></div>`
   } else {
     fields = `<div class="input-row"><label>${t('Date')}</label><input id="ee-edit-date" type="text" class="admin-input" value="${e.date}" readonly /></div>
-      <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text" class="admin-input" value="${e.amount}" /></div>`
+      <div class="input-row"><label>${t('Amount')}</label><input id="ee-edit-amount" type="text inputmode="decimal"" class="admin-input" value="${e.amount}" /></div>`
   }
   const overlay = document.createElement('div')
   overlay.className = 'modal-overlay'
@@ -2492,9 +2492,9 @@ function pbToggleFilter(col) {
       `<label class="pb-flabel" style="flex:1;justify-content:center;padding:6px 0"><input type="checkbox" class="pb-amt-cb" value="credit" ${pbFilters.amtCredit ? 'checked' : ''} /> Credit</label>` +
       `<label class="pb-flabel" style="flex:1;justify-content:center;padding:6px 0"><input type="checkbox" class="pb-amt-cb" value="debit" ${pbFilters.amtDebit ? 'checked' : ''} /> Debit</label>` +
       `</div>` +
-      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-amt-min" type="text" placeholder="Min amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtMin || ''}" /></div>` +
-      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-amt-max" type="text" placeholder="Max amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtMax || ''}" /></div>` +
-      `<div style="display:flex;gap:6px;margin-bottom:8px"><input id="pb-amt-exact" type="text" placeholder="Exact amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtExact || ''}" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-amt-min" type="text inputmode="decimal"" placeholder="Min amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtMin || ''}" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:6px"><input id="pb-amt-max" type="text inputmode="decimal"" placeholder="Max amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtMax || ''}" /></div>` +
+      `<div style="display:flex;gap:6px;margin-bottom:8px"><input id="pb-amt-exact" type="text inputmode="decimal"" placeholder="Exact amount" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#f8fafc;font-size:0.82rem" value="${pbFilters.amtExact || ''}" /></div>` +
       `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterAmount()">Apply</button>${clearCol}</div>`
   }
 
@@ -3097,7 +3097,7 @@ async function renderMemberProfile(memberId, mode) {
         const dobSpan = copy.querySelector('#ro-dob')
         const addrSpan = copy.querySelector('#ro-address')
         if (!phoneSpan || !dobSpan || !addrSpan) return
-        phoneSpan.outerHTML = `<input id="self-phone" class="input-edit" value="${m.phone||''}" />`
+        phoneSpan.outerHTML = `<input id="self-phone" class="input-edit inputmode="tel"" value="${m.phone||''}" />`
         addrSpan.outerHTML = `<input id="self-address" class="input-edit" value="${m.address||''}" />`
         editBtn.style.display = 'none'
         const dobWrap = document.createElement('span')
@@ -3137,21 +3137,21 @@ async function renderSubmitView() {
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
               <label>${t('Share')} *</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text" value="500" /></div>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="share-amount-input" type="text inputmode="decimal"" value="500" /></div>
             </div>
             <div style="flex:1">
               <label>${t('Fine')} <span class="fine-hint">(${t('₹50/day after 10th')})</span></label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text" value="0" /></div>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="fine-amount" type="text inputmode="decimal"" value="0" /></div>
             </div>
           </div>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
               <label>${t('Loan Principal')}</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-principal-input" type="text" placeholder="0" /></div>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-principal-input" type="text inputmode="decimal"" placeholder="0" /></div>
             </div>
             <div style="flex:1">
               <label>${t('Loan Interest')}</label>
-              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-interest-input" type="text" placeholder="0" /></div>
+              <div class="input-with-currency"><span class="currency">₹</span><input id="loan-interest-input" type="text inputmode="decimal"" placeholder="0" /></div>
             </div>
           </div>
           <div class="input-row" style="margin-top:4px;">
@@ -3182,7 +3182,7 @@ async function renderSubmitView() {
         </div>
         <div class="panel compact-panel">
           <h3>💰 ${t('Request Loan')}</h3>
-          <div class="input-row"><label style="flex-basis:100%">${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text" placeholder="0" /></div></div>
+          <div class="input-row"><label style="flex-basis:100%">${t('Loan Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="request-loan-amount" type="text inputmode="decimal"" placeholder="0" /></div></div>
           <div class="input-row" style="display:flex;gap:12px;">
             <div style="flex:1">
               <label style="font-size:0.8rem;color:#94a3b8;display:block;text-align:center;margin-bottom:2px;">${t('Years')}</label>
@@ -3602,7 +3602,7 @@ window.showInstallmentForm = function(schemeId) {
     <div style="display:flex;gap:8px;align-items:end;margin-bottom:8px;padding:8px;background:rgba(255,255,255,0.03);border-radius:6px">
       <div style="flex:1">
         <label style="font-size:0.7rem;color:#94a3b8;display:block;margin-bottom:2px">${t('Amount')}</label>
-        <div class="input-with-currency" style="margin:0"><span class="currency" style="padding:4px 6px">₹</span><input id="inst-amt-${schemeId}" type="text" style="padding:6px 8px;font-size:0.85rem" /></div>
+        <div class="input-with-currency" style="margin:0"><span class="currency" style="padding:4px 6px">₹</span><input id="inst-amt-${schemeId}" type="text inputmode="decimal"" style="padding:6px 8px;font-size:0.85rem" /></div>
       </div>
       <div style="flex:1">
         <label style="font-size:0.7rem;color:#94a3b8;display:block;margin-bottom:2px">${t('Date')}</label>
@@ -3670,7 +3670,7 @@ window.closeFd = async function(fdId) {
       </div>
       <div style="margin-bottom:14px">
         <label style="font-size:0.8rem;color:#94a3b8;display:block;margin-bottom:4px">${t('Return Amount')}</label>
-        <div class="input-with-currency"><span class="currency">₹</span><input id="fd-return-amount" type="text" value="${Math.round(expectedReturn)}" /></div>
+        <div class="input-with-currency"><span class="currency">₹</span><input id="fd-return-amount" type="text inputmode="decimal"" value="${Math.round(expectedReturn)}" /></div>
       </div>
       <div class="reject-form-actions">
         <button class="btn primary" id="fd-close-confirm" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">${t('Confirm Close')}</button>
