@@ -1457,13 +1457,13 @@ async function renderHome() {
           <div class="total-box-amount">${stats?formatCurrency(stats.total_collected):'-'}</div>
         </div>
         <div class="total-box-breakdown">
-          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><strong>${t('Entry Deposit:')}</strong> ${stats?formatCurrency(stats.entry_deposit_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><strong>${t('Share')}</strong> ${stats?formatCurrency(stats.shares_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><strong>${t('Loan Interest')}:</strong> ${stats?formatCurrency(stats.loan_interest_received):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><strong>${t('Fine:')}</strong> ${stats?formatCurrency(stats.fines_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot fdm-dot"></span><strong>${t('FD Gain')}:</strong> ${stats?formatCurrency(stats.fd_interest_returned || 0):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><strong>${t('Other Income:')}</strong> ${stats?formatCurrency(stats.others_total):'-'}</div>
-          <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><strong>${t('Expenses:')}</strong> ${stats?formatCurrency(stats.expenses_total):'-'}</div>
+          <div class="breakdown-item"><span class="breakdown-dot deposits-dot"></span><span><span class="breakdown-label">${t('Entry Deposit')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.entry_deposit_total):'-'}</strong></span></div>
+          <div class="breakdown-item"><span class="breakdown-dot shares-dot"></span><span><span class="breakdown-label">${t('Share')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.shares_total):'-'}</strong></span></div>
+          <div class="breakdown-item"><span class="breakdown-dot interest-dot"></span><span><span class="breakdown-label">${t('Loan Interest')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.loan_interest_received):'-'}</strong></span></div>
+          <div class="breakdown-item"><span class="breakdown-dot fine-dot"></span><span><span class="breakdown-label">${t('Fine')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.fines_total):'-'}</strong></span></div>
+          <div class="breakdown-item"><span class="breakdown-dot fdm-dot"></span><span><span class="breakdown-label">${t('FD Gain')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.fd_interest_returned || 0):'-'}</strong></span></div>
+          <div class="breakdown-item"><span class="breakdown-dot other-dot"></span><span><span class="breakdown-label">${t('Other Income')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.others_total):'-'}</strong></span></div>
+          <div class="breakdown-item"><span class="breakdown-dot expense-dot"></span><span><span class="breakdown-label">${t('Expenses')}</span><strong class="breakdown-value">${stats?formatCurrency(stats.expenses_total):'-'}</strong></span></div>
         </div>
       </div>
       <div class="stats-grid">
@@ -2484,7 +2484,10 @@ async function renderAllMembers() {
     const avatarHtml = m.photo_url
       ? `<div class="mc-avatar" style="background-image:url('${m.photo_url}')"></div>`
       : `<div class="mc-avatar mc-avatar-placeholder" style="background:${color}">${initials(m.name)}</div>`
-    const viewable = state.currentUser && (state.currentUser.is_admin || m.member_id === state.currentUser.member_id)
+    // Everyone can open other members' profiles; your own card is static
+    // because your data lives in "My Account".
+    const isSelf = state.currentUser && m.member_id === state.currentUser.member_id
+    const viewable = state.currentUser && !isSelf
     return `<div class="member-card" ${viewable ? `onclick="renderMemberProfile(${m.member_id})" style="cursor:pointer"` : ''}>
       ${avatarHtml}
       <div class="mc-info">

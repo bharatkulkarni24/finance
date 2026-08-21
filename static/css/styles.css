@@ -1005,11 +1005,12 @@ body {
 .gi-interest .gi-value { color: #a5f3fc }
 
 /* Total box */
+/* Total box: Total Collected left, category cards right (4 rows) */
 .total-box {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 20px;
   flex-wrap: wrap;
   margin-top: 14px;
   padding: 18px;
@@ -1018,12 +1019,31 @@ body {
   border: 1px solid rgba(148,163,184,0.06);
 }
 
-.total-box-main { flex: 1; min-width: 220px }
-.total-box-label { font-size: 1.1rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em }
+.total-box-main { flex: 0 0 auto }
+.total-box-label { font-size: 1.05rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em }
 .total-box-amount { font-size: 2rem; font-weight: 800; margin-top: 6px; background: linear-gradient(135deg, #a78bfa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text }
 .total-box-desc { color: #64748b; font-size: 0.9rem; margin-top: 6px }
 
-.total-box-breakdown { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 8px }
+.total-box-breakdown {
+  flex: 1;
+  min-width: 240px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, max-content));
+  gap: 10px 34px;
+}
+
+/* Desktop: extra breathing room between Total Collected and the first column */
+@media (min-width: 641px) {
+  .total-box-breakdown { margin-left: 96px }
+}
+
+/* Expenses spans both columns so no empty slot remains */
+.breakdown-item:last-child { grid-column: 1 / -1 }
+
+/* Phones: stack total above cards; each item gets its own full line */
+@media (max-width: 640px) {
+  .total-box-breakdown { grid-template-columns: 1fr; }
+}
 
 .breakdown-item {
   display: flex;
@@ -1031,6 +1051,20 @@ body {
   gap: 8px;
   font-size: 0.95rem;
   color: #cbd5e1;
+}
+
+.breakdown-label {
+  display: inline;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-right: 6px;
+}
+
+.breakdown-value {
+  display: inline;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
 }
 
 .breakdown-dot {

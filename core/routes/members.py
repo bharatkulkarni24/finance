@@ -10,7 +10,7 @@ from core.models.member import get_all_members, create_member, get_member, updat
 from core.models.payment import create_payment_request
 from core.models.transaction import get_member_statement
 from core.models.loan import compute_interest_accrued
-from core.session import require_admin, require_self_or_admin
+from core.session import require_admin, require_self_or_admin, require_member_or_admin
 
 members_bp = Blueprint('members', __name__)
 
@@ -72,7 +72,9 @@ def members():
 
 @members_bp.route('/api/members/<int:member_id>', methods=['GET'])
 def get_member_route(member_id):
-    if not require_self_or_admin(member_id):
+    # Any logged-in member may view any profile (family transparency);
+    # anonymous visitors cannot.
+    if not require_member_or_admin():
         return jsonify({'error': 'unauthorized'}), 401
     m = get_member(member_id, full=True)
     if not m:
