@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request, render_template, current_app, session
+from flask import Blueprint, jsonify, request, render_template, make_response, current_app, session
+import time
 from werkzeug.security import check_password_hash
 
 from core.database import strip_sensitive
@@ -9,13 +10,22 @@ from core.session import create_admin_session, destroy_admin_session
 auth_bp = Blueprint('auth', __name__)
 
 
+@auth_bp.route('/favicon.ico')
+def favicon():
+    return current_app.send_static_file('img/favicon.ico')
+
+
 @auth_bp.route('/')
 def index():
     try:
         members = [strip_sensitive(m) for m in get_all_members()]
     except Exception:
         members = []
-    return render_template('index.html', members=members)
+    resp = make_response(render_template('index.html', members=members))
+    # Never cache the HTML shell: browsers must always revalidate so they
+    # pick up new ?v= asset versions immediately after a deploy.
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
 
 
 @auth_bp.route('/api/login', methods=['POST'])
@@ -47,6 +57,8 @@ def login():
     if member['is_admin']:
         result['token'] = create_admin_session(member['member_id'])
     session['member_id'] = member['member_id']
+    session['last_seen'] = time.time()
+    session['started_at'] = time.time()
     session.permanent = True
     return jsonify(result)
 
@@ -61,6 +73,10 @@ def me():
         session.clear()
         return jsonify({'error': 'not logged in'}), 401
     result = strip_sensitive(member)
+    if member['is_admin']:
+        # Re-issue the in-memory admin token on session restore so admin
+        # APIs keep working after a page refresh or server restart.
+        result['token'] = create_admin_session(member['member_id'])
     return jsonify(result)
 
 

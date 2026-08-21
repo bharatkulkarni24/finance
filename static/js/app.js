@@ -4,6 +4,7 @@ const api = async (path, opts = {}) => {
   const res = await fetch('/api' + path, Object.assign({}, opts, {headers}))
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
+    if (res.status === 401 && err && err.error === 'session_expired') handleSessionExpired()
     throw err
   }
   const text = await res.text()
@@ -95,6 +96,25 @@ const I18N = {
     '📒 Passbook': '📒 Passbook',
     'Totals': 'Totals',
     'Admin Panel': 'Admin Panel',
+    'Choose a section': 'Choose a section',
+    'Pending Requests': 'Pending Requests',
+    'Direct Entry': 'Direct Entry',
+    '＋ Add New Member': '＋ Add New Member',
+    'Export Report (PDF)': 'Export Report (PDF)',
+    'Back': 'Back',
+    'History': 'History',
+    'Add Investment': 'Add Investment',
+    'Approve or reject member requests.': 'Approve or reject member requests.',
+    'Create a new member account.': 'Create a new member account.',
+    'Record an auto-approved payment.': 'Record an auto-approved payment.',
+    'Add income & expense records.': 'Add income & expense records.',
+    'Active investments, schemes & history.': 'Active investments, schemes & history.',
+    'Fix or delete a wrong entry.': 'Fix or delete a wrong entry.',
+    'Download monthly or period summary PDF.': 'Download monthly or period summary PDF.',
+    'Session expired. Please log in again.': 'Session expired. Please log in again.',
+    'Logged out due to inactivity': 'Logged out due to inactivity',
+    'You will be logged out soon due to inactivity.': 'You will be logged out soon due to inactivity.',
+    "I'm here": "I'm here",
     'Login to SLV Finance': 'Login to SLV Finance',
     'Select Member': 'Select Member',
     'Password': 'Password',
@@ -302,6 +322,8 @@ const I18N = {
     'View details': 'View details',
     'Hide details': 'Hide details',
     'My Account': 'My Account',
+    'My Activity': 'My Activity',
+    'Passbook': 'Passbook',
     'Your payments and active loans.': 'Your payments and active loans.',
     'Change your password': 'Change your password',
     'Current password': 'Current password',
@@ -330,6 +352,25 @@ const I18N = {
     '📒 Passbook': '📒 ಪಾಸ್‌ಬುಕ್',
     'Totals': 'ಒಟ್ಟು',
     'Admin Panel': 'ಆಡಳಿತ ಫಲಕ',
+    'Choose a section': 'ಒಂದು ವಿಭಾಗವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
+    'Pending Requests': 'ಬಾಕಿ ವಿನಂತಿಗಳು',
+    'Direct Entry': 'ನೇರ ನಮೂದು',
+    '＋ Add New Member': '＋ ಹೊಸ ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ',
+    'Export Report (PDF)': 'ವರದಿ (PDF)',
+    'Back': 'ಹಿಂದೆ',
+    'History': 'ಇತಿಹಾಸ',
+    'Add Investment': 'ಹೂಡಿಕೆ ಸೇರಿಸಿ',
+    'Approve or reject member requests.': 'ಸದಸ್ಯರ ವಿನಂತಿಗಳನ್ನು ಅನುಮೋದಿಸಿ ಅಥವಾ ತಿರಸ್ಕರಿಸಿ.',
+    'Create a new member account.': 'ಹೊಸ ಸದಸ್ಯರ ಖಾತೆಯನ್ನು ತೆರೆಯಿರಿ.',
+    'Record an auto-approved payment.': 'ಸದಸ್ಯರ ಪರವಾಗಿ ಪಾವತಿ ದಾಖಲಿಸಿ (ಸ್ವಯಂ ಅನುಮೋದಿತ).',
+    'Add income & expense records.': 'ಆದಾಯ ಮತ್ತು ಖರ್ಚಿನ ದಾಖಲೆಗಳನ್ನು ಸೇರಿಸಿ.',
+    'Active investments, schemes & history.': 'ಸಕ್ರಿಯ ಹೂಡಿಕೆಗಳು ಮತ್ತು ದಾಖಲೆಗಳು.',
+    'Fix or delete a wrong entry.': 'ತಪ್ಪಾದ ನಮೂದನ್ನು ಸರಿಪಡಿಸಿ ಅಥವಾ ಅಳಿಸಿ.',
+    'Download monthly or period summary PDF.': 'ಮಾಸಿಕ ಅಥವಾ ಅವಧಿಯ ಸಾರಾಂಶ PDF ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.',
+    'Session expired. Please log in again.': 'ಅವಧಿ ಮೀರಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಲಾಗಿನ್ ಮಾಡಿ.',
+    'Logged out due to inactivity': 'ಜಡತ್ವದಿಂದ ಲಾಗ್ ಔಟ್ ಮಾಡಲಾಗಿದೆ',
+    'You will be logged out soon due to inactivity.': 'ಜಡತ್ವದಿಂದ ಶೀಘ್ರವೇ ಲಾಗ್ ಔಟ್ ಆಗುತ್ತದೆ.',
+    "I'm here": 'ನಾನು ಇಲ್ಲಿದ್ದೇನೆ',
     'Login to SLV Finance': 'ಎಸ್‌ಎಲ್‌ವಿ ಫೈನಾನ್ಸ್‌ಗೆ ಲಾಗಿನ್ ಮಾಡಿ',
     'Select Member': 'ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
     'Password': 'ಪಾಸ್ವರ್ಡ್',
@@ -533,6 +574,8 @@ const I18N = {
     'View details': 'ವಿವರಗಳನ್ನು ನೋಡಿ',
     'Hide details': 'ವಿವರಗಳನ್ನು ಮರೆಮಾಡಿ',
     'My Account': 'ನನ್ನ ಖಾತೆ',
+    'My Activity': 'ನನ್ನ ಚಟುವಟಿಕೆ',
+    'Passbook': 'ಪಾಸ್‌ಬುಕ್',
     'Your payments and active loans.': 'ನಿಮ್ಮ ಪಾವತಿಗಳು ಮತ್ತು ಸಕ್ರಿಯ ಸಾಲಗಳು.',
     'Change your password': 'ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಿ',
     'Current password': 'ಪ್ರಸ್ತುತ ಪಾಸ್‌ವರ್ಡ್',
@@ -904,12 +947,19 @@ function renderMenu() {
   menuLinks.innerHTML = ''
   const viewTitles = {
     'home': t('Dashboard'),
-    'my-accounts': '💳 ' + t('My Account'),
+    'my-accounts': t('My Account'),
     'submit': t('Submit'),
-    'my-history': t('📜 My Activity'),
+    'my-history': t('My Activity'),
     'all-members': t('All Members'),
     'admin-panel': t('Admin Panel'),
-    'passbook': t('📒 Passbook'),
+    'admin-pending': '⏳ ' + t('Pending Requests'),
+    'admin-add-member': '➕ ' + t('Add New Member'),
+    'admin-direct-entry': '⚡ ' + t('Direct Entry'),
+    'admin-edit-entries': '✏️ ' + t('Edit / Correct Entries'),
+    'admin-export': '📄 ' + t('Export Report (PDF)'),
+    'admin-income-expense': '💰 ' + t('Income / Expenses'),
+    'admin-hardlock': '🔒 ' + t('Hardlock / Investment'),
+    'passbook': t('Passbook'),
     'my-profile': t('View Profile'),
     'change-password': t('Change Password'),
   }
@@ -917,19 +967,22 @@ function renderMenu() {
   if (titleEl) titleEl.textContent = viewTitles[state.activeView] || ''
   const items = [
     {id: 'home', label: t('Dashboard')},
-    {id: 'my-accounts', label: '💳 ' + t('My Account')},
+    {id: 'my-accounts', label: t('My Account')},
     {id: 'submit', label: t('Submit')},
-    {id: 'my-history', label: t('📜 My Activity')},
+    {id: 'my-history', label: t('My Activity')},
     {id: 'all-members', label: t('All Members')},
   ]
   if (state.currentUser.is_admin) {
     items.splice(3, 0, {id: 'admin-panel', label: t('Admin Panel')})
   }
-  items.splice(4, 0, {id: 'passbook', label: t('📒 Passbook')})
+  items.splice(4, 0, {id: 'passbook', label: t('Passbook')})
   items.forEach(item => {
     const a = document.createElement('a')
+    const isActive = item.id === 'admin-panel'
+      ? state.activeView === 'admin-panel' || ADMIN_SUB_VIEWS.includes(state.activeView)
+      : state.activeView === item.id
     a.href = '#'
-    a.className = 'nav-link' + (state.activeView === item.id ? ' active' : '')
+    a.className = 'nav-link' + (isActive ? ' active' : '')
     a.textContent = item.label
     a.onclick = (e) => {
       e.preventDefault()
@@ -948,15 +1001,6 @@ function renderMenu() {
   langBtn.style.cursor = 'pointer'
   langBtn.style.font = 'inherit'
   menuLinks.appendChild(langBtn)
-  const logoutLink = document.createElement('a')
-  logoutLink.href = '#'
-  logoutLink.className = 'nav-link'
-  logoutLink.textContent = t('Sign Out')
-  logoutLink.onclick = (e) => {
-    e.preventDefault()
-    showLogoutConfirm()
-  }
-  menuLinks.appendChild(logoutLink)
 
   // Mobile hamburger menu: open/close the dropdown
   const menuBtn = document.getElementById('menu-btn')
@@ -993,6 +1037,8 @@ function renderMenu() {
     userMenu.innerHTML = `
       <button type="button" class="user-menu-item" id="user-view-profile">👤 <span>${t('View Profile')}</span></button>
       <button type="button" class="user-menu-item" id="user-change-pw">🔒 <span>${t('Change Password')}</span></button>
+      <div class="user-menu-divider"></div>
+      <button type="button" class="user-menu-item danger" id="user-sign-out">🚪 <span>${t('Sign Out')}</span></button>
     `
     avatarBtn.onclick = (e) => {
       e.stopPropagation()
@@ -1009,6 +1055,10 @@ function renderMenu() {
       state.activeView = 'change-password'
       persistActiveView()
       renderView()
+    }
+    document.getElementById('user-sign-out').onclick = () => {
+      userMenu.classList.remove('open')
+      showLogoutConfirm()
     }
   }
 }
@@ -1032,6 +1082,11 @@ async function init() {
       if (userMenu) userMenu.classList.remove('open')
     }
   })
+  // Inactivity tracking: any interaction keeps the session alive
+  ;['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(evt =>
+    document.addEventListener(evt, markUserActive, {passive: true})
+  )
+  setInterval(idleTick, 1000)
   await loadMembers()
   try {
     const user = await api('/me')
@@ -1086,6 +1141,66 @@ function logout() {
   showScreen('login')
 }
 
+// ── Session expiry / inactivity auto-logout ──
+// Server ends sessions after 30 min of inactivity (12 h absolute).
+// The client mirrors this: a warning banner appears 2 minutes before
+// logout; any click/touch/keypress/scroll resets the timer.
+
+const IDLE_LIMIT_MS = 30 * 60 * 1000
+const IDLE_WARN_MS = 2 * 60 * 1000
+let lastActivityAt = Date.now()
+let idleWarningEl = null
+
+function handleSessionExpired(message) {
+  if (!state.currentUser) return
+  state.currentUser = null
+  state.adminToken = ''
+  adminPin.value = ''
+  hideIdleWarning()
+  document.querySelectorAll('.modal-overlay').forEach(o => o.remove())
+  showToast(t(message || 'Session expired. Please log in again.'), 'info', 5000)
+  showScreen('login')
+}
+
+function markUserActive() {
+  lastActivityAt = Date.now()
+  if (idleWarningEl) hideIdleWarning()
+}
+
+function hideIdleWarning() {
+  if (idleWarningEl) {
+    idleWarningEl.remove()
+    idleWarningEl = null
+  }
+}
+
+function showIdleWarning(remainingMs) {
+  const mins = Math.floor(remainingMs / 60000)
+  const secs = Math.floor((remainingMs % 60000) / 1000)
+  if (!idleWarningEl) {
+    idleWarningEl = document.createElement('div')
+    idleWarningEl.className = 'idle-warning'
+    document.body.appendChild(idleWarningEl)
+  }
+  idleWarningEl.innerHTML =
+    `⏳ ${t('You will be logged out soon due to inactivity.')} ` +
+    `<strong>${mins}:${String(secs).padStart(2, '0')}</strong> · ` +
+    `<button type="button" class="btn secondary" id="idle-stay-btn">${t("I'm here")}</button>`
+  const stayBtn = document.getElementById('idle-stay-btn')
+  if (stayBtn) stayBtn.onclick = markUserActive
+}
+
+function idleTick() {
+  if (!state.currentUser) return
+  const remaining = IDLE_LIMIT_MS - (Date.now() - lastActivityAt)
+  if (remaining <= 0) {
+    api('/logout', {method: 'POST'}).catch(() => {})
+    handleSessionExpired('Logged out due to inactivity')
+    return
+  }
+  if (remaining <= IDLE_WARN_MS) showIdleWarning(remaining)
+}
+
 function showLogoutConfirm() {
   const existing = document.getElementById('logout-overlay')
   if (existing) existing.remove()
@@ -1118,7 +1233,20 @@ function showLogoutConfirm() {
 function renderView() {
   renderMenu()
   const view = state.activeView
+  // Safety: never show admin pages to non-admins (e.g. stale saved view)
+  if (String(view).startsWith('admin') && !(state.currentUser && state.currentUser.is_admin)) {
+    state.activeView = 'home'
+    persistActiveView()
+    return renderHome()
+  }
   if (view === 'admin-panel') return renderAdminPanel()
+  if (view === 'admin-pending') return renderAdminPending()
+  if (view === 'admin-add-member') return renderAdminAddMember()
+  if (view === 'admin-direct-entry') return renderAdminDirectEntry()
+  if (view === 'admin-edit-entries') return renderAdminEditEntries()
+  if (view === 'admin-export') return renderAdminExport()
+  if (view === 'admin-income-expense') return renderAdminIncomeExpense()
+  if (view === 'admin-hardlock') return renderAdminHardlock()
   if (view === 'my-profile') return renderMemberProfile(state.currentUser.member_id, 'details')
   if (view === 'my-accounts') return renderMemberProfile(state.currentUser.member_id, 'accounts')
   if (view === 'change-password') return renderChangePassword()
@@ -1261,13 +1389,245 @@ function setView(view) {
   renderView()
 }
 
+// ── Admin Panel: hub-and-spoke navigation ──────────────────────────
+// The hub shows one box per task (same idea as All Members). Tapping
+// a box opens a dedicated page showing only that section, with a
+// Back button to return. Only one thing is ever on screen.
+
+const ADMIN_SUB_VIEWS = [
+  'admin-pending',
+  'admin-add-member',
+  'admin-direct-entry',
+  'admin-edit-entries',
+  'admin-export',
+  'admin-income-expense',
+  'admin-hardlock',
+]
+
+const ADMIN_HUB_CARDS = [
+  {id: 'admin-pending', icon: '⏳', label: 'Pending Requests', desc: 'Approve or reject member requests.', rgb: '245,158,11'},
+  {id: 'admin-add-member', icon: '➕', label: 'Add New Member', desc: 'Create a new member account.', rgb: '16,185,129'},
+  {id: 'admin-direct-entry', icon: '⚡', label: 'Direct Entry', desc: 'Record an auto-approved payment.', rgb: '139,92,246'},
+  {id: 'admin-income-expense', icon: '💰', label: 'Income / Expenses', desc: 'Add income & expense records.', rgb: '52,211,153'},
+  {id: 'admin-hardlock', icon: '🔒', label: 'Hardlock / Investment', desc: 'Active investments, schemes & history.', rgb: '244,114,182'},
+  {id: 'admin-edit-entries', icon: '✏️', label: 'Edit / Correct Entries', desc: 'Fix or delete a wrong entry.', rgb: '96,165,250'},
+  {id: 'admin-export', icon: '📄', label: 'Export Report (PDF)', desc: 'Download monthly or period summary PDF.', rgb: '34,211,238'},
+]
+
 async function renderAdminPanel() {
-  const pendingLoans = state.members
-    .flatMap(member => member.member_id ? [member] : [])
+  let pendingCount = 0
+  try {
+    const items = await api('/admin/submitted_requests', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}})
+    pendingCount = Array.isArray(items) ? items.length : 0
+  } catch (e) {}
+  const cards = ADMIN_HUB_CARDS.map(c => `
+    <div class="admin-hub-card" onclick="setView('${c.id}')">
+      ${c.id === 'admin-pending' && pendingCount > 0 ? `<span class="ahc-badge">${pendingCount}</span>` : ''}
+      <div class="ahc-icon" style="background:rgba(${c.rgb},0.14);border-color:rgba(${c.rgb},0.35)">${c.icon}</div>
+      <div class="ahc-name">${t(c.label)}</div>
+      <div class="ahc-desc">${t(c.desc)}</div>
+    </div>`).join('')
+  content.innerHTML = `
+    <div class="panel">
+      <h3 class="section-heading">${t('Admin Panel')}</h3>
+      <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 4px">${t('Choose a section')}:</p>
+      <div class="admin-hub-grid">${cards}</div>
+    </div>`
+}
+
+// Shared shell for admin sub-pages: back button on top, one panel below.
+function adminSubPage(bodyHtml) {
+  content.innerHTML = `
+    <div class="admin-panel">
+      <button type="button" class="btn secondary admin-back-btn" id="admin-back-btn">← ${t('Back')}</button>
+      <div class="panel" style="margin-top:12px">
+        ${bodyHtml}
+      </div>
+    </div>`
+  const backBtn = document.getElementById('admin-back-btn')
+  if (backBtn) backBtn.onclick = () => setView('admin-panel')
+}
+
+// ── Admin ▸ Add New Member ──
+function renderAdminAddMember() {
+  adminSubPage(`
+    <h3 class="section-heading">➕ ${t('Add New Member')}</h3>
+    <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
+    <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
+    <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
+    <div class="input-row" style="display:flex;gap:12px">
+      <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" value="25000" /></div></div>
+      <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+    </div>
+    <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="new-member-password" type="password" placeholder="${t('Set member password')}" /><span id="new-member-pw-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
+    <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
+  `)
+  document.getElementById('add-member-btn').onclick = handleAddMember
+  const nmDate = document.getElementById('new-member-date')
+  if (nmDate) createDatePicker(nmDate)
+  const nmDep = document.getElementById('new-member-deposit')
+  if (nmDep) indianizeInput(nmDep)
+  const nmPwToggle = document.getElementById('new-member-pw-toggle')
+  const nmPwInput = document.getElementById('new-member-password')
+  if (nmPwToggle && nmPwInput) {
+    nmPwToggle.onclick = () => {
+      nmPwInput.type = nmPwInput.type === 'password' ? 'text' : 'password'
+      nmPwToggle.textContent = nmPwInput.type === 'password' ? '👁' : '🙈'
+    }
+  }
+}
+
+// ── Admin ▸ Direct Entry ──
+function renderAdminDirectEntry() {
+  adminSubPage(`
+    <h3 class="section-heading">⚡ ${t('Direct Entry')}</h3>
+    <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
+    <div class="de-panel">
+      <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
+      <div class="input-row" style="display:flex;gap:12px">
+        <div style="flex:1"><label>${t('Share')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
+        <div style="flex:1"><label>${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
+      </div>
+      <div class="input-row" style="display:flex;gap:12px">
+        <div style="flex:1"><label>${t('Loan Principal')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-principal" type="text" placeholder="0" /></div></div>
+        <div style="flex:1"><label>${t('Loan Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-interest" type="text" placeholder="0" /></div></div>
+      </div>
+      <div class="input-row" style="margin-top:4px">
+        <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:600">${t('Total Amount')}</span>
+          <strong id="de-total-amount" style="font-size:1.1rem;color:#34d399">₹0</strong>
+        </div>
+      </div>
+      <div class="input-row"><label>${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+      <div class="input-row"><input id="de-note" placeholder="${t('Note (optional)')}" /></div>
+      <button class="btn primary" id="de-submit-btn">${t('Submit & Auto-Approve')}</button>
+    </div>
+  `)
+  const deBtn = document.getElementById('de-submit-btn')
+  if (deBtn) deBtn.onclick = handleDirectEntry
+  ;['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) indianizeInput(el)
+  })
+  const deDate = document.getElementById('de-date')
+  if (deDate) createDatePicker(deDate)
+  const deTotalEl = document.getElementById('de-total-amount')
+  const updateDeTotal = () => {
+    const sum = ['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].reduce((acc, id) => {
+      const el = document.getElementById(id)
+      return acc + (Number((el ? el.value : '').replace(/,/g, '')) || 0)
+    }, 0)
+    if (deTotalEl) deTotalEl.textContent = formatCurrency(sum)
+  }
+  ;['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.addEventListener('input', updateDeTotal)
+  })
+  updateDeTotal()
+}
+
+// ── Admin ▸ Pending Requests ──
+function renderAdminPending() {
+  adminSubPage(`
+    <h3 class="section-heading">⏳ ${t('Pending Requests')}</h3>
+    <p style="color:#94a3b8;font-size:0.85rem">${t('Approve or reject member requests after review.')}</p>
+    <div id="submitted-requests"></div>
+  `)
+  renderSubmittedRequests()
+}
+
+// ── Admin ▸ Edit / Correct Entries ──
+function renderAdminEditEntries() {
   const eeTypeOptions = [
     ['all', t('All types')], ['split', t('Share / Loan')],
     ['income', t('Income')], ['expense', t('Expense')],
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
+  adminSubPage(`
+    <h3 class="section-heading">✏️ ${t('Edit / Correct Entries')}</h3>
+    <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
+    <div class="ee-filters">
+      <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
+      <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.member_id}">${escHtml(m.name)}</option>`).join('')}</select>
+      <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
+    </div>
+    <div class="ee-filters" style="margin-top:8px">
+      <label class="ee-date-label">${t('From')}:</label>
+      <input type="text" id="ee-from" class="admin-input" style="flex:1;min-width:0" readonly />
+      <label class="ee-date-label">${t('To')}:</label>
+      <input type="text" id="ee-to" class="admin-input" style="flex:1;min-width:0" readonly />
+    </div>
+    <div id="ee-list" style="margin-top:12px"></div>
+  `)
+  const eeType = document.getElementById('ee-type')
+  const eeMember = document.getElementById('ee-member')
+  const eeQ = document.getElementById('ee-q')
+  const eeFrom = document.getElementById('ee-from')
+  const eeTo = document.getElementById('ee-to')
+  if (eeFrom) createDatePicker(eeFrom)
+  if (eeTo) createDatePicker(eeTo)
+  if (eeType && eeMember && eeQ && eeFrom && eeTo) {
+    eeType.onchange = eeLoad
+    eeMember.onchange = eeLoad
+    eeFrom.onchange = eeLoad
+    eeTo.onchange = eeLoad
+    let eeDebounce
+    eeQ.oninput = () => { clearTimeout(eeDebounce); eeDebounce = setTimeout(eeLoad, 400) }
+    eeLoad()
+  }
+}
+
+// ── Admin ▸ Export Report (PDF) ──
+function renderAdminExport() {
+  adminSubPage(`
+    <h3 class="section-heading">📄 ${t('Export Report (PDF)')}</h3>
+    <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Download a monthly or custom-period summary PDF to share with members.')}</p>
+    <div class="ee-filters" style="align-items:center">
+      <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
+        <input type="radio" name="export-type" value="month" checked onchange="window.toggleExportType()" /> ${t('Monthly')}
+      </label>
+      <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
+        <input type="radio" name="export-type" value="custom" onchange="window.toggleExportType()" /> ${t('Custom period')}
+      </label>
+    </div>
+    <div class="ee-filters" style="margin-top:8px;align-items:center">
+      <div id="export-month-wrap" style="flex:1;min-width:0">
+        <label class="ee-date-label">${t('Month')}:</label>
+        <input type="text" id="export-month" class="admin-input" readonly />
+      </div>
+      <div id="export-custom-wrap" style="display:none;flex:1;min-width:0;align-items:center">
+        <label class="ee-date-label">${t('From')}:</label>
+        <input type="text" id="export-from" class="admin-input" style="flex:1;min-width:0" readonly />
+        <label class="ee-date-label">${t('To')}:</label>
+        <input type="text" id="export-to" class="admin-input" style="flex:1;min-width:0" readonly />
+      </div>
+      <button class="btn primary" id="export-btn" style="justify-content:center;white-space:nowrap">${t('⬇ Export PDF')}</button>
+    </div>
+  `)
+  const exportMonth = document.getElementById('export-month')
+  if (exportMonth) {
+    exportMonth.value = isoDateString(new Date())
+    createDatePicker(exportMonth)
+  }
+  const exportFrom = document.getElementById('export-from')
+  if (exportFrom) createDatePicker(exportFrom)
+  const exportTo = document.getElementById('export-to')
+  if (exportTo) createDatePicker(exportTo)
+  const exportBtn = document.getElementById('export-btn')
+  if (exportBtn) exportBtn.onclick = handleExportReport
+  window.toggleExportType = () => {
+    const type = document.querySelector('input[name="export-type"]:checked')
+    if (!type) return
+    const isMonth = type.value === 'month'
+    const mw = document.getElementById('export-month-wrap')
+    const cw = document.getElementById('export-custom-wrap')
+    if (mw) mw.style.display = isMonth ? 'block' : 'none'
+    if (cw) cw.style.display = isMonth ? 'none' : 'flex'
+  }
+  window.toggleExportType()
+}
+
+// ── Admin ▸ Income / Expenses ──
+function renderAdminIncomeExpense() {
   const ieFormFields = (type) => {
     const isInc = type === 'income'
     const col = isInc ? 'rgba(52,211,153,0.15)' : 'rgba(239,68,68,0.15)'
@@ -1300,166 +1660,87 @@ async function renderAdminPanel() {
           <div id="expense-form" style="display:none;margin-top:10px">${ieFormFields('expense')}</div>
         </div>
       </div>`
-  const html = `
-    <div class="admin-panel">
-      <div class="grid-2 grid-stretch">
-        <div class="panel">
-        <div class="admin-toggle-row">
-          <button class="btn btn-admin-toggle" id="toggle-add-member" style="justify-content:center;gap:8px">${t('＋ Add New Member')}</button>
-          <button class="btn btn-admin-toggle" id="toggle-direct-entry" style="justify-content:center;gap:8px;margin-top:0">${t('Direct Entry')}</button>
-        </div>
-        <div id="add-member-form" style="display:none;margin-top:12px">
-            <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
-            <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
-            <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" /></div>
-            <div class="input-row" style="display:flex;gap:12px">
-              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" value="25000" /></div></div>
-              <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
-            </div>
-            <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="new-member-password" type="password" placeholder="${t('Set member password')}" /><span id="new-member-pw-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
-            <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
-          </div>
-          <hr style="border-color:rgba(148,163,184,0.15);margin:16px 0">
-          <div id="direct-entry-form" class="de-panel" style="display:none;margin-top:12px">
-          <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
-          <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
-          <div class="input-row" style="display:flex;gap:12px">
-            <div style="flex:1"><label>${t('Share')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-share" type="text" value="500" /></div></div>
-            <div style="flex:1"><label>${t('Fine')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-fine" type="text" value="0" /></div></div>
-          </div>
-          <div class="input-row" style="display:flex;gap:12px">
-            <div style="flex:1"><label>${t('Loan Principal')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-principal" type="text" placeholder="0" /></div></div>
-            <div style="flex:1"><label>${t('Loan Interest')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="de-loan-interest" type="text" placeholder="0" /></div></div>
-          </div>
-          <div class="input-row" style="margin-top:4px">
-            <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-weight:600">${t('Total Amount')}</span>
-              <strong id="de-total-amount" style="font-size:1.1rem;color:#34d399">₹0</strong>
-            </div>
-          </div>
-          <div class="input-row"><label>${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
-          <div class="input-row"><input id="de-note" placeholder="${t('Note (optional)')}" /></div>
-          <button class="btn primary" id="de-submit-btn">${t('Submit & Auto-Approve')}</button>
-          </div>
-        </div>
-        <div class="panel">
-          <h3 class="section-heading">${t('Pending Requests')}</h3>
-          <p style="color:#94a3b8;font-size:0.85rem">${t('Approve or reject member requests after review.')}</p>
-          <div id="submitted-requests"></div>
-        </div>
-      </div>
-      <div class="panel" style="margin-top:18px">
-        <button class="btn btn-admin-toggle" id="toggle-edit-entries" style="width:100%;justify-content:center;gap:8px">${t('✏️ Edit / Correct Entries')} <span class="fd-chevron" id="ee-toggle-chevron">▾</span></button>
-        <div id="edit-entries-body" style="display:none;margin-top:12px">
-        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
-        <div class="ee-filters">
-          <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
-          <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.member_id}">${escHtml(m.name)}</option>`).join('')}</select>
-          <input id="ee-q" class="admin-input" style="flex:1.5;min-width:160px" placeholder="${t('Search member or description...')}" />
-        </div>
-        <div class="ee-filters" style="margin-top:8px">
-          <label class="ee-date-label">${t('From')}:</label>
-          <input type="text" id="ee-from" class="admin-input" style="flex:1;min-width:0" readonly />
-          <label class="ee-date-label">${t('To')}:</label>
-          <input type="text" id="ee-to" class="admin-input" style="flex:1;min-width:0" readonly />
-        </div>
-        <div id="ee-list" style="margin-top:12px"></div>
-        </div>
-      </div>
-      <div class="panel" style="margin-top:18px">
-        <button class="btn btn-admin-toggle" id="toggle-export-report" style="width:100%;justify-content:center;gap:8px">${t('📄 Export Report (PDF)')} <span class="fd-chevron" id="export-toggle-chevron">▾</span></button>
-        <div id="export-report-body" style="display:none;margin-top:12px">
-        <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Download a monthly or custom-period summary PDF to share with members.')}</p>
-        <div class="ee-filters" style="align-items:center">
+  adminSubPage(`
+    <h3 class="section-heading">💰 ${t('Income / Expenses')}</h3>
+    ${ieSection}
+    <div id="ie-list"></div>
+  `)
+  document.getElementById('toggle-income-form').onclick = () => toggleForm('income')
+  document.getElementById('toggle-expense-form').onclick = () => toggleForm('expense')
+  document.getElementById('save-income-btn').onclick = () => handleSaveIe('credit')
+  document.getElementById('save-expense-btn').onclick = () => handleSaveIe('debit')
+  const incAmt = document.getElementById('income-amount')
+  if (incAmt) indianizeInput(incAmt)
+  const expAmt = document.getElementById('expense-amount')
+  if (expAmt) indianizeInput(expAmt)
+  const incDate = document.getElementById('income-date')
+  if (incDate) createDatePicker(incDate)
+  const expDate = document.getElementById('expense-date')
+  if (expDate) createDatePicker(expDate)
+  renderIeList()
+}
+
+// ── Admin ▸ Hardlock / Investment ──
+let adminFdTab = 'active'
+
+function renderAdminHardlock() {
+  adminSubPage(`
+    <h3 class="section-heading">🔒 ${t('Hardlock / Investment')}</h3>
+    <button class="btn btn-admin-toggle" id="fd-toggle-btn" style="width:100%;justify-content:center;gap:8px;margin-bottom:12px">＋ ${t('Add Investment')} <span class="fd-chevron" id="fd-toggle-chevron">▾</span></button>
+    <div id="fd-form-body" style="display:none;margin-bottom:16px">
+      <div class="fd-card-form">
+        <div style="display:flex;gap:10px;margin-bottom:12px">
           <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
-            <input type="radio" name="export-type" value="month" checked onchange="window.toggleExportType()" /> ${t('Monthly')}
+            <input type="radio" name="inv-type" value="one_time" checked onchange="window.toggleInvType()" /> ${t('One-time')}
           </label>
           <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
-            <input type="radio" name="export-type" value="custom" onchange="window.toggleExportType()" /> ${t('Custom period')}
+            <input type="radio" name="inv-type" value="monthly" onchange="window.toggleInvType()" /> ${t('Monthly Scheme')}
           </label>
         </div>
-        <div class="ee-filters" style="margin-top:8px;align-items:center">
-          <div id="export-month-wrap" style="flex:1;min-width:0">
-            <label class="ee-date-label">${t('Month')}:</label>
-            <input type="text" id="export-month" class="admin-input" readonly />
+        <div class="fd-form-grid">
+          <div class="fd-field" id="inv-amount-field">
+            <label>${t('Amount')}</label>
+            <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
           </div>
-          <div id="export-custom-wrap" style="display:none;flex:1;min-width:0;align-items:center">
-            <label class="ee-date-label">${t('From')}:</label>
-            <input type="text" id="export-from" class="admin-input" style="flex:1;min-width:0" readonly />
-            <label class="ee-date-label">${t('To')}:</label>
-            <input type="text" id="export-to" class="admin-input" style="flex:1;min-width:0" readonly />
+          <div class="fd-field">
+            <label>${t('Start Date')}</label>
+            <div class="input-group"><input id="fd-start" class="dual-date" type="text" placeholder="DD/MM/YYYY" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
           </div>
-          <button class="btn primary" id="export-btn" style="justify-content:center;white-space:nowrap">${t('⬇ Export PDF')}</button>
-        </div>
-        </div>
-      </div>
-      <div class="panel bank-income-box">
-        <div style="margin-top:0">
-          <h4 style="margin:0 0 10px;color:#c7d2fe;font-size:0.85rem;font-weight:600">${t('Income / Expenses')}</h4>
-          ${ieSection}
-          <div id="ie-list"></div>
-        </div>
-      </div>
-      <div class="panel bank-income-box">
-        <div style="margin-top:0">
-          <button class="btn btn-admin-toggle" id="fd-toggle-btn" style="width:100%;justify-content:center;gap:8px">${t('🔒 Hardlock / Investment')} <span class="fd-chevron" id="fd-toggle-chevron">▾</span></button>
-          <div id="fd-form-body" style="display:none;margin-top:12px">
-          <div class="fd-card-form">
-            <div style="display:flex;gap:10px;margin-bottom:12px">
-              <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
-                <input type="radio" name="inv-type" value="one_time" checked onchange="window.toggleInvType()" /> ${t('One-time')}
-              </label>
-              <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
-                <input type="radio" name="inv-type" value="monthly" onchange="window.toggleInvType()" /> ${t('Monthly Scheme')}
-              </label>
-            </div>
-            <div class="fd-form-grid">
-              <div class="fd-field" id="inv-amount-field">
-                <label>${t('Amount')}</label>
-                <div class="input-group"><span class="input-prefix">₹</span><input id="fd-amount" type="text" placeholder="0" /></div>
-              </div>
-              <div class="fd-field">
-                <label>${t('Start Date')}</label>
-                <div class="input-group"><input id="fd-start" class="dual-date" type="text" placeholder="DD/MM/YYYY" value="${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})}" /></div>
-              </div>
-              <div class="fd-field">
-                <label>${t('End / Maturity')}</label>
-                <div class="input-group"><input id="fd-end" class="dual-date" type="text" placeholder="DD/MM/YYYY" /></div>
-              </div>
-              <div class="fd-field" id="inv-rate-field">
-                <label>${t('Interest Rate')}</label>
-                <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
-              </div>
-              <div class="fd-field">
-                <label id="inv-provider-label">${t('Bank / Scheme')}</label>
-                <div class="input-group"><input id="fd-bank" placeholder="${t('e.g. SBI')}" /></div>
-              </div>
-              <div class="fd-field fd-field-btn">
-                <label>&nbsp;</label>
-                <button class="btn primary" id="fd-add-btn">${t('Add')}</button>
-              </div>
-            </div>
-            <p id="inv-monthly-note" style="display:none;color:#94a3b8;font-size:0.85rem;margin:8px 0 0">${t('Add monthly installments using the + button in Active section.')}</p>
+          <div class="fd-field">
+            <label>${t('End / Maturity')}</label>
+            <div class="input-group"><input id="fd-end" class="dual-date" type="text" placeholder="DD/MM/YYYY" /></div>
           </div>
+          <div class="fd-field" id="inv-rate-field">
+            <label>${t('Interest Rate')}</label>
+            <div class="input-group"><input id="fd-rate" type="text" value="7" /><span class="input-suffix">%</span></div>
           </div>
-          <div class="fd-sections" style="margin-top:12px">
-          <div class="fd-section">
-            <div class="fd-section-head"><span class="fd-section-dot active"></span> ${t('Active')}</div>
-            <div id="fd-keeping"></div>
+          <div class="fd-field">
+            <label id="inv-provider-label">${t('Bank / Scheme')}</label>
+            <div class="input-group"><input id="fd-bank" placeholder="${t('e.g. SBI')}" /></div>
           </div>
-          <div class="fd-section">
-            <div class="fd-section-head"><span class="fd-section-dot closed"></span> ${t('Record')}</div>
-            <div id="fd-record"></div>
-          </div>
+          <div class="fd-field fd-field-btn">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="fd-add-btn">${t('Add')}</button>
           </div>
         </div>
-      </div>
+        <p id="inv-monthly-note" style="display:none;color:#94a3b8;font-size:0.85rem;margin:8px 0 0">${t('Add monthly installments using the + button in Active section.')}</p>
       </div>
     </div>
-  `
-  content.innerHTML = html
-  document.getElementById('add-member-btn').onclick = handleAddMember
-  document.getElementById('fd-add-btn').onclick = handleAddFd
+    <div class="fd-tabs">
+      <button type="button" class="fd-tab" id="fd-tab-btn-active">🟢 ${t('Active')}</button>
+      <button type="button" class="fd-tab" id="fd-tab-btn-history">🗄️ ${t('History')}</button>
+    </div>
+    <div id="fd-tab-active">
+      <div class="fd-section">
+        <div id="fd-keeping"></div>
+      </div>
+    </div>
+    <div id="fd-tab-history" style="display:none">
+      <div class="fd-section">
+        <div id="fd-record"></div>
+      </div>
+    </div>
+  `)
   const fdToggleBtn = document.getElementById('fd-toggle-btn')
   if (fdToggleBtn) {
     fdToggleBtn.onclick = () => {
@@ -1468,120 +1749,32 @@ async function renderAdminPanel() {
       if (ch) ch.textContent = fdToggleBtn.classList.contains('active') ? '▴' : '▾'
     }
   }
-  const eeToggleBtn = document.getElementById('toggle-edit-entries')
-  if (eeToggleBtn) {
-    eeToggleBtn.onclick = () => {
-      toggleAdminSection('toggle-edit-entries', 'edit-entries-body')
-      const ch = document.getElementById('ee-toggle-chevron')
-      if (ch) ch.textContent = eeToggleBtn.classList.contains('active') ? '▴' : '▾'
-    }
-  }
-  const exportToggleBtn = document.getElementById('toggle-export-report')
-  if (exportToggleBtn) {
-    exportToggleBtn.onclick = () => {
-      toggleAdminSection('toggle-export-report', 'export-report-body')
-      const ch = document.getElementById('export-toggle-chevron')
-      if (ch) ch.textContent = exportToggleBtn.classList.contains('active') ? '▴' : '▾'
-    }
-  }
-  document.getElementById('toggle-income-form').onclick = () => toggleForm('income')
-  document.getElementById('toggle-expense-form').onclick = () => toggleForm('expense')
-  document.getElementById('save-income-btn').onclick = () => handleSaveIe('credit')
-  document.getElementById('save-expense-btn').onclick = () => handleSaveIe('debit')
+  document.getElementById('fd-add-btn').onclick = handleAddFd
   const fdAmt = document.getElementById('fd-amount')
   if (fdAmt) indianizeInput(fdAmt)
-  const incAmt = document.getElementById('income-amount')
-  if (incAmt) indianizeInput(incAmt)
-  const expAmt = document.getElementById('expense-amount')
-  if (expAmt) indianizeInput(expAmt)
-  const deShare = document.getElementById('de-share')
-  if (deShare) indianizeInput(deShare)
-  const deFine = document.getElementById('de-fine')
-  if (deFine) indianizeInput(deFine)
-  const deLoan = document.getElementById('de-loan-principal')
-  if (deLoan) indianizeInput(deLoan)
-  const deInterest = document.getElementById('de-loan-interest')
-  if (deInterest) indianizeInput(deInterest)
-  const deBtn = document.getElementById('de-submit-btn')
-  if (deBtn) deBtn.onclick = handleDirectEntry
-  document.getElementById('toggle-add-member').onclick = () => toggleAdminSection('toggle-add-member', 'add-member-form')
-  document.getElementById('toggle-direct-entry').onclick = () => toggleAdminSection('toggle-direct-entry', 'direct-entry-form')
-  const incDate = document.getElementById('income-date')
-  if (incDate) createDatePicker(incDate)
-  const expDate = document.getElementById('expense-date')
-  if (expDate) createDatePicker(expDate)
-  const deDate = document.getElementById('de-date')
-  if (deDate) createDatePicker(deDate)
-  const deTotalEl = document.getElementById('de-total-amount')
-  const updateDeTotal = () => {
-    const sum = ['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].reduce((acc, id) => {
-      const el = document.getElementById(id)
-      return acc + (Number((el ? el.value : '').replace(/,/g, '')) || 0)
-    }, 0)
-    if (deTotalEl) deTotalEl.textContent = formatCurrency(sum)
-  }
-  ;['de-share', 'de-fine', 'de-loan-principal', 'de-loan-interest'].forEach(id => {
-    const el = document.getElementById(id)
-    if (el) el.addEventListener('input', updateDeTotal)
-  })
-  updateDeTotal()
-  const nmDate = document.getElementById('new-member-date')
-  if (nmDate) createDatePicker(nmDate)
-  const nmDep = document.getElementById('new-member-deposit')
-  if (nmDep) indianizeInput(nmDep)
-  const nmPwToggle = document.getElementById('new-member-pw-toggle')
-  const nmPwInput = document.getElementById('new-member-password')
-  if (nmPwToggle && nmPwInput) {
-    nmPwToggle.onclick = () => {
-      nmPwInput.type = nmPwInput.type === 'password' ? 'text' : 'password'
-      nmPwToggle.textContent = nmPwInput.type === 'password' ? '👁' : '🙈'
-    }
-  }
   const fdStart = document.getElementById('fd-start')
   if (fdStart) dualDateInput(fdStart)
   const fdEnd = document.getElementById('fd-end')
   if (fdEnd) dualDateInput(fdEnd)
-  const eeType = document.getElementById('ee-type')
-  const eeMember = document.getElementById('ee-member')
-  const eeQ = document.getElementById('ee-q')
-  const eeFrom = document.getElementById('ee-from')
-  const eeTo = document.getElementById('ee-to')
-  if (eeFrom) createDatePicker(eeFrom)
-  if (eeTo) createDatePicker(eeTo)
-  if (eeType && eeMember && eeQ && eeFrom && eeTo) {
-    eeType.onchange = eeLoad
-    eeMember.onchange = eeLoad
-    eeFrom.onchange = eeLoad
-    eeTo.onchange = eeLoad
-    let eeDebounce
-    eeQ.oninput = () => { clearTimeout(eeDebounce); eeDebounce = setTimeout(eeLoad, 400) }
-    eeLoad()
+  const setActiveTab = (tab) => {
+    adminFdTab = tab
+    const actPane = document.getElementById('fd-tab-active')
+    const histPane = document.getElementById('fd-tab-history')
+    const bA = document.getElementById('fd-tab-btn-active')
+    const bH = document.getElementById('fd-tab-btn-history')
+    if (!actPane || !histPane) return
+    actPane.style.display = tab === 'active' ? 'block' : 'none'
+    histPane.style.display = tab === 'history' ? 'block' : 'none'
+    if (bA) bA.classList.toggle('active', tab === 'active')
+    if (bH) bH.classList.toggle('active', tab === 'history')
   }
-  const exportMonth = document.getElementById('export-month')
-  if (exportMonth) {
-    exportMonth.value = isoDateString(new Date())
-    createDatePicker(exportMonth)
-  }
-  const exportFrom = document.getElementById('export-from')
-  if (exportFrom) createDatePicker(exportFrom)
-  const exportTo = document.getElementById('export-to')
-  if (exportTo) createDatePicker(exportTo)
-  const exportBtn = document.getElementById('export-btn')
-  if (exportBtn) exportBtn.onclick = handleExportReport
-  window.toggleExportType = () => {
-    const type = document.querySelector('input[name="export-type"]:checked')
-    if (!type) return
-    const isMonth = type.value === 'month'
-    const mw = document.getElementById('export-month-wrap')
-    const cw = document.getElementById('export-custom-wrap')
-    if (mw) mw.style.display = isMonth ? 'block' : 'none'
-    if (cw) cw.style.display = isMonth ? 'none' : 'flex'
-  }
-  window.toggleExportType()
+  const tabBtnA = document.getElementById('fd-tab-btn-active')
+  const tabBtnH = document.getElementById('fd-tab-btn-history')
+  if (tabBtnA) tabBtnA.onclick = () => setActiveTab('active')
+  if (tabBtnH) tabBtnH.onclick = () => setActiveTab('history')
+  setActiveTab(adminFdTab)
   window.toggleInvType()
-  await renderSubmittedRequests()
-  await renderFdEntries()
-  await renderIeList()
+  renderFdEntries()
 }
 
 function dateFromInputValue(v) {
@@ -1904,7 +2097,7 @@ async function handleSaveIe(type) {
     document.getElementById(`${prefix}-amount`).value = ''
     document.getElementById(`${prefix}-reason`).value = ''
     toggleForm(prefix === 'income' ? 'income' : 'expense')
-    renderAdminPanel()
+    renderView()
   } finally {
     setLoading(btn, false)
   }
@@ -2985,7 +3178,7 @@ async function handleAddMember() {
       body: JSON.stringify({name, phone, entry_deposit_amount: depositAmount, entry_deposit_date: depositDate, password}),
     })
     await loadMembers()
-    renderAdminPanel()
+    renderView()
   } finally {
     setLoading(btn, false)
   }
@@ -3038,7 +3231,7 @@ async function handleDirectEntry() {
     document.getElementById('de-loan-principal').value = ''
     document.getElementById('de-loan-interest').value = ''
     document.getElementById('de-note').value = ''
-    await renderAdminPanel()
+    await renderView()
   } catch (err) {
     showToast((err && err.message) || 'Direct entry failed', 'error')
   } finally {
@@ -3047,29 +3240,12 @@ async function handleDirectEntry() {
 }
 
 function toggleAdminSection(btnId, bodyId) {
-  const mobile = window.innerWidth <= 640
-  const pairs = [
-    ['toggle-add-member', 'add-member-form'],
-    ['toggle-direct-entry', 'direct-entry-form'],
-  ]
   const btn = document.getElementById(btnId)
   const body = document.getElementById(bodyId)
   if (!btn || !body) return
   const on = body.style.display === 'none'
   body.style.display = on ? 'block' : 'none'
   btn.classList.toggle('active', on)
-  if (mobile) {
-    const other = pairs.find(p => p[0] === btnId)
-    if (other) {
-      const otherPair = pairs.find(p => p[0] !== btnId)
-      if (otherPair) {
-        const ob = document.getElementById(otherPair[0])
-        const of = document.getElementById(otherPair[1])
-        if (ob) ob.classList.remove('active')
-        if (of) of.style.display = 'none'
-      }
-    }
-  }
 }
 
 function fdSchemeNo(id) { return 'FD' + String(id || 0).padStart(4, '0') }
@@ -3359,8 +3535,7 @@ window.closeFd = async function(fdId) {
       })
       overlay.remove()
       showToast(isScheme ? t('Scheme closed. Return added.') : t('Closed. Return added.'), 'success')
-      await renderFdEntries()
-      renderAdminPanel()
+      renderView()
     } finally {
       setLoading(btn, false)
     }
