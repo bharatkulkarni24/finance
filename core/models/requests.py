@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.database import get_conn, row_to_dict
 
@@ -8,7 +8,7 @@ TYPE_LOAN = 'loan'
 
 def _as_datetime(value: str) -> str:
     if not value:
-        return datetime.utcnow().isoformat()
+        return datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     return value if 'T' in value else value + 'T00:00:00'
 
 

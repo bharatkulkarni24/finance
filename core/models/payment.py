@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from core.database import get_conn, row_to_dict
 from core.models.loan import compute_interest_accrued
@@ -8,7 +8,7 @@ from core.models.requests import _as_datetime, next_req_no, _fetch
 def create_payment_request(member_id: int, amount: float, note: str = '', screenshot: str = '', txn_date: str = None, fine: float = 0.0, share_amount: float = 0.0, loan_principal: float = 0.0, loan_interest: float = 0.0) -> dict:
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     req_no = next_req_no('payment')
     cur.execute(
         'INSERT INTO requests (req_no, member_id, item_type, date_submitted, pay_date, share_amount, loan_principal, loan_interest, fine, total_amount, note, screenshot, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
@@ -60,7 +60,7 @@ def _apply_loan_payment(cur, active_loans, loan_amt, interest_amt):
 def approve_payment_request(request_id: int, approver_id: int):
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     req = _fetch(cur, request_id)
     if not req or req['item_type'] != 'payment' or req['status'] != 'submitted':
         conn.close()
@@ -97,7 +97,7 @@ def approve_payment_request(request_id: int, approver_id: int):
 def reject_payment_request(request_id: int, approver_id: int, reason: str = ''):
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     req = _fetch(cur, request_id)
     if not req or req['item_type'] != 'payment' or req['status'] != 'submitted':
         conn.close()
@@ -117,7 +117,7 @@ def admin_direct_entry(member_id: int, share_amount: float = 0, fine: float = 0,
                        entry_date: str = None, note: str = ''):
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     use_date = _as_datetime(entry_date)
 
     loan_id = None

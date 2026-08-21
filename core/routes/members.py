@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from flask import Blueprint, jsonify, request, current_app
 from werkzeug.utils import secure_filename
@@ -33,7 +33,7 @@ def _save_uploaded_image(file, prefix: str):
         return None
     uploads = os.path.join(current_app.static_folder, 'uploads')
     os.makedirs(uploads, exist_ok=True)
-    fn = secure_filename(f"{prefix}_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}{ext}")
+    fn = secure_filename(f"{prefix}_{datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y%m%d%H%M%S')}{ext}")
     path = os.path.join(uploads, fn)
     with open(path, 'wb') as f:
         f.write(data)

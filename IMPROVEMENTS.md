@@ -62,8 +62,10 @@ Status legend: `Pending` → `Approved` → `Done` / `Declined`
 
 ### 10. Replace deprecated `datetime.utcnow()`
 - Python 3.13 deprecation warnings across models (loan.py, transaction.py etc.). Use timezone-aware datetimes. Purely future-proofing.
-- **Status:** Pending
+- **Implemented Aug 2026:** 17 call sites across 6 models + members route → `datetime.now(timezone.utc).replace(tzinfo=None)` (identical DB string format, verified). Unit suite now runs warning-free (was 175 warnings).
+- **Status:** Done
 
 ### 11. Tests for Entry Deposit & Loan Disbursed editing
 - The two new Edit Entries kinds (added Aug 2026) have no dedicated unit/integration tests yet.
-- **Status:** Pending
+- **Implemented Aug 2026:** 14 unit tests in tests/unit/test_edit_kinds.py — amount/date edits, outstanding delta-adjust both directions, below-repayment block, delete-with-repayments block, repaid↔active status flip cycle, audit rows, unknown-kind rejection.
+- **Status:** Done

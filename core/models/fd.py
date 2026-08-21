@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime
+from datetime import datetime, timezone
 
 from core.database import get_conn, row_to_dict
 
@@ -13,7 +13,7 @@ def add_fd(amount: float, start_date: str, term_months: int, interest_rate: floa
         return {'error': 'insufficient_funds', 'available': avail, 'requested': round(amount or 0, 2)}
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     sd = datetime.strptime(start_date, '%Y-%m-%d')
     months = term_months
     year = sd.year + (sd.month - 1 + months) // 12
@@ -46,7 +46,7 @@ def add_fd_installment(parent_id: int, amount: float, installment_date: str, not
     if not parent:
         conn.close()
         return None
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
     cur.execute(
         'INSERT INTO fixed_deposits (amount, start_date, term_months, interest_rate, status, notes, created_at, maturity_date, investment_type, parent_id, installment_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
         (amount, installment_date, 0, 0, 'active', notes or '', now, None, 'installment', parent_id, installment_date),
