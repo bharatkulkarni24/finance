@@ -30,15 +30,15 @@ function showToast(msg, type = 'info', timeout = 3500) {
 // Static map of member English names -> correct Kannada spellings (whole-name translation)
 const KN_NAME_MAP = {
   'govindrao kulkarni': 'ಗೋವಿಂದರಾವ್ ಕುಲಕರ್ಣಿ',
-  'bharat kulkarni': 'ಭಾರತ್ ಕುಲಕರ್ಣಿ',
-  'bhargav kulkarni': 'ಭಾರ್ಗವ್ ಕುಲಕರ್ಣಿ',
+  'bharat kulkarni': 'ಭರತ ಕುಲಕರ್ಣಿ',
+  'bhargav kulkarni': 'ಭಾರ್ಗವ ಕುಲಕರ್ಣಿ',
   'sangeeta kulkarni': 'ಸಂಗೀತಾ ಕುಲಕರ್ಣಿ',
-  'rohan kulkarni': 'ರೋಹನ್ ಕುಲಕರ್ಣಿ',
-  'nachiket bhenki': 'ನಚಿಕೇತ್ ಭೇಂಕಿ',
-  'indiresh joshi': 'ಇಂದಿರೇಶ್ ಜೋಷಿ',
-  'kiran joshi': 'ಕಿರಣ್ ಜೋಷಿ',
-  'suchiket bhenki': 'ಸುಚಿಕೇತ್ ಭೇಂಕಿ',
-  'sanjeev joshi': 'ಸಂಜೀವ್ ಜೋಷಿ',
+  'rohan kulkarni': 'ರೋಹನ ಕುಲಕರ್ಣಿ',
+  'nachiket bhenki': 'ನಚಿಕೇತ ಭೇಂಕಿ',
+  'indiresh joshi': 'ಇಂದಿರೇಶ ಜೋಷಿ',
+  'kiran joshi': 'ಕಿರಣ ಜೋಷಿ',
+  'suchiket bhenki': 'ಸುಚಿಕೇತ ಭೇಂಕಿ',
+  'sanjeev joshi': 'ಸಂಜೀವ ಜೋಷಿ',
   'indira sarnad': 'ಇಂದಿರಾ ಸರನಾಡ್',
   'bhimbhatt bhenki': 'ಭೀಮ್ಭಟ್ಟ್ ಭೇಂಕಿ',
 }
@@ -46,6 +46,10 @@ const KN_NAME_MAP = {
 function kanName(name) {
   const key = String(name || '').trim().toLowerCase()
   return KN_NAME_MAP[key] || name
+}
+
+function mName(name) {
+  return state.lang === 'kn' ? kanName(name) : String(name || '')
 }
 
 // Welcome overlay shown once right after login
@@ -140,6 +144,9 @@ const I18N = {
     'Tenure': 'Tenure',
     'Loan Interest': 'Loan Interest',
     'FD Gain': 'FD Gain',
+    'Loan Disbursed': 'Loan Disbursed',
+    'Other Income': 'Other Income',
+    'FD Deposit': 'FD Deposit',
     '📊 Monthly & Yearly Summary': '📊 Monthly & Yearly Summary',
     'Monthly': 'Monthly',
     'Yearly': 'Yearly',
@@ -346,6 +353,53 @@ const I18N = {
     'Select a month': 'Select a month',
     'Select From and To dates': 'Select From and To dates',
     'To date must be on or after From date': 'To date must be on or after From date',
+    'Add': 'Add',
+    'Add monthly installments using the + button in Active section.': 'Add monthly installments using the + button in Active section.',
+    'Approve or reject member requests after review.': 'Approve or reject member requests after review.',
+    'Bank / Scheme': 'Bank / Scheme',
+    'Close': 'Close',
+    'Close Scheme': 'Close Scheme',
+    'Closed Scheme': 'Closed Scheme',
+    'Closed. Return added.': 'Closed. Return added.',
+    'Create Scheme': 'Create Scheme',
+    'Edit / Correct Entries': 'Edit / Correct Entries',
+    'Enter at least share or loan amount': 'Enter at least share or loan amount',
+    'Enter valid amount': 'Enter valid amount',
+    'Entry not found': 'Entry not found',
+    'Entry recorded successfully': 'Entry recorded successfully',
+    'Error loading entries': 'Error loading entries',
+    'Installment added': 'Installment added',
+    'Installments': 'Installments',
+    'Invested': 'Invested',
+    'Investment added': 'Investment added',
+    'Loan Request': 'Loan Request',
+    'Loan approved': 'Loan approved',
+    'Maturity must not be before start date': 'Maturity must not be before start date',
+    'Monthly Scheme': 'Monthly Scheme',
+    'No active entries.': 'No active entries.',
+    'No closed entries.': 'No closed entries.',
+    'No entries yet.': 'No entries yet.',
+    'No installments yet': 'No installments yet',
+    'No submitted requests yet.': 'No submitted requests yet.',
+    'Note (optional)': 'Note (optional)',
+    'One-time': 'One-time',
+    'Payment': 'Payment',
+    'Period': 'Period',
+    'Provider': 'Provider',
+    'Record payment on behalf of a member (auto-approved).': 'Record payment on behalf of a member (auto-approved).',
+    'Reject': 'Reject',
+    'Return': 'Return',
+    'Return Amount': 'Return Amount',
+    'Scheme Name': 'Scheme Name',
+    'Scheme closed. Return added.': 'Scheme closed. Return added.',
+    'Scheme created': 'Scheme created',
+    'Select a date': 'Select a date',
+    'Select a member': 'Select a member',
+    'Submit': 'Submit',
+    'Submit & Auto-Approve': 'Submit & Auto-Approve',
+    'Total Amount': 'Total Amount',
+    'Total Invested': 'Total Invested',
+    'installments': 'installments',
   },
   kn: {
     'Welcome,': 'ಸ್ವಾಗತ,',
@@ -396,6 +450,9 @@ const I18N = {
     'Tenure': 'ಅವಧಿ',
     'Loan Interest': 'ಸಾಲದ ಬಡ್ಡಿ',
     'FD Gain': 'ಎಫ್‌ಡಿ ಲಾಭ',
+    'Loan Disbursed': 'ಸಾಲ ನೀಡಲಾಗಿದೆ',
+    'Other Income': 'ಇತರ ಆದಾಯ',
+    'FD Deposit': 'ಎಫ್‌ಡಿ ಠೇವಣಿ',
     '📊 Monthly & Yearly Summary': '📊 ಮಾಸಿಕ ಮತ್ತು ವಾರ್ಷಿಕ ಸಾರಾಂಶ',
     'Monthly': 'ಮಾಸಿಕ',
     'Yearly': 'ವಾರ್ಷಿಕ',
@@ -599,6 +656,55 @@ const I18N = {
     'Select a month': 'ತಿಂಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
     'Select From and To dates': 'ಇಂದ ಮತ್ತು ವರೆಗೆ ದಿನಾಂಕಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ',
     'To date must be on or after From date': 'ವರೆಗೆ ದಿನಾಂಕವು ಇಂದ ದಿನಾಂಕದ ನಂತರ ಅಥವಾ ಅದೇ ದಿನ ಇರಬೇಕು',
+    'Add': 'ಸೇರಿಸಿ',
+    'Add monthly installments using the + button in Active section.': 'ಸಕ್ರಿಯ ವಿಭಾಗದಲ್ಲಿ + ಬಟನ್ ಬಳಸಿ ಮಾಸಿಕ ಕಂತುಗಳನ್ನು ಸೇರಿಸಿ.',
+    'Approve or reject member requests after review.': 'ಪರಿಶೀಲಿಸಿದ ನಂತರ ಸದಸ್ಯರ ವಿನಂತಿಗಳನ್ನು ಅಂಗೀಕರಿಸಿ ಅಥವಾ ತಿರಸ್ಕರಿಸಿ.',
+    'Bank / Scheme': 'ಬ್ಯಾಂಕ್ / ಯೋಜನೆ',
+    'Close': 'ಮುಚ್ಚಿ',
+    'Close Scheme': 'ಯೋಜನೆ ಮುಚ್ಚಿ',
+    'Closed Scheme': 'ಮುಚ್ಚಿದ ಯೋಜನೆ',
+    'Closed. Return added.': 'ಮುಚ್ಚಲಾಗಿದೆ. ವಾಪಸಾತಿ ಸೇರಿಸಲಾಗಿದೆ.',
+    'Create Scheme': 'ಯೋಜನೆ ರಚಿಸಿ',
+    'Edit / Correct Entries': 'ನಮೂದುಗಳನ್ನು ಸರಿಪಡಿಸಿ',
+    'Enter at least share or loan amount': 'ಕನಿಷ್ಠ ಷೇರು ಅಥವಾ ಸಾಲದ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ',
+    'Enter valid amount': 'ಸರಿಯಾದ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ',
+    'Entry not found': 'ನಮೂದು ಸಿಗಲಿಲ್ಲ',
+    'Entry recorded successfully': 'ನಮೂದು ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ',
+    'Error loading entries': 'ನಮೂದುಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ',
+    'Installment added': 'ಕಂತು ಸೇರಿಸಲಾಗಿದೆ',
+    'Installments': 'ಕಂತುಗಳು',
+    'Invested': 'ಹೂಡಿಕೆ',
+    'Investment added': 'ಹೂಡಿಕೆ ಸೇರಿಸಲಾಗಿದೆ',
+    'Loan Request': 'ಸಾಲದ ವಿನಂತಿ',
+    'Loan approved': 'ಸಾಲ ಅಂಗೀಕೃತವಾಗಿದೆ',
+    'Maturity must not be before start date': 'ಮುಕ್ತಾಯ ದಿನಾಂಕವು ಪ್ರಾರಂಭ ದಿನಾಂಕಕ್ಕಿಂತ ಮೊದಲಾಗಬಾರದು',
+    'Monthly Scheme': 'ಮಾಸಿಕ ಯೋಜನೆ',
+    'No active entries.': 'ಸಕ್ರಿಯ ನಮೂದುಗಳಿಲ್ಲ.',
+    'No closed entries.': 'ಮುಚ್ಚಿದ ನಮೂದುಗಳಿಲ್ಲ.',
+    'No entries yet.': 'ಇನ್ನೂ ನಮೂದುಗಳಿಲ್ಲ.',
+    'No installments yet': 'ಇನ್ನೂ ಕಂತುಗಳಿಲ್ಲ',
+    'No submitted requests yet.': 'ಇನ್ನೂ ಸಲ್ಲಿಸಿದ ವಿನಂತಿಗಳಿಲ್ಲ.',
+    'Note (optional)': 'ಟಿಪ್ಪಣಿ (ಐಚ್ಛಿಕ)',
+    'One-time': 'ಒಂದೇ ಬಾರಿ',
+    'Payment': 'ಪಾವತಿ',
+    'Period': 'ಅವಧಿ',
+    'Provider': 'ಒದಗಿಸುವವರು',
+    'Record payment on behalf of a member (auto-approved).': 'ಸದಸ್ಯರ ಪರವಾಗಿ ಪಾವತಿ ದಾಖಲಿಸಿ (ಸ್ವಯಂ ಅಂಗೀಕೃತ).',
+    'Reject': 'ತಿರಸ್ಕರಿಸಿ',
+    'Return': 'ವಾಪಸಾತಿ',
+    'Return Amount': 'ವಾಪಸಾತಿ ಮೊತ್ತ',
+    'Scheme Name': 'ಯೋಜನೆಯ ಹೆಸರು',
+    'Scheme closed. Return added.': 'ಯೋಜನೆ ಮುಚ್ಚಲಾಗಿದೆ. ವಾಪಸಾತಿ ಸೇರಿಸಲಾಗಿದೆ.',
+    'Scheme created': 'ಯೋಜನೆ ರಚಿಸಲಾಗಿದೆ',
+    'Select a date': 'ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ',
+    'Select a member': 'ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+    'Submit': 'ಸಲ್ಲಿಸಿ',
+    'Submit & Auto-Approve': 'ಸಲ್ಲಿಸಿ ಮತ್ತು ಸ್ವಯಂ ಅಂಗೀಕರಿಸಿ',
+    'Total Amount': 'ಒಟ್ಟು ಮೊತ್ತ',
+    'Total Invested': 'ಒಟ್ಟು ಹೂಡಿಕೆ',
+    'installments': 'ಕಂತುಗಳು',
+    'Withdraw': 'ಹಿಂತೆಗೆದುಕೊಳ್ಳಿ',
+    'Confirm Withdraw': 'ಹಿಂತೆಗೆದುಕೊಳ್ಳುವುದನ್ನು ಖಚಿತಪಡಿಸಿ',
   }
 }
 
@@ -2225,7 +2331,7 @@ async function renderAllMembers() {
     return `<div class="member-card" ${viewable ? `onclick="renderMemberProfile(${m.member_id})" style="cursor:pointer"` : ''}>
       ${avatarHtml}
       <div class="mc-info">
-        <div class="mc-name">${m.name}${m.is_admin ? ' ⭐' : ''}</div>
+        <div class="mc-name">${mName(m.name)}${m.is_admin ? ' ⭐' : ''}</div>
         <div class="mc-age">${m.dob ? calculateAge(m.dob) + ' yrs' : ''}</div>
         <div class="mc-phone">${m.phone || ''}</div>
       </div>
@@ -2314,7 +2420,7 @@ function pbToggleFilter(col) {
     const selected = pbFilters.category || []
     filterHtml = `<div style="font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px">${t('Filter by Type')}</div>` +
       `<div style="max-height:200px;overflow-y:auto;margin-bottom:8px;scrollbar-width:thin">` +
-      cats.map(c => `<label class="pb-flabel"><input type="checkbox" class="pb-cat-cb" value="${c}" ${selected.includes(c) ? 'checked' : ''} /> ${c}</label>`).join('') +
+      cats.map(c => `<label class="pb-flabel"><input type="checkbox" class="pb-cat-cb" value="${c}" ${selected.includes(c) ? 'checked' : ''} /> ${t(c) || c}</label>`).join('') +
       `</div>` +
       `<div style="display:flex;gap:6px"><button class="btn primary" style="padding:5px 14px;font-size:0.78rem" onclick="pbFilterCat()">Apply</button>${clearCol}</div>`
   } else if (col === 'member_name') {
@@ -2496,7 +2602,7 @@ function applyPbFilters() {
   if (!filtered.length) { listDiv.innerHTML = '<p style="color:#64748b;text-align:center;padding:30px 0">' + t('No entries match filters.') + '</p>'; return }
   const sumByCat = {}
   filtered.forEach(r => { const c = r.category || '(No type)'; sumByCat[c] = (sumByCat[c] || 0) + parseFloat(r.amount || 0) })
-  const compTotals = Object.keys(sumByCat).sort().map(c => `${c} ${formatCurrency(sumByCat[c])}`).join(' · ')
+  const compTotals = Object.keys(sumByCat).sort().map(c => `${t(c) || c} ${formatCurrency(sumByCat[c])}`).join(' · ')
   const totalsHtml = compTotals ? `<div style="font-size:0.8rem;color:#e2e8f0;font-weight:600;padding:10px 4px 0;border-top:1px solid rgba(148,163,184,0.12);margin-top:4px">${t('Totals')}: ${compTotals}</div>` : ''
   listDiv.innerHTML = '<p style="font-size:0.78rem;color:#64748b;margin:0 0 6px">' + filtered.length + ' ' + t('entries') + '</p>' +
     '<table class="table"><thead><tr>' +
@@ -2509,7 +2615,7 @@ function applyPbFilters() {
       const cls = r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'
       const sign = r.debit_credit === 'credit' ? '+' : '−'
       const dp = formatDateParts(r.ts)
-      const typeHtml = `<span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${r.category}</span>`
+      const typeHtml = `<span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${t(r.category) || r.category}</span>`
       return `<tr>
         <td class="pb-date-cell" style="white-space:nowrap;font-size:0.8rem">${dp.date}<span class="pb-time"> ${dp.time}</span></td>
         <td>${typeHtml}</td>
