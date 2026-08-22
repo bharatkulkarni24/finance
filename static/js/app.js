@@ -4037,6 +4037,12 @@ async function handleSubmitPayment(memberId) {
 
 document.addEventListener('DOMContentLoaded', () => {
   try {
+    // App-like feel: kill the browser's long-press / right-click menu
+    // ("Open in new tab", "Copy link") everywhere EXCEPT editable fields,
+    // so long-press paste in password/PIN inputs keeps working.
+    document.addEventListener('contextmenu', (e) => {
+      if (!e.target.closest('input, textarea, [contenteditable="true"]')) e.preventDefault()
+    })
     topbar = document.getElementById('topbar')
     mainScreen = document.getElementById('main-screen')
     menuLinks = document.getElementById('menu-links')

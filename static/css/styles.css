@@ -33,6 +33,8 @@ body {
 body {
   -webkit-user-select: none;
   user-select: none;
+  /* iOS: suppress the long-press callout (Open in new tab / Save image) */
+  -webkit-touch-callout: none;
 }
 
 img,
