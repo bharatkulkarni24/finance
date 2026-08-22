@@ -1769,7 +1769,6 @@ function renderAdminResetPassword() {
 function renderAdminDirectEntry() {
   adminSubPage(`
     <h3 class="section-heading">⚡ ${t('Direct Entry')}</h3>
-    <p style="color:#94a3b8;font-size:0.85rem">${t('Record payment on behalf of a member (auto-approved).')}</p>
     <div class="de-panel">
       <div class="input-row"><select id="de-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${state.members.map(m => `<option value="${m.member_id}">${m.name}</option>`).join('')}</select></div>
       <div class="input-row" style="display:flex;gap:12px">
