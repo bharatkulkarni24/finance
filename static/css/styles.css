@@ -2201,7 +2201,17 @@ select,
 .flatpickr-months .flatpickr-prev-month:hover,
 .flatpickr-months .flatpickr-next-month:hover { color: #e2e8f0; fill: #e2e8f0 }
 .flatpickr-months .flatpickr-prev-year,
-.flatpickr-months .flatpickr-next-year { color: #a78bfa; fill: #a78bfa }
+.flatpickr-months .flatpickr-next-year {
+  color: #a78bfa;
+  fill: #a78bfa;
+  font-size: 34px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  display: inline-block;
+  /* The ‹ glyph sits low on its baseline inside the flex header row */
+  transform: translateY(-3px);
+}
 .flatpickr-months .flatpickr-prev-year { margin-left: 12px }
 .flatpickr-months .flatpickr-prev-year:hover,
 .flatpickr-months .flatpickr-next-year:hover { color: #c4b5fd; fill: #c4b5fd }
@@ -2223,6 +2233,9 @@ select,
   white-space: nowrap;
 }
 .flatpickr-current-month .flatpickr-nav-btn:hover { background: rgba(255,255,255,0.04) }
+/* Reserve room for the longest month name ("September") so the ‹ › arrows
+   never shift when the displayed month changes. ch scales with font size. */
+.flatpickr-current-month .flatpickr-nav-btn.nav-btn-month { min-width: 9.8ch }
 .flatpickr-nav-pop {
   position: absolute;
   z-index: 999999;

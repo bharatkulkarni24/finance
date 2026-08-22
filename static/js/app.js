@@ -982,7 +982,7 @@ function createDatePicker(input, opts = {}) {
       const makeDropdown = (popClass, options, onPick) => {
         const btn = document.createElement('button')
         btn.type = 'button'
-        btn.className = 'flatpickr-nav-btn'
+        btn.className = 'flatpickr-nav-btn ' + (popClass === 'month-pop' ? 'nav-btn-month' : 'nav-btn-year')
         const pop = document.createElement('div')
         pop.className = 'flatpickr-nav-pop ' + popClass
         document.body.appendChild(pop)
@@ -1090,8 +1090,8 @@ function createDatePicker(input, opts = {}) {
         })
         return b
       }
-      const prevYear = addBtn('flatpickr-prev-year', '«', -1)
-      const nextYear = addBtn('flatpickr-next-year', '»', 1)
+      const prevYear = addBtn('flatpickr-prev-year', '‹', -1)
+      const nextYear = addBtn('flatpickr-next-year', '›', 1)
       currentMonthEl.appendChild(prevMonth)
       currentMonthEl.appendChild(monthNav.btn)
       currentMonthEl.appendChild(nextMonth)
