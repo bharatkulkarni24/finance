@@ -11,3 +11,6 @@ __pycache__/
 logs/
 static/uploads/
 backups/
+
+# Local-only notes & guides (never ship these)
+local_docs/
