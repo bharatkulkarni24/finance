@@ -2947,6 +2947,100 @@ async function renderChangePassword() {
   wirePasswordForm(state.currentUser.member_id, () => setView('my-profile'))
 }
 
+// ===== Custom themed dropdowns: replace every native <select> popup with a
+// picker matching the app theme (the OS-drawn native list can't be styled) =====
+let selPopsWired = false
+function closeSelPops() {
+  document.querySelectorAll('.sel-pop.open').forEach(p => p.classList.remove('open'))
+}
+function enhanceAllSelects(root) {
+  ;(root || document).querySelectorAll('select').forEach(sel => {
+    if (sel.dataset.enhanced || sel.closest('.flatpickr-calendar')) return
+    sel.dataset.enhanced = '1'
+    const wrap = document.createElement('div')
+    wrap.style.position = 'relative'
+    sel.parentNode.insertBefore(wrap, sel)
+    wrap.appendChild(sel)
+    sel.style.display = 'none'
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'sel-btn'
+    const caret = document.createElement('span')
+    caret.className = 'sel-caret'
+    caret.textContent = '▾'
+    wrap.appendChild(btn)
+    wrap.appendChild(caret)
+    const pop = document.createElement('div')
+    pop.className = 'sel-pop'
+    document.body.appendChild(pop)
+    const syncBtn = () => {
+      const o = sel.options[sel.selectedIndex]
+      btn.textContent = o ? o.textContent : ''
+      pop.querySelectorAll('.sel-opt').forEach(p =>
+        p.classList.toggle('selected', p.dataset.v === String(sel.value)))
+    }
+    Array.from(sel.options).forEach(o => {
+      const ob = document.createElement('button')
+      ob.type = 'button'
+      ob.className = 'sel-opt'
+      ob.dataset.v = o.value
+      ob.textContent = o.textContent
+      ob.addEventListener('click', e => {
+        e.stopPropagation()
+        sel.value = o.value
+        syncBtn()
+        closeSelPops()
+        sel.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      pop.appendChild(ob)
+    })
+    const open = () => {
+      closeSelPops()
+      const r = btn.getBoundingClientRect()
+      const sx = window.scrollX || window.pageXOffset
+      const sy = window.scrollY || window.pageYOffset
+      pop.classList.add('open')
+      pop.style.minWidth = Math.max(r.width, 160) + 'px'
+      const h = pop.offsetHeight
+      let top = r.bottom + sy + 4
+      if (top + h > sy + window.innerHeight - 8) top = Math.max(sy + 8, r.top + sy - h - 4)
+      pop.style.left = (r.left + sx) + 'px'
+      pop.style.top = top + 'px'
+      pop.scrollTop = 0
+    }
+    // Taps inside the popup must not reach outside-click closers (flatpickr etc.)
+    ;['mousedown', 'mouseup', 'click', 'touchstart', 'focusin'].forEach(ev =>
+      pop.addEventListener(ev, e => e.stopPropagation()))
+    // Swallow wheel/touch that the list can't use instead of scrolling the page
+    pop.addEventListener('wheel', e => {
+      const room = pop.scrollHeight - pop.clientHeight
+      if (room <= 0 || (e.deltaY > 0 ? pop.scrollTop >= room - 1 : pop.scrollTop <= 1)) e.preventDefault()
+    }, { passive: false })
+    let ty = 0
+    pop.addEventListener('touchstart', e => { ty = e.touches[0].clientY }, { passive: true })
+    pop.addEventListener('touchmove', e => {
+      const room = pop.scrollHeight - pop.clientHeight
+      const up = ty - e.touches[0].clientY > 0
+      if (room <= 0 || (up ? pop.scrollTop >= room - 1 : pop.scrollTop <= 1)) e.preventDefault()
+    }, { passive: false })
+    btn.addEventListener('click', e => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (pop.classList.contains('open')) closeSelPops()
+      else open()
+    })
+    syncBtn()
+  })
+  if (!selPopsWired) {
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.sel-wrap') && !e.target.closest('.sel-pop')) closeSelPops()
+    }, true)
+    selPopsWired = true
+  }
+}
+
+// ===== Custom themed dropdowns end =====
+
 async function renderMemberProfile(memberId, mode) {
   if (!mode) {
     mode = state.activeView === 'my-accounts' ? 'accounts' : (state.activeView === 'my-profile' ? 'details' : undefined)
@@ -3944,6 +4038,12 @@ document.addEventListener('DOMContentLoaded', () => {
     mainScreen = document.getElementById('main-screen')
     menuLinks = document.getElementById('menu-links')
     content = document.getElementById('content')
+    if (content) {
+      // Every view swap re-themes any <select> the new view injected
+      new MutationObserver(() => enhanceAllSelects(content))
+        .observe(content, { childList: true, subtree: true })
+    }
+    enhanceAllSelects(document)
     memberSelect = document.getElementById('member-select')
     adminPin = document.getElementById('admin-pin')
     loginButton = document.getElementById('login-button')
