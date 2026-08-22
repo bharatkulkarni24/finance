@@ -968,6 +968,7 @@ function createDatePicker(input, opts = {}) {
     allowInput: false,
     dateFormat: 'Y-m-d',
     appendTo: document.body,
+    showDaysInNextAndPreviousMonths: false,
     onChange: (sel, dateStr) => input.dispatchEvent(new Event('change', {bubbles: true})),
     onClose: (sel, dateStr, fp) => { if (fp._closeNav) fp._closeNav() },
     onReady: (sel, dateStr, fp) => {

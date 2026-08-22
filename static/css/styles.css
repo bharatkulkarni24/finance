@@ -2163,7 +2163,7 @@ select,
 .flatpickr-month { color: #e2e8f0 }
 .flatpickr-current-month input.cur-year,
 .flatpickr-current-month input.cur-year:focus { color: #e2e8f0 }
-.flatpickr-weekday { color: #94a3b8; font-weight: 600 }
+.flatpickr-calendar .flatpickr-weekday { color: #c7d2fe; font-weight: 600 }
 .flatpickr-months { display: flex }
 .flatpickr-month { overflow: visible }
 .flatpickr-current-month {
@@ -2259,6 +2259,9 @@ select,
 }
 .flatpickr-nav-opt:hover { background: rgba(124,58,237,0.25); color: #e9d5ff }
 .flatpickr-nav-opt.selected { background: rgba(124,58,237,0.18); color: #a78bfa; font-weight: 600 }
+/* Only show days of the displayed month; outside-day cells stay as blank slots */
+.flatpickr-calendar .flatpickr-day.prevMonthDay,
+.flatpickr-calendar .flatpickr-day.nextMonthDay { visibility: hidden }
 @media (max-width: 640px) {
   .flatpickr-current-month .flatpickr-nav-btn { font-size: 1rem; padding: 8px 10px }
   .flatpickr-nav-pop { padding: 6px }
