@@ -2816,10 +2816,13 @@ function applyPbFilters() {
       const sign = r.debit_credit === 'credit' ? '+' : '−'
       const dp = formatDateParts(r.ts)
       const typeHtml = `<span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${t(r.category) || r.category}</span>`
+      const rawName = r.member_name === 'Group Fund' ? t('Group Fund') : (r.member_name || '-')
+      const nw = rawName.split(' ')
+      const nmHtml = nw.length > 1 ? `<span class="pb-nm-a">${escHtml(nw[0])}</span><span class="pb-nm-b">${escHtml(nw.slice(1).join(' '))}</span>` : escHtml(rawName)
       return `<tr>
         <td class="pb-date-cell" style="white-space:nowrap;font-size:0.8rem">${dp.date}<span class="pb-time"> ${dp.time}</span></td>
         <td>${typeHtml}</td>
-        <td style="color:#94a3b8">${r.member_name === 'Group Fund' ? t('Group Fund') : (r.member_name || '-')}</td>
+        <td class="pb-name-cell" style="color:#94a3b8">${nmHtml}</td>
         <td style="text-align:right;font-weight:700;color:${cls}">${sign} ${formatCurrency(r.amount)}</td>
       </tr>`
     }).join('') + '</tbody></table>' + totalsHtml

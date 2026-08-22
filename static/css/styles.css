@@ -2542,6 +2542,13 @@ select,
   .table th,
   .table td { padding: 10px 5px; font-size: 0.85rem; }
 
+  /* ── Passbook: stack first/last name on two lines, tighten columns,
+        keep "+ ₹25,000" glued on one line ── */
+  .pb-nm-a, .pb-nm-b { display: block; }
+  #pb-list .table th,
+  #pb-list .table td { padding-left: 3px; padding-right: 3px; }
+  #pb-list .table td:last-child { white-space: nowrap; }
+
   /* ── Bigger icons (were too small on phones) ── */
   .gi-icon { font-size: 2.4rem; }
   .upload-icon { font-size: 2.2rem; }
