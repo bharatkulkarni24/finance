@@ -2772,8 +2772,8 @@ function applyPbFilters() {
     if (pbSortCol === 'amount') { va = parseFloat(va); vb = parseFloat(vb) }
     else if (pbSortCol === 'ts') { va = va.replace(/\s/g, '').replace(/T/g, ' '); vb = vb.replace(/\s/g, '').replace(/T/g, ' ') }
     else { va = va.toString().toLowerCase(); vb = vb.toString().toLowerCase() }
-    if (va < vb) return pbSortDir
-    if (va > vb) return -pbSortDir
+    if (va < vb) return -pbSortDir
+    if (va > vb) return pbSortDir
     return 0
   })
 
