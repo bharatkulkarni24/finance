@@ -1696,7 +1696,7 @@ function renderAdminAddMember() {
     <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" inputmode="tel" /></div>
     <div class="input-row" style="display:flex;gap:12px">
       <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="new-member-deposit" type="text" inputmode="decimal" value="25000" /></div></div>
-      <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Date')}</label><input id="new-member-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+      <div style="flex:1"><label style="font-size:0.75rem;color:#94a3b8">${t('Entry Deposit Date')}</label><input id="new-member-date" type="text" value="${istTodayStr()}" class="admin-input" readonly /></div>
     </div>
     <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="new-member-password" type="password" placeholder="${t('Set member password')}" /><span id="new-member-pw-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
     <button class="btn primary" id="add-member-btn">${t('Create Account')}</button>
@@ -1783,7 +1783,7 @@ function renderAdminDirectEntry() {
           <strong id="de-total-amount" style="font-size:1.1rem;color:#34d399">₹0</strong>
         </div>
       </div>
-      <div class="input-row"><label>${t('Date')}</label><input id="de-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+      <div class="input-row"><label>${t('Date')}</label><input id="de-date" type="text" value="${istTodayStr()}" class="admin-input" readonly /></div>
       <div class="input-row"><input id="de-note" placeholder="${t('Note (optional)')}" /></div>
       <button class="btn primary" id="de-submit-btn">${t('Submit & Auto-Approve')}</button>
     </div>
@@ -1918,7 +1918,7 @@ function renderAdminIncomeExpense() {
     const bdr = isInc ? 'rgba(52,211,153,0.25)' : 'rgba(239,68,68,0.25)'
     return `
       <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Amount')}</label><div class="input-with-currency"><span class="currency">₹</span><input id="${type}-amount" type="text" inputmode="decimal" /></div></div>
-      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="${type}-date" type="text" value="${new Date().toISOString().slice(0,10)}" class="admin-input" readonly /></div>
+      <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Date')}</label><input id="${type}-date" type="text" value="${istTodayStr()}" class="admin-input" readonly /></div>
       <div style="margin-bottom:8px"><label style="font-size:0.8rem;color:#94a3b8">${t('Reason')}</label><input id="${type}-reason" class="admin-input" placeholder="${t(isInc ? 'e.g. Donation from X' : 'e.g. Meeting snacks')}" /></div>
       <button class="btn primary" id="save-${type}-btn" style="background:${col};color:${txt};border:1px solid ${bdr}">${t('Save')}</button>`
   }
@@ -2952,6 +2952,7 @@ function istTodayStr() {
     }).format(new Date())
   } catch (e) { return new Date().toISOString().slice(0, 10) }
 }
+let selPopsWired = false
 function closeSelPops() {
   document.querySelectorAll('.sel-pop.open').forEach(p => p.classList.remove('open'))
 }
@@ -3381,7 +3382,7 @@ async function renderMemberProfile(memberId, mode) {
 async function renderSubmitView() {
   content.innerHTML = loadingHtml()
   const m = await api(`/members/${state.currentUser.member_id}`)
-  const today = new Date().toISOString().slice(0, 10)
+  const today = istTodayStr()
   content.innerHTML = `
     <div class="grid-2" style="gap:20px;">
       <div class="panel compact-panel submit-panel">
@@ -3945,7 +3946,7 @@ window.closeFd = async function(fdId) {
       await api(`/admin/fd/close/${fdId}`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'X-ADMIN-TOKEN': (state.adminToken || '')},
-        body: JSON.stringify({end_date: fdRow.maturity_date || new Date().toISOString().slice(0,10), interest_earned: interestEarned}),
+        body: JSON.stringify({end_date: fdRow.maturity_date || istTodayStr(), interest_earned: interestEarned}),
       })
       overlay.remove()
       showToast(isScheme ? t('Scheme closed. Return added.') : t('Closed. Return added.'), 'success')
