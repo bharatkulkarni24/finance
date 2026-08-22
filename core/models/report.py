@@ -1,6 +1,8 @@
 import os
 from datetime import date, timedelta
 
+from core.config import today_ist
+
 from fpdf import FPDF
 
 from core.database import get_conn
@@ -107,7 +109,7 @@ def get_report_data(from_date: str, to_date: str) -> dict:
         'to': t,
         'is_monthly': is_monthly,
         'period_label': f'{fmt_date(f)} - {fmt_date(t)}',
-        'generated_on': fmt_date(date.today().isoformat()),
+        'generated_on': fmt_date(today_ist().isoformat()),
         'monthly_title': EN_MONTHS[int(f[5:7]) - 1] + ' ' + f[:4],
         'contributions': {'rows': contributions, 'totals': contrib_total, 'count': len(contributions), 'member_count': member_count},
         'new_loans': {'rows': new_loans},

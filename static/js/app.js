@@ -1692,7 +1692,6 @@ function adminSubPage(bodyHtml) {
 function renderAdminAddMember() {
   adminSubPage(`
     <h3 class="section-heading">➕ ${t('Add New Member')}</h3>
-    <p style="color:#94a3b8;font-size:0.85rem">${t('After adding, the member can fill in their details.')}</p>
     <div class="input-row"><input id="new-member-name" placeholder="${t('Member name')}" /></div>
     <div class="input-row"><input id="new-member-phone" placeholder="${t('Phone (optional)')}" inputmode="tel" /></div>
     <div class="input-row" style="display:flex;gap:12px">
@@ -1722,7 +1721,6 @@ function renderAdminResetPassword() {
   const memberOptions = state.members.map(m => `<option value="${m.member_id}">${escHtml(m.name)}</option>`).join('')
   adminSubPage(`
     <h3 class="section-heading">🔑 ${t('Reset Password')}</h3>
-    <p style="color:#94a3b8;font-size:0.85rem">${t('Set a new password if a member forgets theirs.')}</p>
     <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Select member')}</label><select id="arp-member" style="width:100%;padding:10px;background:#1e1b2e;border:1px solid rgba(148,163,184,0.2);border-radius:8px;color:#e2e8f0;font-size:0.9rem">${memberOptions}</select></div>
     <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('New password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="arp-new" type="password" placeholder="${t('New password')}" autocomplete="new-password" /><span id="arp-new-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
     <div class="input-row"><label style="font-size:0.75rem;color:#94a3b8">${t('Confirm new password')}</label><div class="input-with-icon"><span class="input-icon">🔒</span><input id="arp-confirm" type="password" placeholder="${t('Confirm new password')}" autocomplete="new-password" /><span id="arp-confirm-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:14px;user-select:none">👁</span></div></div>
@@ -1817,7 +1815,6 @@ function renderAdminDirectEntry() {
 function renderAdminPending() {
   adminSubPage(`
     <h3 class="section-heading">⏳ ${t('Pending Requests')}</h3>
-    <p style="color:#94a3b8;font-size:0.85rem">${t('Approve or reject member requests after review.')}</p>
     <div id="submitted-requests"></div>
   `)
   renderSubmittedRequests()
@@ -1832,7 +1829,6 @@ function renderAdminEditEntries() {
   ].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')
   adminSubPage(`
     <h3 class="section-heading">✏️ ${t('Edit / Correct Entries')}</h3>
-    <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Find a wrong entry, fix its amount/date/member, or delete it.')}</p>
     <div class="ee-filters">
       <select id="ee-type" class="admin-input" style="flex:1;min-width:120px">${eeTypeOptions}</select>
       <select id="ee-member" class="admin-input" style="flex:1;min-width:120px"><option value="">${t('All members')}</option>${state.members.map(m => `<option value="${m.member_id}">${escHtml(m.name)}</option>`).join('')}</select>
@@ -1868,7 +1864,6 @@ function renderAdminEditEntries() {
 function renderAdminExport() {
   adminSubPage(`
     <h3 class="section-heading">📄 ${t('Export Report (PDF)')}</h3>
-    <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 12px">${t('Download a monthly or custom-period summary PDF to share with members.')}</p>
     <div class="ee-filters" style="align-items:center">
       <label class="inv-type-label" style="flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(199,210,254,0.08);border-radius:8px;cursor:pointer">
         <input type="radio" name="export-type" value="month" checked onchange="window.toggleExportType()" /> ${t('Monthly')}
@@ -2948,7 +2943,15 @@ async function renderChangePassword() {
 
 // ===== Custom themed dropdowns: replace every native <select> popup with a
 // picker matching the app theme (the OS-drawn native list can't be styled) =====
-let selPopsWired = false
+// Business "today" in India, independent of the device's own timezone/clock —
+// toISOString() would return UTC, which lags IST by 5h30m before sunrise.
+function istTodayStr() {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date())
+  } catch (e) { return new Date().toISOString().slice(0, 10) }
+}
 function closeSelPops() {
   document.querySelectorAll('.sel-pop.open').forEach(p => p.classList.remove('open'))
 }

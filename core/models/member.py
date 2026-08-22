@@ -1,4 +1,6 @@
 from datetime import date
+
+from core.config import today_ist
 from typing import Optional
 
 from werkzeug.security import generate_password_hash
@@ -25,7 +27,7 @@ def create_member(name: str, phone: Optional[str] = '', is_admin: int = 0,
     conn = get_conn()
     cur = conn.cursor()
     dep_amt = entry_deposit_amount if entry_deposit_amount is not None else 25000
-    joined = (entry_deposit_date or date.today().isoformat())
+    joined = (entry_deposit_date or today_ist().isoformat())
     pw_hash = generate_password_hash(password) if password else ''
     cur.execute(
         'INSERT INTO members (name, phone, joined_date, entry_deposit_amount, is_admin, dob, address, photo_url, password) VALUES (?,?,?,?,?,?,?,?,?)',

@@ -4,6 +4,7 @@ import os
 
 from flask import Blueprint, jsonify, request, Response, send_file
 
+from core.config import now_ist
 from core.models.payment import approve_payment_request, reject_payment_request, admin_direct_entry
 from core.models.loan import approve_loan, reject_loan
 from core.models.requests import list_submitted_requests, list_rejected_items
@@ -194,7 +195,7 @@ def admin_backup_download():
     if not check_admin_token(request.headers.get('X-ADMIN-TOKEN', '')):
         return jsonify({'error': 'unauthorized'}), 401
     from core.backup import create_snapshot, BACKUP_DIR, _prune
-    stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    stamp = now_ist().strftime('%Y%m%d-%H%M%S')
     path = os.path.join(BACKUP_DIR, f'finance-backup-{stamp}.db')
     try:
         create_snapshot(path)

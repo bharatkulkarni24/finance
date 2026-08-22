@@ -1,3 +1,4 @@
+from core.config import now_ist, today_ist
 from datetime import date as dt_date, datetime, timezone
 
 from core.database import get_conn, row_to_dict
@@ -375,7 +376,7 @@ def _apply_new_principal(cur, member_id, loan_principal):
     remaining = loan_principal
     loan_id = None
     for loan in active_loans:
-        compute_interest_accrued(loan, dt_date.today(), cur)
+        compute_interest_accrued(loan, today_ist(), cur)
         if remaining > 0:
             to_apply = min(remaining, loan['outstanding'] or 0)
             new_out = round((loan['outstanding'] or 0) - to_apply, 2)
@@ -392,7 +393,7 @@ def _log_audit(cur, pay_id, action, changed_by, old, new):
     cur.execute(
         'INSERT INTO audit_log (pay_id, action, changed_by, changed_at, old_share_amount, new_share_amount, old_fine, new_fine, old_loan_interest, new_loan_interest, old_loan_principal, new_loan_principal, old_total_amount, new_total_amount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         (
-            pay_id, action, changed_by, datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+            pay_id, action, changed_by, now_ist().isoformat(),
             old.get('share_amount', 0) or 0, new.get('share_amount', 0) or 0,
             old.get('fine', 0) or 0, new.get('fine', 0) or 0,
             old.get('loan_interest', 0) or 0, new.get('loan_interest', 0) or 0,
@@ -443,7 +444,7 @@ def resplit(member_id, date, share, fine, loan_interest, loan_principal, changed
         new_loan_id = _apply_new_principal(cur, member_id, loan_principal)
         cur.execute(
             'INSERT INTO member_ledger (member_id, pay_date, total_amount, share_amount, loan_principal, loan_interest, fine, loan_id, created_at, modified_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
-            (member_id, _as_datetime(date), total, share, loan_principal, loan_interest, fine, new_loan_id, datetime.now(timezone.utc).replace(tzinfo=None).isoformat(), datetime.now(timezone.utc).replace(tzinfo=None).isoformat()),
+            (member_id, _as_datetime(date), total, share, loan_principal, loan_interest, fine, new_loan_id, now_ist().isoformat(), now_ist().isoformat()),
         )
         new_pay_id = cur.lastrowid
 
@@ -511,7 +512,7 @@ def edit_entry(data):
             'total_amount': d.get('total_amount', 0) or 0,
         }
         new = dict(old)
-        now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+        now = now_ist().isoformat()
         if d.get('loan_principal'):
             _revert_loan_principal(cur, d['member_id'], d['pay_date'][:10])
         if kind == 'share':

@@ -1,3 +1,4 @@
+from core.config import now_ist
 from datetime import datetime, timezone
 
 from core.database import get_conn, row_to_dict
@@ -7,7 +8,7 @@ from core.models.fd import get_active_fd_total
 def add_transaction(debit_credit: str, amount: float, description: str = '', entry_date: str = ''):
     conn = get_conn()
     cur = conn.cursor()
-    ts = entry_date if entry_date else datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    ts = entry_date if entry_date else now_ist().isoformat()
     cur.execute(
         'INSERT INTO group_ledger (member_id, timestamp, description, debit_credit, amount) VALUES (?,?,?,?,?)',
         (None, ts, description, debit_credit, amount),

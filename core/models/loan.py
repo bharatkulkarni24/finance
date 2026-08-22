@@ -1,3 +1,4 @@
+from core.config import now_ist, today_ist
 from datetime import datetime, date, timezone
 from typing import Optional, Union
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ class Loan:
 def create_loan(member_id: int, amount: float, term_months: int = 12) -> dict:
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = now_ist().isoformat()
     req_no = next_req_no('loan')
     cur.execute(
         'INSERT INTO requests (req_no, member_id, item_type, date_submitted, loan_amount, loan_term_months, status) VALUES (?,?,?,?,?,?,?)',
@@ -47,8 +48,8 @@ def get_loan(loan_id: int) -> Optional[dict]:
 def approve_loan(req_id: int, approver_id: int = 0):
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
-    today = date.today().isoformat()
+    now = now_ist().isoformat()
+    today = today_ist().isoformat()
     req = _fetch(cur, req_id)
     if not req or req['item_type'] != 'loan' or req['status'] != 'submitted':
         conn.close()
@@ -79,7 +80,7 @@ def approve_loan(req_id: int, approver_id: int = 0):
 def reject_loan(req_id: int, approver_id: int = 0, reason: str = ''):
     conn = get_conn()
     cur = conn.cursor()
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = now_ist().isoformat()
     req = _fetch(cur, req_id)
     if not req or req['item_type'] != 'loan' or req['status'] != 'submitted':
         conn.close()
@@ -153,7 +154,7 @@ def compute_interest_accrued(loan: Union[dict, Loan], as_of_date: date, cur=None
 def apply_payment_to_loan(loan: dict, amount: float) -> dict:
     to_apply = min(amount, loan['outstanding'])
     new_out = round(loan['outstanding'] - to_apply, 2)
-    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    now = now_ist().isoformat()
     conn = get_conn()
     cur = conn.cursor()
     if new_out <= 0:
@@ -162,7 +163,7 @@ def apply_payment_to_loan(loan: dict, amount: float) -> dict:
         cur.execute('UPDATE loans SET outstanding=? WHERE loan_id=?', (new_out, loan['loan_id']))
     cur.execute(
         'INSERT INTO member_ledger (member_id, pay_date, total_amount, loan_principal, loan_id, created_at, modified_at) VALUES (?,?,?,?,?,?,?)',
-        (loan['member_id'], _as_datetime(date.today().isoformat()), amount, to_apply, loan['loan_id'], now, now),
+        (loan['member_id'], _as_datetime(today_ist().isoformat()), amount, to_apply, loan['loan_id'], now, now),
     )
     pay_id = cur.lastrowid
     conn.commit()

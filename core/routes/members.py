@@ -1,4 +1,5 @@
 import os
+from core.config import now_ist, today_ist
 from datetime import datetime, date, timezone
 
 from flask import Blueprint, jsonify, request, current_app
@@ -33,7 +34,7 @@ def _save_uploaded_image(file, prefix: str):
         return None
     uploads = os.path.join(current_app.static_folder, 'uploads')
     os.makedirs(uploads, exist_ok=True)
-    fn = secure_filename(f"{prefix}_{datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y%m%d%H%M%S')}{ext}")
+    fn = secure_filename(f"{prefix}_{now_ist().strftime('%Y%m%d%H%M%S')}{ext}")
     path = os.path.join(uploads, fn)
     with open(path, 'wb') as f:
         f.write(data)
@@ -81,7 +82,7 @@ def get_member_route(member_id):
         return jsonify({'error': 'not found'}), 404
     for loan in m.get('loans', []):
         if loan['status'] == 'active':
-            compute_interest_accrued(loan, date.today())
+            compute_interest_accrued(loan, today_ist())
     m = get_member(member_id, full=True)
     return jsonify(strip_sensitive(m))
 

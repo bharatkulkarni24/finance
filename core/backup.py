@@ -14,6 +14,7 @@ import threading
 from datetime import datetime
 
 from core import config
+from core.config import now_ist
 
 BACKUP_DIR = os.path.join(config.BASE_DIR, 'backups')
 KEEP = 14            # rolling dated copies (one per day)
@@ -24,7 +25,7 @@ _lock = threading.Lock()
 
 
 def today_file() -> str:
-    return os.path.join(BACKUP_DIR, 'finance-' + datetime.now().strftime('%Y-%m-%d') + '.db')
+    return os.path.join(BACKUP_DIR, 'finance-' + now_ist().strftime('%Y-%m-%d') + '.db')
 
 
 def create_snapshot(dest_path: str) -> str:
