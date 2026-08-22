@@ -2466,6 +2466,10 @@ select,
     left: -18px; right: -18px;
     width: auto; /* base sets width:100%, which would defeat the right anchor */
     height: auto;
+    /* Horizontal crop tuning on phones: <50% slides the visible window
+       left over the photo, pushing the central deity toward true centre
+       and hiding the next god's hand at the right edge. */
+    background-position: 47.5% 25%;
   }
   .topbar.login-mode .login-header {
     flex-direction: column;
