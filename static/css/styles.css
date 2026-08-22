@@ -2548,6 +2548,12 @@ select,
   #pb-list .table th,
   #pb-list .table td { padding-left: 3px; padding-right: 3px; }
   #pb-list .table td:last-child { white-space: nowrap; }
+  #pb-list .pb-badge { padding: 2px 6px; }
+  .pb-tw-a, .pb-tw-b { display: block; }
+
+  /* ── My Account (mobile): show a few more history rows than desktop, keep
+        the inner scroll; Loans peek below and page-scroll reaches them ── */
+  .profile-grid .table-scroll { max-height: 480px; }
 
   /* ── Bigger icons (were too small on phones) ── */
   .gi-icon { font-size: 2.4rem; }

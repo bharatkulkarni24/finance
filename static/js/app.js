@@ -2815,7 +2815,10 @@ function applyPbFilters() {
       const cls = r.debit_credit === 'credit' ? '#34d399' : '#fca5a5'
       const sign = r.debit_credit === 'credit' ? '+' : '−'
       const dp = formatDateParts(r.ts)
-      const typeHtml = `<span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${t(r.category) || r.category}</span>`
+      const catText = t(r.category) || r.category
+      const cw = String(catText).split(' ')
+      const catHtml = cw.length > 1 ? `<span class="pb-tw-a">${escHtml(cw[0])}</span> <span class="pb-tw-b">${escHtml(cw.slice(1).join(' '))}</span>` : escHtml(catText)
+      const typeHtml = `<span class="pb-badge ${r.category.toLowerCase().replace(/\s+/g,'-')}">${catHtml}</span>`
       const rawName = r.member_name === 'Group Fund' ? t('Group Fund') : (r.member_name || '-')
       const nw = rawName.split(' ')
       const nmHtml = nw.length > 1 ? `<span class="pb-nm-a">${escHtml(nw[0])}</span><span class="pb-nm-b">${escHtml(nw.slice(1).join(' '))}</span>` : escHtml(rawName)
