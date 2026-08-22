@@ -1,5 +1,7 @@
 import sqlite3
 
+from werkzeug.security import generate_password_hash
+
 import core.config
 
 
@@ -364,15 +366,30 @@ def seed_db():
     if cur.fetchone()['c'] > 0:
         conn.close()
         return
+    # Full founding roster. Passwords: admins start with PIN "1000" (hashed);
+    # everyone else starts locked out ('') until an admin uses Reset Password.
+    # Names must stay byte-identical to KN_NAME_MAP keys in app.js so the
+    # Kannada spellings keep resolving.
     initial_members = [
         {'member_id': 1001, 'name': 'Govindrao Kulkarni', 'is_admin': 1},
         {'member_id': 1002, 'name': 'Bharat Kulkarni', 'is_admin': 1},
+        {'member_id': 1003, 'name': 'Bhargav Kulkarni', 'is_admin': 0},
+        {'member_id': 1004, 'name': 'Rohan Kulkarni', 'is_admin': 0},
+        {'member_id': 1005, 'name': 'Sangeeta Kulkarni', 'is_admin': 0},
+        {'member_id': 1006, 'name': 'Nachiket Bhenki', 'is_admin': 0},
+        {'member_id': 1007, 'name': 'Indiresh Joshi', 'is_admin': 0},
+        {'member_id': 1008, 'name': 'Kiran Joshi', 'is_admin': 0},
+        {'member_id': 1009, 'name': 'Suchiket Bhenki', 'is_admin': 0},
+        {'member_id': 1010, 'name': 'Sanjeev Joshi', 'is_admin': 0},
+        {'member_id': 1011, 'name': 'Indira Sarnad', 'is_admin': 0},
+        {'member_id': 1012, 'name': 'Bhimbhatt Bhenki', 'is_admin': 0},
     ]
+    joined = '2025-04-01'
     for member in initial_members:
-        joined = '2025-04-01'
+        password = generate_password_hash('1000') if member['is_admin'] else ''
         cur.execute(
-            'INSERT INTO members (member_id, name, phone, joined_date, entry_deposit_amount, is_admin, dob, address, photo_url) VALUES (?,?,?,?,?,?,?,?,?)',
-            (member['member_id'], member['name'], '', joined, 25000, member['is_admin'], '', '', ''),
+            'INSERT INTO members (member_id, name, phone, joined_date, entry_deposit_amount, is_admin, dob, address, photo_url, password) VALUES (?,?,?,?,?,?,?,?,?,?)',
+            (member['member_id'], member['name'], '', joined, 25000, member['is_admin'], '', '', '', password),
         )
     conn.commit()
     conn.close()
