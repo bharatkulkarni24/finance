@@ -985,6 +985,25 @@ function createDatePicker(input, opts = {}) {
         const pop = document.createElement('div')
         pop.className = 'flatpickr-nav-pop ' + popClass
         document.body.appendChild(pop)
+        // The popup lives outside the calendar container; without this,
+        // flatpickr treats option taps as "clicked outside" and slams the
+        // whole calendar shut before the choice registers.
+        ;['mousedown', 'mouseup', 'click', 'touchstart', 'focusin'].forEach(ev =>
+          pop.addEventListener(ev, (e) => e.stopPropagation())
+        )
+        // Wheel/touch over a popup that can't scroll (or is already at its
+        // edge) would otherwise chain to the page behind the calendar.
+        pop.addEventListener('wheel', (e) => {
+          const room = pop.scrollHeight - pop.clientHeight
+          if (room <= 0 || (e.deltaY > 0 ? pop.scrollTop >= room - 1 : pop.scrollTop <= 1)) e.preventDefault()
+        }, { passive: false })
+        let touchY = 0
+        pop.addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY }, { passive: true })
+        pop.addEventListener('touchmove', (e) => {
+          const room = pop.scrollHeight - pop.clientHeight
+          const goingUp = touchY - e.touches[0].clientY > 0
+          if (room <= 0 || (goingUp ? pop.scrollTop >= room - 1 : pop.scrollTop <= 1)) e.preventDefault()
+        }, { passive: false })
         const setSelected = (value) => {
           const opt = pop.querySelector('[data-value="' + value + '"]')
           if (!opt) return
@@ -1009,15 +1028,16 @@ function createDatePicker(input, opts = {}) {
         const open = () => {
           closeNavLists()
           const rect = btn.getBoundingClientRect()
-          pop.style.left = rect.left + 'px'
-          pop.style.top = (rect.bottom + 4) + 'px'
-          pop.style.bottom = 'auto'
+          const sx = window.scrollX || window.pageXOffset
+          const sy = window.scrollY || window.pageYOffset
           pop.classList.add('open')
+          // Anchor in document coordinates so the list travels with the
+          // calendar header when the page scrolls behind it.
           const h = pop.offsetHeight
-          if (rect.bottom + 4 + h > window.innerHeight - 8) {
-            pop.style.top = 'auto'
-            pop.style.bottom = (window.innerHeight - rect.top + 4) + 'px'
-          }
+          let vpTop = rect.bottom + 4
+          if (vpTop + h > window.innerHeight - 8) vpTop = Math.max(8, rect.top - h - 4)
+          pop.style.left = (rect.left + sx) + 'px'
+          pop.style.top = (vpTop + sy) + 'px'
           const cur = pop.querySelector('.selected')
           if (cur) pop.scrollTop = cur.offsetTop - pop.clientHeight / 2 + cur.clientHeight / 2
         }
@@ -2623,18 +2643,24 @@ function pbToggleFilter(col) {
   panel.style.cssText = 'z-index:20;width:270px;background:rgba(12,18,34,0.98);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:14px;backdrop-filter:blur(12px);box-shadow:0 24px 60px rgba(0,0,0,0.5);overflow-y:auto;scrollbar-width:thin;max-height:' + (window.innerHeight - 16) + 'px'
   document.body.appendChild(panel)
   const r = th.getBoundingClientRect()
-  panel.style.position = 'fixed'
-  panel.style.left = Math.max(4, Math.min(r.left + r.width/2 - 135, window.innerWidth - 278)) + 'px'
-  panel.style.top = (r.bottom + 4) + 'px'
-  const pr = panel.getBoundingClientRect()
-  if (pr.bottom > window.innerHeight - 8) {
+  const sx = window.scrollX || window.pageXOffset
+  const sy = window.scrollY || window.pageYOffset
+  // Anchor in document coordinates so the panel travels with its column
+  // header when the passbook scrolls behind it.
+  panel.style.position = 'absolute'
+  const ph = panel.offsetHeight
+  let vpLeft = Math.max(4, Math.min(r.left + r.width/2 - 135, window.innerWidth - 278))
+  let vpTop = r.bottom + 4
+  if (vpTop + ph > window.innerHeight - 8) {
     const upSpace = r.top - 8
     if (upSpace >= 200) {
-      panel.style.top = Math.max(8, r.top - Math.min(pr.height, upSpace) - 4) + 'px'
+      vpTop = Math.max(8, r.top - Math.min(ph, upSpace) - 4)
     } else {
-      panel.style.top = Math.max(8, window.innerHeight - Math.min(pr.height, window.innerHeight - 16) - 8) + 'px'
+      vpTop = Math.max(8, window.innerHeight - Math.min(ph, window.innerHeight - 16) - 8)
     }
   }
+  panel.style.left = (vpLeft + sx) + 'px'
+  panel.style.top = (vpTop + sy) + 'px'
   ;['pb-amt-min', 'pb-amt-max', 'pb-amt-exact'].forEach(id => {
     const el = document.getElementById(id)
     if (el) indianizeInput(el)
@@ -2659,7 +2685,9 @@ function pbCloseFilter() {
 }
 
 function pbCloseOutside(e) {
-  if (!e.target.closest('#pb-filter-panel') && !e.target.closest('.pb-sortable') && !e.target.closest('.flatpickr-calendar')) pbCloseFilter()
+  // Month/year nav popups live outside the calendar container; treat taps
+  // there as "inside" so choosing a month/year doesn't kill the filter panel.
+  if (!e.target.closest('#pb-filter-panel') && !e.target.closest('.pb-sortable') && !e.target.closest('.flatpickr-calendar') && !e.target.closest('.flatpickr-nav-pop') && !e.target.closest('.flatpickr-nav-btn')) pbCloseFilter()
 }
 
 function pbClearColFilter(col) {

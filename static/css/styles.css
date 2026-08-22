@@ -2224,7 +2224,7 @@ select,
 }
 .flatpickr-current-month .flatpickr-nav-btn:hover { background: rgba(255,255,255,0.04) }
 .flatpickr-nav-pop {
-  position: fixed;
+  position: absolute;
   z-index: 999999;
   display: none;
   margin: 0;
@@ -2234,9 +2234,10 @@ select,
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   overflow-y: auto;
+  overscroll-behavior: contain;
   box-sizing: border-box;
 }
-.flatpickr-nav-pop.month-pop { width: 136px; max-height: 288px }
+.flatpickr-nav-pop.month-pop { width: 136px; max-height: none; overflow-y: hidden }
 .flatpickr-nav-pop.year-pop { width: 112px; max-height: 144px }
 .flatpickr-nav-pop.open { display: block }
 .flatpickr-nav-opt {
@@ -2258,6 +2259,14 @@ select,
 }
 .flatpickr-nav-opt:hover { background: rgba(124,58,237,0.25); color: #e9d5ff }
 .flatpickr-nav-opt.selected { background: rgba(124,58,237,0.18); color: #a78bfa; font-weight: 600 }
+@media (max-width: 640px) {
+  .flatpickr-current-month .flatpickr-nav-btn { font-size: 1rem; padding: 8px 10px }
+  .flatpickr-nav-pop { padding: 6px }
+  .flatpickr-nav-pop.month-pop { width: 156px }
+  .flatpickr-nav-pop.month-pop .flatpickr-nav-opt { font-size: 15px; height: 38px; line-height: 38px }
+  .flatpickr-nav-pop.year-pop { width: 132px; max-height: 288px }
+  .flatpickr-nav-opt { font-size: 16px; height: 44px; line-height: 44px; border-radius: 6px }
+}
 .flatpickr-nav-pop::-webkit-scrollbar { width: 8px }
 .flatpickr-nav-pop::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.35); border-radius: 4px }
 .flatpickr-months .flatpickr-prev-month svg,
