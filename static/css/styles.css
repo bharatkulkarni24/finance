@@ -2441,7 +2441,14 @@ select,
   .page-title { font-size: 1.3rem; margin-bottom: 12px; }
 
   /* ── Login screen fills the whole phone screen, edge to edge ── */
-  .app:has(.topbar.login-mode) { padding: 0; }
+  .app:has(.topbar.login-mode) {
+    padding: 0;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh; /* true phone-viewport height even with URL bars */
+  }
   .topbar.login-mode {
     padding: 22px 18px;
     position: relative;
@@ -2450,7 +2457,16 @@ select,
     border-radius: 0;
     box-shadow: none;
   }
-  .topbar.login-mode .hero { position: absolute; inset: 0; height: 100%; }
+  /* Absolute inside the padded grid topbar: Chrome anchors inset:0 to the
+     CONTENT box, leaving blue bands top/bottom. Offset by the padding
+     (-22/-18) so the photo truly reaches every screen edge. */
+  .topbar.login-mode .hero {
+    position: absolute;
+    top: -22px; bottom: -22px;
+    left: -18px; right: -18px;
+    width: auto; /* base sets width:100%, which would defeat the right anchor */
+    height: auto;
+  }
   .topbar.login-mode .login-header {
     flex-direction: column;
     gap: 6px;
