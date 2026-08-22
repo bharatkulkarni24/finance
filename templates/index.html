@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
-    <link rel="stylesheet" href="/static/css/styles.css?v=78" />
+    <link rel="stylesheet" href="/static/css/styles.css?v=82" />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
   </head>
   <body>
@@ -52,7 +52,6 @@
 
         <div class="login-fields" id="login-fields">
           <div class="input-row">
-            <label for="member-select" data-i18n="Select Member">Select Member</label>
             <select id="member-select">
               {% if members %}
                 {% for m in members %}
@@ -62,7 +61,6 @@
             </select>
           </div>
           <div class="input-row">
-            <label for="admin-pin" data-i18n="Password">Password</label>
             <div style="position:relative;flex:1">
               <input id="admin-pin" type="password" placeholder="Enter password" />
               <span id="pin-toggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#94a3b8;font-size:18px;user-select:none">👁</span>
@@ -85,6 +83,6 @@
       </div>
       <div id="toast-container" aria-live="polite" style="position:fixed;right:18px;bottom:18px;z-index:9999"></div>
     </div>
-    <script src="/static/js/app.js?v=91"></script>
+    <script src="/static/js/app.js?v=92"></script>
   </body>
 </html>

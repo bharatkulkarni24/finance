@@ -2368,7 +2368,7 @@ select,
   body { overflow-x: hidden; }
 
   .app {
-    padding: 12px;
+    padding: 2px;
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;

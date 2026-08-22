@@ -2537,7 +2537,7 @@ async function renderAllMembers() {
 }
 
 async function renderPassbook() {
-  content.innerHTML = '<div class="panel"><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto">' + loadingHtml() + '</div></div>'
+  content.innerHTML = '<div class="panel pb-page"><div id="pb-active-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;min-height:0"></div><div id="pb-list" style="overflow-x:auto">' + loadingHtml() + '</div></div>'
   await loadPbData()
 }
 
