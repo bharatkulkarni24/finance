@@ -2254,6 +2254,7 @@ async function eeSave(e, overlay) {
     kind: e.kind,
     member_id: e.member_id,
     date: document.getElementById('ee-edit-date').value,
+    orig_date: e.date,
     contribution_id: e.contribution_id,
     transaction_id: e.transaction_id,
     payment_id: e.payment_id,

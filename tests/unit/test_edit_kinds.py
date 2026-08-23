@@ -160,3 +160,35 @@ class TestSharedValidation:
         n = conn.execute("SELECT COUNT(*) FROM audit_log WHERE action IN ('update','delete')").fetchone()[0]
         conn.close()
         assert n >= 3
+
+
+class TestSplitDateMove:
+    def _day_total(self, mid, day):
+        conn = get_conn()
+        n = conn.execute(
+            'SELECT COALESCE(SUM(total_amount),0) FROM member_ledger WHERE member_id=? AND substr(pay_date,1,10)=?',
+            (mid, day),
+        ).fetchone()[0]
+        conn.close()
+        return round(n, 2)
+
+    def test_resplit_moves_entry_to_new_date_without_duplicate(self):
+        mid = _add_member('Split Move')
+        edit_entry({'kind': 'split', 'member_id': mid, 'date': '2026-03-05',
+                    'share': 1000, 'fine': 50, 'loan_interest': 0, 'loan_principal': 0})
+        assert self._day_total(mid, '2026-03-05') == 1050
+        # Admin corrects: same split moved to the 7th
+        r = edit_entry({'kind': 'split', 'member_id': mid, 'date': '2026-03-07',
+                        'orig_date': '2026-03-05',
+                        'share': 1200, 'fine': 0, 'loan_interest': 0, 'loan_principal': 0})
+        assert r == {'status': 'ok'}
+        assert self._day_total(mid, '2026-03-05') == 0      # old day cleared
+        assert self._day_total(mid, '2026-03-07') == 1200   # corrected entry only
+
+    def test_resplit_same_day_still_works(self):
+        mid = _add_member('Split Same Day')
+        edit_entry({'kind': 'split', 'member_id': mid, 'date': '2026-04-02', 'share': 900})
+        r = edit_entry({'kind': 'split', 'member_id': mid, 'date': '2026-04-02',
+                        'orig_date': '2026-04-02', 'share': 950})
+        assert r == {'status': 'ok'}
+        assert self._day_total(mid, '2026-04-02') == 950

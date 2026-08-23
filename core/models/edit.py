@@ -423,10 +423,16 @@ def _day_split(cur, member_id, date):
     }
 
 
-def resplit(member_id, date, share, fine, loan_interest, loan_principal, changed_by=None):
-    """Set the full monthly payment split for one member on one date."""
+def resplit(member_id, date, share, fine, loan_interest, loan_principal, changed_by=None, orig_date=None):
+    """Set the full monthly payment split for one member on one date.
+
+    When a correction moves the payment to a different date (orig_date),
+    the rows on the original day are removed too, so the correction
+    REPLACES the old entry instead of leaving it behind as a duplicate.
+    """
     member_id = int(member_id)
     date = (date or '')[:10]
+    orig = (orig_date or '')[:10] if orig_date else ''
     share = float(share or 0)
     fine = float(fine or 0)
     loan_interest = float(loan_interest or 0)
@@ -434,9 +440,11 @@ def resplit(member_id, date, share, fine, loan_interest, loan_principal, changed
     conn = get_conn()
     cur = conn.cursor()
 
-    old = _day_split(cur, member_id, date)
-    _revert_loan_principal(cur, member_id, date)
-    cur.execute("DELETE FROM member_ledger WHERE member_id=? AND substr(pay_date,1,10)=? AND NOT (" + DEPOSIT_FILTER + ")", (member_id, date))
+    audit_day = orig or date
+    old = _day_split(cur, member_id, audit_day)
+    for day in dict.fromkeys([d for d in (orig, date) if d]):
+        _revert_loan_principal(cur, member_id, day)
+        cur.execute("DELETE FROM member_ledger WHERE member_id=? AND substr(pay_date,1,10)=? AND NOT (" + DEPOSIT_FILTER + ")", (member_id, day))
 
     total = round(share + fine + loan_interest + loan_principal, 2)
     new_pay_id = None
@@ -480,6 +488,7 @@ def edit_entry(data):
             data.get('loan_interest', 0),
             data.get('loan_principal', 0),
             data.get('changed_by'),
+            orig_date=data.get('orig_date'),
         )
 
     conn = get_conn()
