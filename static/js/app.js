@@ -1545,7 +1545,7 @@ async function renderHome() {
         </div>
         <div class="gi-card gi-onetime">
           <div class="gi-icon">💰</div>
-          <div class="gi-value">${stats?formatCurrency(stats.entry_deposit_total):'-'}</div>
+          <div class="gi-value">${stats?formatCurrency(stats.entry_deposit_per_member || 0):'-'}</div>
           <div class="gi-label">${t('Entry Deposit')}</div>
         </div>
         <div class="gi-card gi-period">
@@ -3165,7 +3165,9 @@ async function renderMemberProfile(memberId, mode) {
   const totalLoanPaid = allHistory.reduce((s, r) => s + r.loanPrincipal, 0)
   const totalInterest = allHistory.reduce((s, r) => s + r.loanInterest, 0)
   const totalFine = allHistory.reduce((s, r) => s + r.fine, 0)
-  let historyHeader = `<div class="history-totals"><span class="ht-chip ht-label">${t('Total')}</span><span class="ht-chip">${t('Share')} <strong>${formatCurrency(totalShare)}</strong></span><span class="ht-chip">${t('Loan Principal')} <strong>${formatCurrency(totalLoanPaid)}</strong></span>`
+  const grandTotal = totalShare + totalLoanPaid + totalInterest + totalFine
+  let historyHeader = `<div class="history-totals"><span class="ht-chip ht-label">${t('Total')} <strong>${formatCurrency(grandTotal)}</strong></span><span class="ht-chip">${t('Share')} <strong>${formatCurrency(totalShare)}</strong></span>`
+  if (totalLoanPaid > 0) historyHeader += `<span class="ht-chip">${t('Loan Principal')} <strong>${formatCurrency(totalLoanPaid)}</strong></span>`
   if (totalInterest > 0) historyHeader += `<span class="ht-chip">${t('Loan Interest')} <strong>${formatCurrency(totalInterest)}</strong></span>`
   if (totalFine > 0) historyHeader += `<span class="ht-chip">${t('Fine')} <strong>${formatCurrency(totalFine)}</strong></span>`
   historyHeader += '</div>'

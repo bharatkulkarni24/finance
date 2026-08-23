@@ -67,6 +67,10 @@ def _cash_snapshot(cur):
     dashboard stats and the insufficient-funds guards."""
     cur.execute("SELECT COALESCE(SUM(entry_deposit_amount),0) FROM members")
     entry_deposit_total = cur.fetchone()[0] or 0.0
+    # Per-member deposit for the Group Information card (uniform by group rule;
+    # MAX ignores any accidental 0). Plain read, no arithmetic.
+    cur.execute("SELECT COALESCE(MAX(entry_deposit_amount),0) FROM members")
+    entry_deposit_per_member = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(share_amount) FROM member_ledger")
     shares_total = cur.fetchone()[0] or 0.0
     cur.execute("SELECT SUM(loan_principal) FROM member_ledger")
@@ -93,6 +97,7 @@ def _cash_snapshot(cur):
     return {
         'total_collected': total_collected,
         'entry_deposit_total': entry_deposit_total,
+        'entry_deposit_per_member': entry_deposit_per_member,
         'shares_total': shares_total,
         'loan_principal_received': loan_principal_received,
         'loan_interest_received': loan_interest_received,
