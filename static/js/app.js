@@ -1476,10 +1476,10 @@ let summaryData = null
 async function renderHome() {
   const stats = await api('/admin/stats', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}}).catch(()=>null)
   summaryData = await api('/admin/period_summary', {headers: {'X-ADMIN-TOKEN': (state.adminToken || '')}}).catch(()=>null)
-  const months = (summaryData && summaryData.months) || []
-  const years = (summaryData && summaryData.years) || []
-  const defMonth = months.length ? months[months.length - 1] : ''
-  const defYear = years.length ? years[years.length - 1] : ''
+  const months = ((summaryData && summaryData.months) || []).slice().reverse()
+  const years = ((summaryData && summaryData.years) || []).slice().reverse()
+  const defMonth = months.length ? months[0] : ''
+  const defYear = years.length ? years[0] : ''
   const html = `
     <div class="panel">
       <h3 class="section-heading">${t('💰 Financial Overview')}</h3>
@@ -3004,11 +3004,16 @@ function enhanceAllSelects(root) {
       const sx = window.scrollX || window.pageXOffset
       const sy = window.scrollY || window.pageYOffset
       pop.classList.add('open')
-      pop.style.minWidth = Math.max(r.width, 160) + 'px'
+      // Never let the popup run past the right screen edge (small phones)
+      const pw = Math.min(Math.max(r.width, 160), window.innerWidth - 16)
+      pop.style.minWidth = pw + 'px'
       const h = pop.offsetHeight
       let top = r.bottom + sy + 4
       if (top + h > sy + window.innerHeight - 8) top = Math.max(sy + 8, r.top + sy - h - 4)
-      pop.style.left = (r.left + sx) + 'px'
+      let left = r.left + sx
+      if (left + pw > sx + window.innerWidth - 8) left = sx + window.innerWidth - 8 - pw
+      if (left < sx + 4) left = sx + 4
+      pop.style.left = left + 'px'
       pop.style.top = top + 'px'
       pop.scrollTop = 0
     }
